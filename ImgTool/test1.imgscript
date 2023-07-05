@@ -1,0 +1,109 @@
+0 verbosity
+
+# scaling to do
+7.7 scale sto
+
+1 gammacorrect sto
+
+# header
+scale rcl
+"scale factor"
+print print
+gammacorrect rcl
+"gamma correct"
+print print
+
+# loop over resizers
+nn bilinear bicubic lanczos3 lanczos4 depth
+itemloop
+
+# drop index, save type in named variable
+drop
+style sto
+# read file
+../lenna.bmp
+read
+
+# test
+#dup 
+#linear colorspace
+
+#../d1.bmp write drop
+#../d2.bmp write drop
+#halt
+
+#- abs 1 * 0 1 clamp ../diff.bmp write
+#depth printn 
+#halt
+
+# swap 1 1 gammacorrect rcl if
+
+dup
+
+dup2 YCbCr colorspace 
+RGB colorspace
+#- abs 1e8 * 0 1 clamp ../diff.bmp write
+psnr error
+halt 
+
+
+# gamma correct?
+dup linear colorspace swap 1 1 gammacorrect rcl if
+
+
+
+# test color space:
+#dup
+#linear colorspace
+#sRGB colorspace
+#psnr error
+#../lennacolor.bmp 
+#write
+#halt
+
+# prepare resize
+dup
+size
+
+dup2 h sto w sto
+
+scale rcl /
+swap
+scale rcl /
+swap
+
+style rcl resize
+
+#depth printn halt 
+
+#../monkey.bmp
+#save
+
+w rcl h rcl
+
+style rcl resize
+
+#dup
+#../lennaround.bmp
+#save
+
+#sRGB colorspace
+
+# gamma correct?
+dup sRGB colorspace swap 1 1 gammacorrect rcl if
+
+
+style rcl print
+ssim error
+psnr error
+mse error
+#print
+
+
+#depth
+#printn
+endloop
+done print
+#"dir /s"
+#system
+
