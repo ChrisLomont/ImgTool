@@ -1,3 +1,18 @@
+2 verbosity
+../lenna.bmp
+read
+0 0 getpixel
+4
+printn
+
+0 0 1 0 1 1 setpixel
+
+0 0 getpixel
+depth
+printn
+
+
+halt
 
 ../
 .+bmp

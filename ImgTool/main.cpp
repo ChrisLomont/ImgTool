@@ -360,6 +360,40 @@ void GetFiles(State & s, const string & args)
 	s.Push(fmt::format("{}",files.size()));
 }
 
+void PixelOp(State & s, const string & args)
+{
+	if (args == "getpixel")
+	{
+		auto j   = ParseInt(s.Pop<string>());
+		auto i   = ParseInt(s.Pop<string>());
+		auto img = s.Pop<ImagePtr>();
+		auto c = img->Get(i,j);
+		s.Push(img);
+		s.Push(c.r);
+		s.Push(c.g);
+		s.Push(c.b);
+		s.Push(c.a);
+	}
+	else if (args == "setpixel")
+	{
+		// { "setpixel", "img i j r g b a -> img, writes pixel", PixelOp },
+		auto a = ParseDouble(s.Pop<string>());
+		auto b = ParseDouble(s.Pop<string>());
+		auto g = ParseDouble(s.Pop<string>());
+		auto r = ParseDouble(s.Pop<string>());
+		auto j = ParseInt(s.Pop<string>());
+		auto i = ParseInt(s.Pop<string>());
+		auto img = s.Pop<ImagePtr>();
+		Color c(r,g,b,a);
+		img->Set(i, j, c);
+		s.Push(img);
+	}
+	else
+		throw runtime_error(fmt::format("Unknown pixel op {}",args));
+
+}
+
+
 vector<Command> commands = {
 	{"read","filename -> image",ReadImage},
 	{"write","image filename -> [] and outputs saved image",WriteImage},
@@ -368,6 +402,9 @@ vector<Command> commands = {
 	{"maxc","img -> max, max value of all r,g,b values in image",ImageError},
 	{"size","img -> w h, where w,h is size in pixels",ImageSize},
 	{"files","path regex -> f1 f2 ... fn n, reads files matching regex, pushes on stack with count",GetFiles},
+
+	{"getpixel","img i j -> img r g b a, reads pixel 0-1",PixelOp},
+	{"setpixel","img i j r g b a -> img, writes pixel 0-1",PixelOp},
 
 	// and,or,not,xor,rand, rdz(randseed), >>,<<	
 	// ticks = time, 
