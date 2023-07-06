@@ -31,7 +31,7 @@ using namespace std;
 * works on stack machine - can put images on stack, do ops
   
   TODO
-    - better parser, handles comments, strings inline
+  X - better parser, handles comments, strings inline
     - get files matching pattern
   X - lanczos, 
     - lanczos radial
@@ -340,6 +340,7 @@ vector<Command> commands = {
 	{"write","image filename -> [] and outputs saved image",WriteImage},
 	{"colorspace","image space -> image', where space=[linear|sRGB|YCbCr|RGB], does conversion",ColorTransform},
 	{"error","im1 im2 errtype -> errval, prints error type mse, psnr, ssim",ImageError},
+	{"maxc","img -> max, max value of all r,g,b values in image",ImageError},
 	{"size","img -> w h, where w,h is size in pixels",ImageSize},
 
 	// and,or,not,xor,rand, rdz(randseed), >>,<<	

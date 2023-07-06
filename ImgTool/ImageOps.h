@@ -405,21 +405,39 @@ double MetricSSIM(ImagePtr src, ImagePtr dst)
 // be careful about gamma or linear!
 void ImageError(State& s, const string& args)
 {
-	auto method = s.Pop<string>();
-	auto img2 = s.Pop<ImagePtr>();
-	auto img1 = s.Pop<ImagePtr>();
-	double err = 0;
-	if (method == "mse")
-		err = MetricMSE(img1, img2);
-	else if (method == "psnr")
-		err = MetricPSNR(img1, img2);
-	else if (method == "ssim")
-		err = MetricSSIM(img1, img2);
+	if (args == "maxc")
+	{
+		auto img = s.Pop<ImagePtr>();
+		double maxc = 0;
+		img->Apply([&](int i, int j) {
+			auto c = img->Get(i,j);
+			maxc = max(c.r, maxc);
+			maxc = max(c.g, maxc);
+			maxc = max(c.b, maxc);
+			return c;
+			});
+		cout << fmt::format("maxc {:0.3f}\n", maxc);
+		s.Push(format("{}", maxc));
+	}
 	else
-		cout << fmt::format("Error {} {}", method, err) << endl;
-	cout << fmt::format("{}: {:0.3f}\n", method, err);
-	s.Push(img1);
-	s.Push(img2);
+	{
+
+		auto method = s.Pop<string>();
+		auto img2 = s.Pop<ImagePtr>();
+		auto img1 = s.Pop<ImagePtr>();
+		double err = 0;
+		if (method == "mse")
+			err = MetricMSE(img1, img2);
+		else if (method == "psnr")
+			err = MetricPSNR(img1, img2);
+		else if (method == "ssim")
+			err = MetricSSIM(img1, img2);
+		else
+			cout << fmt::format("Error {} {}", method, err) << endl;
+		cout << fmt::format("{}: {:0.3f}\n", method, err);
+		s.Push(img1);
+		s.Push(img2);
+	}
 }
 
 void ReadImage(State& s, const string& args)
