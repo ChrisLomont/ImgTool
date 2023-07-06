@@ -258,9 +258,9 @@ void ResizeImage(State& s, const string& args)
 		h2 = (int)(round(h * m));
 	}
 	else
-		throw runtime_error(format("Unknown resize arg {}", method));
+		throw runtime_error(fmt::format("Unknown resize arg {}", method));
 	auto [w, h] = img->Size();
-	cout << format("Resizing {}, {}x{} -> {}x{}, ", method, w, h, w2, h2);
+	cout << fmt::format("Resizing {}, {}x{} -> {}x{}, ", method, w, h, w2, h2);
 	Timer timer;
 	if (method == "nn")
 		img = ResizeNN(img, w2, h2);
@@ -277,7 +277,7 @@ void ResizeImage(State& s, const string& args)
 	else if (method == "lanczosr3")
 		img = ResizeLanczosRadial(img, w2, h2, 3.0);
 	else
-		throw runtime_error(format("Unknown resize method {}", method));
+		throw runtime_error(fmt::format("Unknown resize method {}", method));
 	auto elapsed = timer.get_elapsed_time();
 	cout << Timer::format_us(elapsed) << endl;
 	s.Push(img);
@@ -416,8 +416,8 @@ void ImageError(State& s, const string& args)
 	else if (method == "ssim")
 		err = MetricSSIM(img1, img2);
 	else
-		cout << format("Error {} {}", method, err) << endl;
-	cout << format("{}: {:0.3f}\n", method, err);
+		cout << fmt::format("Error {} {}", method, err) << endl;
+	cout << fmt::format("{}: {:0.3f}\n", method, err);
 	s.Push(img1);
 	s.Push(img2);
 }
@@ -431,7 +431,7 @@ void ReadImage(State& s, const string& args)
 	unsigned char* data = stbi_load(filename.c_str(), &w, &h, &n, channels);
 	if (data == nullptr)
 	{
-		throw runtime_error(format("Cannot load file {}\n", filename));
+		throw runtime_error(fmt::format("Cannot load file {}\n", filename));
 	}
 	//cout << "Data " << data << endl;
 	auto img = make_shared<Image>(w, h, channels, data);

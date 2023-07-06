@@ -57,6 +57,6 @@ void ColorTransform(State& s, const string& args)
 	else if (method == "YCbCr")
 		img2->Apply([&](int i, int j) {return YCbCr(img1->Get(i, j)); });
 	else
-		throw runtime_error(format("Unknown color operation {}", method));
+		throw runtime_error(fmt::format("Unknown color operation {}", method));
 	s.Push(img2);
 }

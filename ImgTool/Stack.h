@@ -3,7 +3,6 @@
 #include <vector>
 #include <string>
 #include <iostream>
-#include <format>
 #include "Utils.h"
 
 #include "Image.h"
@@ -19,30 +18,30 @@ string FormatItem(Item & item, bool prefixType)
 		auto img = get<ImagePtr>(item);
 		auto [w, h] = img->Size();
 		return prefixType
-			? format("Image {} x {}", w, h)
-			: format("<Image>");
+			? fmt::format("Image {} x {}", w, h)
+			: fmt::format("<Image>");
 	}
 	else if (holds_alternative<string>(item))
 	{
 		return prefixType
-			? format("string {}", get<string>(item))
+			? fmt::format("string {}", get<string>(item))
 			: get<string>(item);
 	}
 	else if (holds_alternative<int>(item))
 	{
 		return prefixType
-			? format("int {}", get<int>(item))
-			: format("{}", get<int>(item));
+			? fmt::format("int {}", get<int>(item))
+			: fmt::format("{}", get<int>(item));
 
 	}
 	else if (holds_alternative<double>(item))
 	{
 		return prefixType
-			? format("double {}", get<double>(item))
-			: format("{}", get<double>(item));
+			? fmt::format("double {}", get<double>(item))
+			: fmt::format("{}", get<double>(item));
 	}
 	else
-		throw runtime_error(format("Unknown print type"));
+		throw runtime_error(fmt::format("Unknown print type"));
 }
 
 
@@ -143,7 +142,7 @@ public:
 		}
 		else if (arg == "depth")
 		{
-			Push(format("{}", nextopen));
+			Push(fmt::format("{}", nextopen));
 		}
 		/*
 	{"roll","x1 x2.. xn n -> , like rot, but n items ",StackOp,"roll"},
@@ -152,7 +151,7 @@ public:
 	{"unpick","X -> , NOT opposite of unpick. removes item level 1, ",StackOp,"unpick"},
 		*/
 		else
-			throw runtime_error(format("unknown stack op {}", arg));
+			throw runtime_error(fmt::format("unknown stack op {}", arg));
 	}
 
 	template<typename T>
@@ -167,7 +166,7 @@ public:
 
 		auto v = Pop();
 		if (!holds_alternative<T>(v))
-			throw runtime_error(format("Invalid popped item type"));
+			throw runtime_error(fmt::format("Invalid popped item type"));
 		return get<T>(v);
 	}
 	Item Pop()
@@ -181,7 +180,7 @@ public:
 	{
 		const auto & v = Peek(0);
 		if (!holds_alternative<T>(v))
-			throw runtime_error(format("Invalid popped item type."));
+			throw runtime_error(fmt::format("Invalid popped item type."));
 		return get<T>(stack[nextopen - 1]);
 	}
 	Item Peek(int n) const

@@ -2,12 +2,15 @@
 // chris lomont 2020-2023
 // resize, error metrics, gamma stuff
 #include <iostream>
-#include <format>
 #include <string>
 #include <cstring>
 #include <filesystem>
 #include <numbers>
 #include <fstream>
+
+// som compilers puke, even with c++ 20, so...
+//#include <format>
+#include "fmt/fmt/format.h"
 
 #include "Utils.h"
 #include "Image.h"
@@ -80,7 +83,7 @@ void StateOp(State& s, const string& args)
 void StackOp(State& s, const string& args)
 {
 	if (s.verbosity >= 1)
-		cout << format("Stack operation: {}\n", args);
+		cout << fmt::format("Stack operation: {}\n", args);
 
 	s.StackOp(args);
 }
@@ -89,8 +92,8 @@ void ImageSize(State& s, const string& args)
 {
 	auto img = s.Peek<ImagePtr>();
 	auto [w, h] = img->Size();
-	s.Push(format("{}", w));
-	s.Push(format("{}", h));
+	s.Push(fmt::format("{}", w));
+	s.Push(fmt::format("{}", h));
 }
 
 /*------------------------ Eval and operations -------------------------*/
@@ -108,7 +111,7 @@ void Do1(State& s,const UnaryFunc & f)
 	auto v = s.Pop();
 	if (holds_alternative<string>(v))
 	{
-		s.Push(format("{}", f(ParseDouble(get<string>(v)))));
+		s.Push(fmt::format("{}", f(ParseDouble(get<string>(v)))));
 	}
 	else if (holds_alternative<ImagePtr>(v))
 	{
@@ -132,7 +135,7 @@ void Do2(State& s, const BinaryFunc & f)
 		auto v1 = ParseDouble(get<string>(item1));
 		auto v2 = ParseDouble(get<string>(item2));
 		auto ans = f(v1, v2);
-		s.Push(format("{}", ans));
+		s.Push(fmt::format("{}", ans));
 	}
 	else if (holds_alternative<string>(item1) && holds_alternative<ImagePtr>(item2))
 	{
@@ -199,7 +202,7 @@ void Do3(State& s, const TrinaryFunc & f)
 	{
 		auto a = ParseDouble(get<string>(item));
 		auto v = f(a, b, c);
-		s.Push(format("{}", v));
+		s.Push(fmt::format("{}", v));
 	}
 	else if (holds_alternative<ImagePtr>(item))
 	{
@@ -311,7 +314,7 @@ void MathOp(State& s, const string& args)
 			return;
 		}
 	}
-	throw runtime_error(format("Unknown math op {}",args));
+	throw runtime_error(fmt::format("Unknown math op {}",args));
 }
 void Print(State& s, const string& args)
 {
@@ -324,7 +327,7 @@ void Print(State& s, const string& args)
 	{
 		auto v = s.Pop();
 		if (s.verbosity >= 2)
-			cout << format("{}: ",i);
+			cout << fmt::format("{}: ",i);
 		cout << FormatItem(v,s.verbosity>=2);
 	}
 	cout << endl;
@@ -446,7 +449,7 @@ void ShowUsage()
 	cout << "       Each command shows what it does to the stack.\n";
 	for (auto& c : commands)
 	{
-		cout << format("{:12}: {}\n", c.name, c.description);
+		cout << fmt::format("{:12}: {}\n", c.name, c.description);
 	}
 }
 
@@ -469,7 +472,7 @@ bool Process(const vector<string> & tokens, bool verbose)
 				if (c.name == token)
 				{
 					if (state.verbosity >= 2)
-						cout << format("Executing {}\n",c.name);
+						cout << fmt::format("Executing {}\n",c.name);
 					c.op(state, token);
 					break;
 				}
@@ -484,15 +487,15 @@ bool Process(const vector<string> & tokens, bool verbose)
 	}
 	catch (runtime_error & e)
 	{
-		cerr << format("Exception {}\n", e.what());
+		cerr << fmt::format("Exception {}\n", e.what());
 		return false;
 	}
 	catch (...)
 	{
-		cerr << format("Exception: should not reach this handler!");
+		cerr << fmt::format("Exception: should not reach this handler!");
 		return false;
 	}
-	cout << format("Stack depth on exit {}:",state.Pos());
+	cout << fmt::format("Stack depth on exit {}:",state.Pos());
 	return true;
 }
 
@@ -687,7 +690,7 @@ int main(int argc, char ** argv)
 			verbose = true;
 		}
 		else {
-			cerr << format("Unknown option {}\n",opt);
+			cerr << fmt::format("Unknown option {}\n",opt);
 			return -1;
 		}
 	}

@@ -34,6 +34,6 @@ public:
 	static string format_us(const duration_t& duration) {
 		using namespace std::chrono;
 		double t = duration_cast<microseconds>(duration).count();
-		return format("{:0.4f}us", t);
+		return fmt::format("{:0.4f}us", t);
 	}
 };

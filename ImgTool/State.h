@@ -101,12 +101,12 @@ public:
 			cout << "State vars:\n";
 			for (auto& i : vars)
 			{
-				cout << format("{}: {}\n", i.first, FormatItem(i.second, true));
+				cout << fmt::format("{}: {}\n", i.first, FormatItem(i.second, true));
 			}
 			cout << "State labels:\n";
 			for (auto& i : labels)
 			{
-				cout << format("{}: {}\n", i.first, i.second);
+				cout << fmt::format("{}: {}\n", i.first, i.second);
 
 			}
 		}
@@ -135,7 +135,7 @@ public:
 		{
 			auto cmd = Pop<string>();
 			auto retval = system(cmd.c_str());
-			Push(format("{}",retval));
+			Push(fmt::format("{}",retval));
 		}
 		else if (args=="verbosity")
 		{
@@ -155,7 +155,7 @@ public:
 				PushN(f);
 		}
 		else 
-			throw runtime_error(format("unknown state op {}",args));
+			throw runtime_error(fmt::format("unknown state op {}",args));
 	}
 	int programPosition{0};
 

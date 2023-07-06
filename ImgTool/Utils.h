@@ -1,6 +1,7 @@
 #pragma once
 #include <string>
 #include <algorithm>
+#include <regex>
 
 using namespace std; // todo - remove
 
@@ -32,11 +33,7 @@ using namespace std; // todo - remove
 	// can parse to double?
 	bool IsDouble(const string& text)
 	{
-		double result;
-		auto [ptr, ec] = from_chars(text.data(), text.data() + text.size(), result);
-		if (ptr == string("")&& ec==std::errc())
-			return true;
-		return false;
+		return regex_match(text, regex("^(-?)(0|([1-9][0-9]*))(\\.[0-9]+)?$"));
 	}
 
 	const std::string WHITESPACE = " \n\r\t\f\v";

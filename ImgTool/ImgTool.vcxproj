@@ -129,6 +129,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="fmt\format.cc" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
