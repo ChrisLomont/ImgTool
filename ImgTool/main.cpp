@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <numbers>
 #include <fstream>
+#include <regex>
 
 // som compilers puke, even with c++ 20, so...
 //#include <format>
@@ -30,6 +31,7 @@ using namespace std;
 * works on stack machine - can put images on stack, do ops
   
   TODO
+    - better parser, handles comments, strings inline
     - get files matching pattern
   X - lanczos, 
     - lanczos radial
@@ -639,26 +641,27 @@ void GetScriptTokens(vector<string> & tokens, const string & filename)
 	while (std::getline(file, line))
 	{
 		line = trim(line);
-		if (line.size() > 0 && line[0] == '#')
-		{ // comment line
-			continue;
-		}
-		// todo- better parser
-		if (line.size()>=2 && line[0] == '"' && line[line.size() - 1] == '"')
+
+		// string split by regex
+		// grab strings "..." whole
+		// take comment #... to end of line
+		// split on spaces
+		// ignore multiple spaces
+
+		regex rgx("(#.+$|\"[^\"]+\"|[^\\s]+)");
+		sregex_token_iterator iter(
+			line.begin(),
+			line.end(),
+			rgx);
+		sregex_token_iterator end;
+		for (; iter != end; ++iter)
 		{
-			// single line string for now
-			tokens.push_back(line.substr(1,line.size()-2));			
-			continue;
-		}
-
-		// constructing stream from the string
-		stringstream ss(line);
-		string token;
-
-		while (getline(ss, token, ' ')) {
-			token = trim(token);
-			if (token.size() > 0)
-				tokens.push_back(token);
+			string token = *iter;
+			//cout << format("tok: <{}>",token);
+			if (token[0] == '#') continue; // comment
+			if (token[0] == '"') token = token.substr(1, token.size() - 2); // string
+			//cout << format(" => <{}>\n", token);
+			tokens.push_back(token);
 		}
 	}
 }
