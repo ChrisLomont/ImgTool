@@ -335,6 +335,31 @@ void Print(State& s, const string& args)
 	cout << endl;
 }
 
+void GetFiles(State & s, const string & args)
+{
+	auto regtext = s.Pop<string>();
+	auto path    = s.Pop<string>();
+	vector<string> files;
+	regex reg(regtext);
+
+	for (const auto& entry : fs::directory_iterator(path))
+	{
+		if (entry.is_regular_file())
+		{
+			auto path = entry.path();
+			auto fn = path.filename().string();
+			if (regex_match(fn, reg))
+				files.push_back(path.string());
+		}
+	}
+	sort(files.begin(), files.end());
+	for (auto& f : files)
+	{
+		s.Push(f);
+	}
+	s.Push(fmt::format("{}",files.size()));
+}
+
 vector<Command> commands = {
 	{"read","filename -> image",ReadImage},
 	{"write","image filename -> [] and outputs saved image",WriteImage},
@@ -342,6 +367,7 @@ vector<Command> commands = {
 	{"error","im1 im2 errtype -> errval, prints error type mse, psnr, ssim",ImageError},
 	{"maxc","img -> max, max value of all r,g,b values in image",ImageError},
 	{"size","img -> w h, where w,h is size in pixels",ImageSize},
+	{"files","path regex -> f1 f2 ... fn n, reads files matching regex, pushes on stack with count",GetFiles},
 
 	// and,or,not,xor,rand, rdz(randseed), >>,<<	
 	// ticks = time, 

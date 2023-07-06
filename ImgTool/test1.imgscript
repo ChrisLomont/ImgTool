@@ -1,3 +1,15 @@
+
+../
+.+bmp
+files
+dup
+"file count"
+print
+print
+printn
+
+halt
+
 0 verbosity
 
 # scaling to do
