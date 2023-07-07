@@ -31,6 +31,15 @@ using namespace std;
 * works on stack machine - can put images on stack, do ops
   
   TODO
+    - clean command descriptions, order better
+	- use double instead of string for numerical stuff on stack, less conversions
+	- abstrct out Do0 - Do3, abstract handlers nicer
+    - string ==, != > < >= <= 
+    - array of items (incl other arrays)
+	- get and line args as "n getarg" to get nth arg, or maybe use rcl and special name
+	- eval a string as a set of commands
+	- check string construction
+	- printing of endlines?
   X - better parser, handles comments, strings inline
     - get files matching pattern
   X - lanczos, 
@@ -106,7 +115,7 @@ using TrinaryFunc = function<double(double, double, double)>;
 // todo - make these more table driven, Julia multi dispatch style
 void Do0(State& s, const NonaryFunc & f)
 {
-	throw runtime_error("Not implemented");
+	s.Push(format("{}",f()));
 }
 void Do1(State& s,const UnaryFunc & f)
 {
@@ -262,8 +271,8 @@ const vector<OpDef> opDefs = {
 	{"neg",[](double v) { return -v; }},
 	{"sign",[](double v) { return sgn(v); }},
 
-	{"pi",[]() { return std::numbers::pi; }},
-	{"e",[]() { return  std::numbers::e;  }},
+	{"pi",[]() { return (double)std::numbers::pi; }},
+	{"e",[]() { return  (double)std::numbers::e;  }},
 };
 
 // try string add, commit it if so, return true, else false
@@ -305,7 +314,7 @@ void MathOp(State& s, const string& args)
 				Do0(s, get<NonaryFunc>(v));
 			else if (holds_alternative<UnaryFunc>(v))
 				Do1(s, get<UnaryFunc>(v));
-			if (holds_alternative<UnaryFunc>(v))
+			else if (holds_alternative<UnaryFunc>(v))
 				Do1(s, get<UnaryFunc>(v));
 			else if (holds_alternative<BinaryFunc>(v))
 				Do2(s, get<BinaryFunc>(v));
@@ -395,8 +404,8 @@ void PixelOp(State & s, const string & args)
 
 
 vector<Command> commands = {
-	{"read","filename -> image",ReadImage},
-	{"write","image filename -> [] and outputs saved image",WriteImage},
+	{"read","filename -> image, loads image",ReadImage},
+	{"write","image filename -> ,  outputs saved image",WriteImage},
 	{"colorspace","image space -> image', where space=[linear|sRGB|YCbCr|RGB], does conversion",ColorTransform},
 	{"error","im1 im2 errtype -> errval, prints error type mse, psnr, ssim",ImageError},
 	{"maxc","img -> max, max value of all r,g,b values in image",ImageError},
@@ -445,15 +454,15 @@ vector<Command> commands = {
 	{"<","item1 item2 -> item1<item2, 0 if false, else 1",MathOp},
 
 	// image ops
-	{"resize","img w h style -> resize to w h by style nn,bilinear,bicubic,lanczos2,lanczos3,lanczos4",ResizeImage},
-	{"resize%","img v style -> resize by v%, style as above",ResizeImage},
-	{"resize*","img m style -> resize by multiplier m, style as above",ResizeImage},
+	{"resize","img w h style -> img', resize to w h by style nn,bilinear,bicubic,lanczos2,lanczos3,lanczos4",ResizeImage},
+	{"resize%","img v style -> img', resize by v%, style as above",ResizeImage},
+	{"resize*","img m style -> img', resize by multiplier m, style as above",ResizeImage},
 
 	{"gaussian","img s -> img' , gaussian blur, std dev s",GaussianBlur},
 
-	{"rotate","TODO: img angle expand -> rotate image by angle degrees, expand true makes bigger to center, false keeps size",RotateImage},
+	{"rotate","TODO: img angle expand -> img', rotate image by angle degrees, expand true makes bigger to center, false keeps size",RotateImage},
 
-	{"crop","img x1 y1 x2 y2 -> crop image to rectangle (x1,y1)-(x2,y2) inclusive", CropImage},
+	{"crop","img x1 y1 x2 y2 -> img', crop image to rectangle (x1,y1)-(x2,y2) inclusive", CropImage},
 	{"pad", "img top bottom left right r g b a -> img2, pad image with given color, given pixel margins", PadImage},
 	{"flipx", "img -> img2, flip image", FlipImage},
 	{"flipy", "img -> img2, flip image", FlipImage},
@@ -461,31 +470,31 @@ vector<Command> commands = {
 
 
 	// stack commands
-	{"dup","X -> X X, duplicates top item",StackOp},
-	{"dup2","X -> X X, duplicates top item",StackOp},
+	{"dup","a -> a a, duplicates top item",StackOp},
+	{"dup2","a b -> a b a b, duplicates top item",StackOp},
 	{"dupn","x1 x2 .. xn n -> x1 x2 .. xn x1 x2 .. xn, duplicate top n",StackOp},
-	{"drop","X -> , drops top item",StackOp},
-	{"drop2","X -> , drops top item",StackOp},
+	{"drop","a -> , drops top item",StackOp},
+	{"drop2","a b -> , drops top item",StackOp},
 	{"dropn","x1 x2 .. xn n -> , drops top n",StackOp},
-	{"swap","X -> , swaps top 2 items",StackOp},
-	{"over","X -> , copies item at level 2 to top",StackOp},
+	{"swap","a b -> b a , swaps top 2 items",StackOp},
+	{"over","a b -> a b a , copies item at level 2 to top",StackOp},
 	{"rot","3 2 1 -> 2 1 3 , rotates item in level 3 to level 1, 1 to 2, 2 to 3",StackOp},
 	{"unrot","3 2 1 -> 1 3 2 , rotates opposite of rot",StackOp},
-	{"roll","x1 x2.. xn n -> , like rot, but n items ",StackOp},
-	{"rolld","x1 x2 .. xn n -> , reverse of roll",StackOp},
-	{"pick","xn ... x1 n -> , copies item xn to top",StackOp},
+	{"roll","x1 x2.. xn n -> x2 x3 ... xn x1  , like rot, but n items ",StackOp},
+	{"rolld","x1 x2 .. xn n -> xn x1 x2 x3 ... xn-1 , reverse of roll",StackOp},
+	{"pick","xn ... x1 n -> xn ... x1 xn , copies item xn to top",StackOp},
 	{"unpick","X -> , NOT opposite of unpick. removes item level 1",StackOp},
-	{"depth","X -> , pushes depth to top of stack",StackOp},
+	{"depth","... -> n , pushes depth to top of stack",StackOp},
 
-	{"print","X -> , prints top item",Print},
-	{"printn","X.. n -> , prints top N items",Print},
+	{"print","item -> , prints top item",Print},
+	{"printn","x1 x2 ... xn  n -> , prints top N items",Print},
 
 	// flow & state
-	{"label", "name-> , create named label for next item index",StateOp},
+	{"label", "name -> , create named label for next item index",StateOp},
 	{"ja", "label -> , JumpAlways: goto label",StateOp},
 	{"je", "val label -> , JumpEqual: if val != 0, goto label",StateOp},
-	{"halt" ,"stops program", StateOp},
-	{"sto" ,"item, name -> , store item in name", StateOp},
+	{"halt" ,"-> , stops program", StateOp},
+	{"sto" ,"item name -> , store item in name", StateOp},
 	{"rcl" ,"name -> item, look up item", StateOp},
 	{"dumpstate" ," -> , print out state items", StateOp},
 	{"system" ,"cmd -> return_value, execute cmd on system call - WARNING - be careful!", StateOp},

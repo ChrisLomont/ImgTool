@@ -148,6 +148,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="test1.imgscript" />
+    <None Include="tests.imscript" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

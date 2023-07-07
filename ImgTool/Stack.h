@@ -144,6 +144,12 @@ public:
 		{
 			Push(fmt::format("{}", nextopen));
 		}
+		//else if (arg == "rolld")
+	//	{
+
+			//todo;
+
+	//	}
 		/*
 	{"roll","x1 x2.. xn n -> , like rot, but n items ",StackOp,"roll"},
 	{"rolld","x1 x2 .. xn n -> , reverse of rotn",StackOp,"rolld"},
