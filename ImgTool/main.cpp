@@ -9,7 +9,7 @@
 #include <fstream>
 #include <regex>
 
-// som compilers puke, even with c++ 20, so...
+// some compilers puke, even with c++ 20, so...
 //#include <format>
 #include "fmt/fmt/format.h"
 
@@ -40,8 +40,10 @@ using namespace std;
 	- eval a string as a set of commands
 	- check string construction
 	- printing of endlines?
+    - make CSV, would be good for running image tests
+    - test script to test all, catch regressions
   X - better parser, handles comments, strings inline
-    - get files matching pattern
+  X - get files matching pattern
   X - lanczos, 
     - lanczos radial
   X - test scripts
@@ -56,10 +58,11 @@ using namespace std;
     - shift image around ops?
     - blit and composite using alphas?
     - basic drawing, text
-    - pixel filter/draw stuff?
-    - Gaussian (good fast approx, Wells, PAMI, Mar 1986), edge stuff?, list filter to apply convolution?
-    - spawn command using std::system() calls
+  X - pixel get/set
 	- pixel functions
+	- more pixel ops
+    - Gaussian (good fast approx, Wells, PAMI, Mar 1986), edge stuff?, list filter to apply convolution?
+  X - spawn command using std::system() calls
 	- bilateral filter, noise, median filter, edge stuff?
 * And now we recreated Image Magic :)
 */
@@ -80,8 +83,6 @@ x   save result(1 or more images)
 save/dump total psnr, results, etc....
 
 */
-
-
 
 /*-----------------------------------------------------------------------*/
 
@@ -574,138 +575,6 @@ bool Process(const vector<string> & tokens, bool verbose)
 	return true;
 }
 
-void RunTest(const string & commandLine)
-{
-	vector<string> argTxt1{
-		"tool.exe",
-			"..\\lenna.bmp", "read",
-
-			"dup",
-			"1024", "1024", "nn", "resize",
-			//"..\\outmonkey.bmp","write",
-			"512", "512", "nn", "resize",
-			"psnr", "error",
-			"drop",
-
-			"dup",
-			"1024", "1024", "bilinear", "resize",
-			//"..\\outmonkey.bmp","write",
-			"512", "512", "bilinear", "resize",
-			"psnr", "error",
-			"drop",
-
-			"dup",
-			"1024", "1024", "bicubic", "resize",
-			//"..\\outmonkey.bmp","write",
-			"512", "512", "bicubic", "resize",
-			"psnr", "error",
-			"drop",
-
-			"dup",
-			"1024", "1024", "lanczos3", "resize",
-			//"..\\outmonkey.bmp","write",
-			"512", "512", "lanczos3", "resize",
-			"psnr", "error",
-			"drop",
-
-			"dup",
-			"1024", "1024", "lanczos3r", "resize",
-			//"..\\outmonkey.bmp","write",
-			"512", "512", "lanczos3r", "resize",
-			"psnr", "error",
-			"drop",
-
-	};
-	vector<string> argTxt2{
-		"tool.exe",
-			"..\\lenna.bmp", "read",
-			"dup",
-			"size",
-			"rot",
-			//"depth","printn",
-			"128","128","bilinear","resize",
-			"rot","rot",
-			//"depth","printn",
-			"bilinear", "resize",
-			"-","abs",
-			"40","*","0","1","clamp",
-			"..\\diff.bmp","write"
-			//"depth", "printn",
-	};
-
-	vector<string> argTxt3{
-		"tool.exe",
-			// loop over resizers
-			"nn","bilinear","bicubic","lanczos3","4","itemloop",
-			"drop", // drop index, keep word
-			"depth","max_resizer","sto",
-			// loop over metrics, count of them
-			"mse","psnr","ssim","3","itemloop",
-			"drop", // drop index, keep word
-
-			// read an image, leave on stack
-			"..\\lenna.bmp", "read",
-			// stack: resizer, metric, image
-
-			"endloop", // metric
-			"endloop", // resizer
-			"halt", // exit
-
-			"depth", "max_resizer", "rcl","-","max_metric","sto",
-
-			// read an image, leave on stack
-			"..\\lenna.bmp", "read",
-
-			// loop top label
-			"loop1","label",
-
-			"dumpstate", // debug
-			"halt", // exit
-
-			// do work
-			"dup",
-			"size",
-			"rot",
-			//"depth","printn",
-			"128", "128", "bilinear", "resize",
-			"rot", "rot",
-			//"depth","printn",
-			"bilinear", "resize",
-			"-", "abs",
-			"40", "*", "0", "1", "clamp",
-			"..\\diff.bmp", "write"
-			//"depth", "printn",
-	};
-	// test loops
-	vector<string> argTxt4{
-		"tool.exe",
-			"1","4","rangeloop",
-			"print",
-			"endloop",
-			"done","print"
-	};
-	// test loops
-	vector<string> argTxt5{
-		"tool.exe",
-			"bob","chad","monkey","1.234","4", // 4 items to loop
-			"itemloop",
-			"print",
-			"print",
-			"endloop",
-			"done", "print"
-	};
-	vector<string> argTxt6{
-		"tool.exe",
-			"3", "-2", "rangeloop",
-			"print",
-			"endloop",
-			"done", "print"
-	};
-
-	auto& argText = argTxt3;
-
-	Process(argText, true);
-}
 
 void GetScriptTokens(vector<string> & tokens, const string & filename)
 {
@@ -774,8 +643,9 @@ int main(int argc, char ** argv)
 	for (int i = argpos; i < argc; ++i)
 		tokens.push_back(argv[i]);
 
-	std::cout << "Current path is " << fs::current_path() << '\n'; 
-	//RunTest(""); return 0;
-	return Process(tokens, verbose) ? 1 : 0;
+	cout << "Current path is " << fs::current_path() << '\n'; 
+	auto retval = Process(tokens, verbose) ? 1 : 0;
+	cout << "Done\n";
+	return retval;
 }
 

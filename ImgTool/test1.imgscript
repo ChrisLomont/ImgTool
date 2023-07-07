@@ -1,6 +1,14 @@
 2 verbosity
 ../lenna.bmp
 read
+dup
+maxc
+drop
+10 /
+maxc
+halt
+
+read
 0 0 getpixel
 4
 printn
