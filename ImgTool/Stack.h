@@ -144,18 +144,30 @@ public:
 		{
 			Push(fmt::format("{}", nextopen));
 		}
-		//else if (arg == "rolld")
-	//	{
-
-			//todo;
-
-	//	}
-		/*
-	{"roll","x1 x2.. xn n -> , like rot, but n items ",StackOp,"roll"},
-	{"rolld","x1 x2 .. xn n -> , reverse of rotn",StackOp,"rolld"},
-	{"pick","xn ... x1 n -> , copies item xn to top",StackOp,"pick"},
-	{"unpick","X -> , NOT opposite of unpick. removes item level 1, ",StackOp,"unpick"},
-		*/
+		else if (arg == "roll")
+		{
+			int n = ParseInt(Pop<string>());
+			auto vec = PopN(n);
+			for (int i = n-2; i >= 0; --i)
+				Push(vec[i]);
+			if (n>0)
+				Push(vec[n-1]);
+		}
+		else if (arg == "rolld")
+		{
+			int n = ParseInt(Pop<string>());
+			auto vec = PopN(n);
+			if (n > 0)
+				Push(vec[0]);
+			for (int i = n - 1; i >= 1; --i)
+				Push(vec[i]);
+		}
+		else if (arg == "pick")
+		{
+			int n = ParseInt(Pop<string>());
+			auto item = Peek(n);
+			Push(item);
+		}
 		else
 			throw runtime_error(fmt::format("unknown stack op {}", arg));
 	}

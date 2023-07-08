@@ -1,6 +1,5 @@
 # imscript tests
 0 verbosity
-
 "when done, this should print # of errors, # of successes, and TESTS DONE" print
 
 # counters
@@ -10,6 +9,7 @@
 0 0 == # should be 1 on stack
 # this line is general test counter
 successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+
 
 5 6 == 1 -
 successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
@@ -67,6 +67,9 @@ successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 
+#ok print halt
+
+
 1.5 round 2 == # this tricky - float round to even?
 2.5 round 3 ==
 1.499 round 1 ==
@@ -117,12 +120,16 @@ successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 # TODO - STRING COMPARISONS
 
 # ---------------------------------- STACK OPS -----------------------
+ok1 print 
+
 1 2 drop 1 ==
 2 1 drop 2 ==
 depth 2 ==
 successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+
+ok2 print
 
 3 dup + 6 ==
 successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
@@ -162,19 +169,80 @@ successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 5 6 7 drop2 5 ==
 successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 
+3 2 1 rot 3 ==
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+1 ==
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+2 == 
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+3 2 1 rot unrot
+1 ==
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+2 ==
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+3 ==
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 
-#	// stack commands
-#	{"swap","X -> , swaps top 2 items",StackOp},
-#	{"over","X -> , copies item at level 2 to top",StackOp},
-#	{"rot","3 2 1 -> 2 1 3 , rotates item in level 3 to level 1, 1 to 2, 2 to 3",StackOp},
-#	{"unrot","3 2 1 -> 1 3 2 , rotates opposite of rot",StackOp},
-#	{"roll","x1 x2.. xn n -> , like rot, but n items ",StackOp},
-#	{"rolld","x1 x2 .. xn n -> , reverse of roll",StackOp},
-#	{"pick","xn ... x1 n -> , copies item xn to top",StackOp},
-#	{"unpick","X -> , NOT opposite of unpick. removes item level 1",StackOp},
-#	{"depth","X -> , pushes depth to top of stack",StackOp},
+1 2 over
+1 ==
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+2 == 
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+1 ==
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 
+1 2 depth 2 ==
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+drop2
+depth 0 ==
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 
+1 2 3 4 5 4 roll # should now be 1 3 4 5 2
+2 ==
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+5 ==
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+4 ==
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+3 ==
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+1 ==
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+
+1 2 3 4 5 4 rolld # should now be 1 5 2 3 4
+4 ==
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+3 ==
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+2 ==
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+5 ==
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+1 ==
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+
+8 7 6 5 
+2 pick 7 ==
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+0 pick 5 ==
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+3 pick 8 ==
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+4 dropn
+
+# ---------------------------------- STRING OPS ------------------------
+a a == 
+
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+halt
+this
+" "
+is
+" one line " + + +
+"this is one line " == 
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+depth 0 == 
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 
 
 
@@ -187,6 +255,9 @@ successes rcl print
 
 "TESTS DONE"
 print
+
+halt
+"if you see this, halt doesn't work" print
 
 
 
@@ -221,32 +292,11 @@ print
 #	{"flipy", "img -> img2, flip image", FlipImage},
 #	// todo - draw, text, trim
 #
-#
-#	// stack commands
-#	{"dup","X -> X X, duplicates top item",StackOp},
-#	{"dup2","X -> X X, duplicates top item",StackOp},
-#	{"dupn","x1 x2 .. xn n -> x1 x2 .. xn x1 x2 .. xn, duplicate top n",StackOp},
-#	{"drop","X -> , drops top item",StackOp},
-#	{"drop2","X -> , drops top item",StackOp},
-#	{"dropn","x1 x2 .. xn n -> , drops top n",StackOp},
-#	{"swap","X -> , swaps top 2 items",StackOp},
-#	{"over","X -> , copies item at level 2 to top",StackOp},
-#	{"rot","3 2 1 -> 2 1 3 , rotates item in level 3 to level 1, 1 to 2, 2 to 3",StackOp},
-#	{"unrot","3 2 1 -> 1 3 2 , rotates opposite of rot",StackOp},
-#	{"roll","x1 x2.. xn n -> , like rot, but n items ",StackOp},
-#	{"rolld","x1 x2 .. xn n -> , reverse of roll",StackOp},
-#	{"pick","xn ... x1 n -> , copies item xn to top",StackOp},
-#	{"unpick","X -> , NOT opposite of unpick. removes item level 1",StackOp},
-#	{"depth","X -> , pushes depth to top of stack",StackOp},
-#
-#	{"print","X -> , prints top item",Print},
-#	{"printn","X.. n -> , prints top N items",Print},
-#
+
 #	// flow & state
 #	{"label", "name-> , create named label for next item index",StateOp},
 #	{"ja", "label -> , JumpAlways: goto label",StateOp},
 #	{"je", "val label -> , JumpEqual: if val != 0, goto label",StateOp},
-#	{"halt" ,"stops program", StateOp},
 #	{"sto" ,"item, name -> , store item in name", StateOp},
 #	{"rcl" ,"name -> item, look up item", StateOp},
 #	{"dumpstate" ," -> , print out state items", StateOp},

@@ -33,7 +33,7 @@ using namespace std;
   TODO
     - clean command descriptions, order better
 	- use double instead of string for numerical stuff on stack, less conversions
-	- abstrct out Do0 - Do3, abstract handlers nicer
+	- abstract out Do0 - Do3, abstract handlers nicer
     - string ==, != > < >= <= 
     - array of items (incl other arrays)
 	- get and line args as "n getarg" to get nth arg, or maybe use rcl and special name
@@ -277,8 +277,9 @@ const vector<OpDef> opDefs = {
 };
 
 // try string add, commit it if so, return true, else false
-bool StringAdd(State & s)
+bool StringOp(State & s, const string & args)
 {
+	if (s.Pos() < 2) return false;
 	auto i1 = s.Pop();
 	auto i2 = s.Pop();
 	if (holds_alternative<string>(i1) && holds_alternative<string>(i2))
@@ -287,8 +288,43 @@ bool StringAdd(State & s)
 		auto s2 = get<string>(i2);
 		if (!IsDouble(s1) && !IsDouble(s2))
 		{
-			s.Push(s1 + s2);
-			return true;
+			if (args == "+")
+			{
+				s.Push(s2 + s1);
+				return true;
+			}
+			/*
+			else if (args == "==")
+			{
+				s.Push(s2 == s1 ? "1" : "0");
+				return true;
+			}
+			else if (args == "!=")
+			{
+				s.Push(s2 != s1 ? "1" : "0");
+				return true;
+			}
+			else if (args == "<")
+			{
+				s.Push(s2 < s1 ? "1" : "0");
+				return true;
+			}
+			else if (args == ">")
+			{
+				s.Push(s2 > s1 ? "1" : "0");
+				return true;
+			}
+			else if (args == "<=")
+			{
+				s.Push(s2 <= s1 ? "1" : "0");
+				return true;
+			}
+			else if (args == ">=")
+			{
+				s.Push(s2 >= s1 ? "1" : "0");
+				return true;
+			}
+			*/
 		}
 	}
 	// put back
@@ -297,11 +333,12 @@ bool StringAdd(State & s)
 	return false;
 }
 
+
 void MathOp(State& s, const string& args)
 {
-	// special case: string + :|
+	// special case: string ops: +, ==, !=, <, >, <=, >=
 	// todo - make better way to merge these
-	if (args == "+" && StringAdd(s))
+	if (StringOp(s, args))
 	{
 		return;
 	}
@@ -484,7 +521,7 @@ vector<Command> commands = {
 	{"roll","x1 x2.. xn n -> x2 x3 ... xn x1  , like rot, but n items ",StackOp},
 	{"rolld","x1 x2 .. xn n -> xn x1 x2 x3 ... xn-1 , reverse of roll",StackOp},
 	{"pick","xn ... x1 n -> xn ... x1 xn , copies item xn to top",StackOp},
-	{"unpick","X -> , NOT opposite of unpick. removes item level 1",StackOp},
+// todo - ??	{"unpick","X -> , NOT opposite of unpick. removes item level 1",StackOp},
 	{"depth","... -> n , pushes depth to top of stack",StackOp},
 
 	{"print","item -> , prints top item",Print},
