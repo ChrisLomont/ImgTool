@@ -201,12 +201,13 @@ void ResizeImage(State& s, const string& args)
 	int w2 = 0, h2 = 0;
 	if (args == "resize")
 	{
+		// compute output width, height
+		h2 = s.PopInt();
+		w2 = s.PopInt();
+
 		img = s.Pop<ImagePtr>();
 		auto [w, h] = img->Size();
 
-		// compute output width, height
-		w2 = s.PopInt();
-		h2 = s.PopInt();
 		if (w2 == 0)
 		{
 			// w2/h2 = w/h
@@ -237,7 +238,8 @@ void ResizeImage(State& s, const string& args)
 	else
 		throw runtime_error(fmt::format("Unknown resize arg {}", method));
 	auto [w, h] = img->Size();
-	cout << fmt::format("Resizing {}, {}x{} -> {}x{}, ", method, w, h, w2, h2);
+	if (s.verbosity >= 1)
+		cout << fmt::format("Resizing {}, {}x{} -> {}x{}, ", method, w, h, w2, h2);
 	Timer timer;
 	if (method == "nn")
 		img = ResizeNN(img, w2, h2);
@@ -256,7 +258,8 @@ void ResizeImage(State& s, const string& args)
 	else
 		throw runtime_error(fmt::format("Unknown resize method {}", method));
 	auto elapsed = timer.get_elapsed_time();
-	cout << Timer::format_us(elapsed) << endl;
+	if (s.verbosity >= 1)
+		cout << Timer::format_us(elapsed) << endl;
 	s.Push(img);
 };
 
@@ -382,6 +385,7 @@ double MetricSSIM(ImagePtr src, ImagePtr dst)
 // be careful about gamma or linear!
 void ImageError(State& s, const string& args)
 {
+	string msg{ "" };
 	if (args == "maxc")
 	{
 		auto img = s.Pop<ImagePtr>();
@@ -393,7 +397,7 @@ void ImageError(State& s, const string& args)
 			maxc = max(c.b, maxc);
 			return c;
 			});
-		cout << fmt::format("maxc {:0.3f}\n", maxc);
+		msg = fmt::format("maxc {:0.3f}\n", maxc);
 		s.Push(maxc);
 	}
 	else
@@ -402,6 +406,10 @@ void ImageError(State& s, const string& args)
 		auto method = s.Pop<string>();
 		auto img2 = s.Pop<ImagePtr>();
 		auto img1 = s.Pop<ImagePtr>();
+		auto [w1, h1] = img1->Size();
+		auto [w2, h2] = img2->Size();
+		if (w1 != w2 || h1 != h2)
+			throw runtime_error(fmt::format("Error size mismatch {}x{} vs {}x{}",w1,h1,w2,h2));
 		double err = 0;
 		if (method == "mse")
 			err = MetricMSE(img1, img2);
@@ -410,11 +418,14 @@ void ImageError(State& s, const string& args)
 		else if (method == "ssim")
 			err = MetricSSIM(img1, img2);
 		else
-			cout << fmt::format("Error {} {}", method, err) << endl;
-		cout << fmt::format("{}: {:0.3f}\n", method, err);
+			cout << fmt::format("Error - unknown metric {} {}", method, err) << endl;
+		msg = fmt::format("{}: {:0.3f}\n", method, err);
 		s.Push(img1);
 		s.Push(img2);
+		s.Push(err);
 	}
+	if (s.verbosity >= 1)
+		cout << msg;
 }
 
 void ReadImage(State& s, const string& args)
@@ -422,7 +433,8 @@ void ReadImage(State& s, const string& args)
 	int w, h, n;
 	int channels = 4; // request RGBA
 	string filename = s.Pop<string>();
-	cout << "Reading " << filename << endl;
+	if (s.verbosity >= 1)
+		cout << "Reading " << filename << endl;
 	unsigned char* data = stbi_load(filename.c_str(), &w, &h, &n, channels);
 	if (data == nullptr)
 	{

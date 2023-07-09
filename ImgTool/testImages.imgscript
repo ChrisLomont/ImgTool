@@ -1,144 +1,135 @@
-2 verbosity
-../lenna.bmp
-read
-dup
-maxc
-drop
-10 /
-maxc
-halt
-
-read
-0 0 getpixel
-4
-printn
-
-0 0 1 0 1 1 setpixel
-
-0 0 getpixel
-depth
-printn
-
-
-halt
-
-../
-.+bmp
-files
-dup
-"file count"
-print
-print
-printn
-
-halt
-
+#inage testing
 0 verbosity
 
-# scaling to do
-7.7 scale sto
-
-1 gammacorrect sto
-
-# header
-scale rcl
-"scale factor"
-print print
-gammacorrect rcl
-"gamma correct"
-print print
-
-# loop over resizers
-nn bilinear bicubic lanczos3 lanczos4 depth
-itemloop
-
-# drop index, save type in named variable
-drop
-style sto
-# read file
-../lenna.bmp
-read
-
-# test
-#dup 
-#linear colorspace
-
-#../d1.bmp write drop
-#../d2.bmp write drop
-#halt
-
-#- abs 1 * 0 1 clamp ../diff.bmp write
-#depth printn 
-#halt
-
-# swap 1 1 gammacorrect rcl if
-
-dup
-
-dup2 YCbCr colorspace 
-RGB colorspace
-#- abs 1e8 * 0 1 clamp ../diff.bmp write
-psnr error
-halt 
+# counters
+0 errors sto 0 successes sto
 
 
-# gamma correct?
-dup linear colorspace swap 1 1 gammacorrect rcl if
+../images/
+path sto # path to images
 
+path rcl
+[a-z].+(png|bmp)
+files
+depth
+6 ==
+# this line is general test counter
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 
+# clear stack
+depth dropn
 
-# test color space:
-#dup
-#linear colorspace
-#sRGB colorspace
-#psnr error
-#../lennacolor.bmp 
-#write
-#halt
+path rcl "lenna.bmp" + read lenna sto # store an image
 
-# prepare resize
-dup
+lenna rcl
 size
+512 == swap
+512 == swap
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 
-dup2 h sto w sto
+dup maxc 0.940 > # largest pixel
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 
-scale rcl /
-swap
-scale rcl /
-swap
+dup 128 64 bilinear resize
+dup size 64 == swap 128 == swap
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+dup 512 512 bilinear resize
 
-style rcl resize
+# some metrics
+mse error # 0.125 or so
 
-#depth printn halt 
+dup 0.3 < swap 0.05 > # check bound
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 
-#../monkey.bmp
-#save
-
-w rcl h rcl
-
-style rcl resize
-
-#dup
-#../lennaround.bmp
-#save
-
-#sRGB colorspace
-
-# gamma correct?
-dup sRGB colorspace swap 1 1 gammacorrect rcl if
+psnr error # 9.125 or so
+dup 15 < swap 6 > # check bound
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 
 
-style rcl print
-ssim error
+ssim error # 0.571 or so
+dup 0.6 < swap 0.5 > # check bound
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+
+# clear
+depth dropn
+lenna rcl
+dup
+
+ssim error # 1.000
+1 - abs 1e-5 <
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+
+25 bicubic resize%
+size 128 == swap 128 == 
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+
+512 512 bicubic resize
 psnr error
-mse error
-#print
+25 >
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+
+depth dropn
+
+lenna rcl
+
+depth printn
+
+#	{"resize","img w h style -> resize to w h by style nn,bilinear,bicubic,lanczos2,lanczos3,lanczos4",ResizeImage},
 
 
-#depth
-#printn
-endloop
-done print
-#"dir /s"
-#system
+# ---------------------------------- TODO _ TEST THESE -----------------------
+#	{"write","image filename -> [] and outputs saved image",WriteImage},
+#	{"colorspace","image space -> image', where space=[linear|sRGB|YCbCr|RGB], does conversion",ColorTransform},
+#
+#	{"getpixel","img i j -> img r g b a, reads pixel 0-1",PixelOp},
+#	{"setpixel","img i j r g b a -> img, writes pixel 0-1",PixelOp},
+#
+#	// and,or,not,xor,rand, rdz(randseed), >>,<<	
+#	// ticks = time, 
+#	// type - object type
+#
+#	// image ops
+#	{"resize","img w h style -> resize to w h by style nn,bilinear,bicubic,lanczos2,lanczos3,lanczos4",ResizeImage},
+#	{"resize%","img v style -> resize by v%, style as above",ResizeImage},
+#	{"resize*","img m style -> resize by multiplier m, style as above",ResizeImage},
+#
+#	{"gaussian","img s -> img' , gaussian blur, std dev s",GaussianBlur},
+#
+#	{"rotate","TODO: img angle expand -> rotate image by angle degrees, expand true makes bigger to center, false keeps size",RotateImage},
+#
+#	{"crop","img x1 y1 x2 y2 -> crop image to rectangle (x1,y1)-(x2,y2) inclusive", CropImage},
+#	{"pad", "img top bottom left right r g b a -> img2, pad image with given color, given pixel margins", PadImage},
+#	{"flipx", "img -> img2, flip image", FlipImage},
+#	{"flipy", "img -> img2, flip image", FlipImage},
+#	// todo - draw, text, trim
+#
+
+#	// flow & state
+#	{"dumpstate" ," -> , print out state items", StateOp},
+#	{"system" ,"cmd -> return_value, execute cmd on system call - WARNING - be careful!", StateOp},
+#	{"if","t1 t2 .. tn f1 f2 .. fm n m b -> ti or fj, if b != 0, keep t1..tn, else keep f1..fm", StateOp},
+#
+
+
+# ---------------------------------- PRINT STATS -----------------------
+# get stats
+"Number of errors: " print
+errors rcl print
+"Number of successes: " print
+successes rcl print
+
+"TESTS DONE"
+print
+
+0 halt
+"if you see this, halt doesn't work" print
+-1 halt
+
+# end of file
 

@@ -19,7 +19,7 @@ string FormatItem(Item & item, bool prefixType)
 		auto [w, h] = img->Size();
 		return prefixType
 			? fmt::format("Image {} x {}", w, h)
-			: fmt::format("<Image>");
+			: fmt::format("<Image {}x{}>",w,h);
 	}
 	else if (holds_alternative<string>(item))
 	{

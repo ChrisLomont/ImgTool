@@ -69,5 +69,6 @@
   <ItemGroup>
     <None Include="testImages.imgscript" />
     <None Include="tests.imgscript" />
+    <None Include="example.imgscript" />
   </ItemGroup>
 </Project>

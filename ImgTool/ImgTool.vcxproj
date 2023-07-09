@@ -148,6 +148,7 @@
     <ClInclude Include="Utils.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="example.imgscript" />
     <None Include="testImages.imgscript" />
     <None Include="tests.imgscript" />
   </ItemGroup>

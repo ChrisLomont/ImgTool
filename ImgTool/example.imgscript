@@ -1,0 +1,122 @@
+# example image script
+#
+#  loop over images in directory
+#    loop over resizing methods: nn, bilinear, bicubic, lanczos
+#       loop over resizing multipliers: 0.25, 0.5, 0.75, 1.25, 1.5, 1.75, 2.0, 2.5
+#          resize image
+#          save as temp image
+#          run external script 
+#          load temp image
+#          resize back
+#          loop over error methods: mse, pnsr, ssim
+#             output result
+
+# some useful debugging lines to intersperse
+
+# hit1 print 
+# depth printn 0 halt
+
+0 verbosity
+
+0 outindex sto # for file writing indices out
+
+0 1
+2 itemloop # loop over gamma correction off, on
+gammaindex sto
+gamma_on sto
+
+../images/         # path
+^.+(bmp|png)$      # regex for files of png or bmp type
+files              # read files
+itemloop           # loop over files 
+   # filename, index on stack....
+   filenameindex sto
+   filename sto
+
+   nn bilinear bicubic # lanczos
+   3 itemloop       # loop over methods
+      # method name, index on stack...
+      methodindex sto
+      method sto
+
+      0.25 0.5 0.75 1.0 1.25 1.5 1.75 2.0 2.5 
+      9 itemloop # loop over scales
+         # size, index on stack....
+         scaleindex sto
+         scale sto
+
+         # message
+         #"Run: scale "
+         #scaleindex rcl 1 + ->str
+         #+ " of 8" +
+         #print
+
+         # perform resizing
+         filename rcl read
+
+         # get a linear copy, select on true
+         dup linear colorspace swap 1 1 gamma_on rcl if
+
+         scale rcl
+         method rcl
+         resize*
+ 
+         tempimage sto
+         # todo - save, do external
+
+         # convert back
+         filename rcl read 
+
+         # gamma?         
+         dup linear colorspace swap 1 1 gamma_on rcl if
+
+         size
+         tempimage rcl
+         rot
+         rot
+
+         method rcl
+         # depth printn 0 halt
+         resize
+
+         #size 2 printn swap size 2 printn
+         #depth print n
+         #0 halt
+
+
+         # metrics
+         mse psnr ssim
+         3 itemloop
+            errindex sto
+            errname sto
+
+            errname rcl error
+
+            # format output message
+            filename rcl ", " +
+
+            linear ", " + nonlinear ", " + 1 1 gamma_on rcl if +
+
+            method rcl ", " + +
+            scale rcl ->str ", " + +
+            errname rcl " " + +
+            
+            swap ->str + ", " +
+            print
+
+            #drop # drop error value
+
+         endloop # error metrics
+         
+         #swap
+         #outindex rcl 1 + dup outindex sto
+         #->str filename rcl swap + ".bmp" + write
+
+         2 dropn # drop files
+         # depth print
+
+      endloop # loop over sizes
+   endloop # loop resize methods
+endloop # loop files
+
+endloop # gamma correction or not

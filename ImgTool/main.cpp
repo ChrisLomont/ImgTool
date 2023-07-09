@@ -32,6 +32,7 @@ using namespace std;
 * works on stack machine - can put images on stack, do ops
   
   TODO
+    - assert
 	- type on stack command
 	- eval command, executes a string
     - type converters , ->str,->float,->int
@@ -194,7 +195,7 @@ vector<Command> commands = {
 	{"read","filename -> image, loads image",ReadImage},
 	{"write","image filename -> ,  outputs saved image",WriteImage},
 	{"colorspace","image space -> image', where space=[linear|sRGB|YCbCr|RGB], does conversion",ColorTransform},
-	{"error","im1 im2 errtype -> errval, prints error type mse, psnr, ssim",ImageError},
+	{"error","im1 im2 errtype -> im1 im2 errval, prints error type mse, psnr, ssim",ImageError},
 	{"maxc","img -> max, max value of all r,g,b values in image",ImageError},
 	{"size","img -> w h, where w,h is size in pixels",ImageSize},
 	{"files","path regex -> f1 f2 ... fn n, reads files matching regex, pushes on stack with count",GetFiles},
