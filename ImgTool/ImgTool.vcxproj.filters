@@ -67,7 +67,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="test1.imgscript" />
-    <None Include="tests.imscript" />
+    <None Include="testImages.imgscript" />
+    <None Include="tests.imgscript" />
   </ItemGroup>
 </Project>

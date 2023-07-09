@@ -329,42 +329,7 @@ print
 "if you see this, halt doesn't work" print
 -1 halt
 
-# ---------------------------------- TODO _ TEST THESE -----------------------
-#	{"read","filename -> image",ReadImage},
-#	{"write","image filename -> [] and outputs saved image",WriteImage},
-#	{"colorspace","image space -> image', where space=[linear|sRGB|YCbCr|RGB], does conversion",ColorTransform},
-#	{"error","im1 im2 errtype -> errval, prints error type mse, psnr, ssim",ImageError},
-#	{"maxc","img -> max, max value of all r,g,b values in image",ImageError},
-#	{"size","img -> w h, where w,h is size in pixels",ImageSize},
-#	{"files","path regex -> f1 f2 ... fn n, reads files matching regex, pushes on stack with count",GetFiles},
-#
-#	{"getpixel","img i j -> img r g b a, reads pixel 0-1",PixelOp},
-#	{"setpixel","img i j r g b a -> img, writes pixel 0-1",PixelOp},
-#
-#	// and,or,not,xor,rand, rdz(randseed), >>,<<	
-#	// ticks = time, 
-#	// type - object type
-#
-#	// image ops
-#	{"resize","img w h style -> resize to w h by style nn,bilinear,bicubic,lanczos2,lanczos3,lanczos4",ResizeImage},
-#	{"resize%","img v style -> resize by v%, style as above",ResizeImage},
-#	{"resize*","img m style -> resize by multiplier m, style as above",ResizeImage},
-#
-#	{"gaussian","img s -> img' , gaussian blur, std dev s",GaussianBlur},
-#
-#	{"rotate","TODO: img angle expand -> rotate image by angle degrees, expand true makes bigger to center, false keeps size",RotateImage},
-#
-#	{"crop","img x1 y1 x2 y2 -> crop image to rectangle (x1,y1)-(x2,y2) inclusive", CropImage},
-#	{"pad", "img top bottom left right r g b a -> img2, pad image with given color, given pixel margins", PadImage},
-#	{"flipx", "img -> img2, flip image", FlipImage},
-#	{"flipy", "img -> img2, flip image", FlipImage},
-#	// todo - draw, text, trim
-#
+# end of file
 
-#	// flow & state
-#	{"dumpstate" ," -> , print out state items", StateOp},
-#	{"system" ,"cmd -> return_value, execute cmd on system call - WARNING - be careful!", StateOp},
-#	{"if","t1 t2 .. tn f1 f2 .. fm n m b -> ti or fj, if b != 0, keep t1..tn, else keep f1..fm", StateOp},
-#
 
 

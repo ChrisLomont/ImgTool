@@ -148,8 +148,8 @@
     <ClInclude Include="Utils.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="test1.imgscript" />
-    <None Include="tests.imscript" />
+    <None Include="testImages.imgscript" />
+    <None Include="tests.imgscript" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
