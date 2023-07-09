@@ -7,9 +7,9 @@
 
 #include "Image.h"
 
-using namespace std; // todfo - remove
+using namespace std; // todo - remove
 
-using Item = variant<string, ImagePtr, double, int>;
+using Item = variant<string, ImagePtr, double>;
 
 string FormatItem(Item & item, bool prefixType)
 {
@@ -26,13 +26,6 @@ string FormatItem(Item & item, bool prefixType)
 		return prefixType
 			? fmt::format("string {}", get<string>(item))
 			: get<string>(item);
-	}
-	else if (holds_alternative<int>(item))
-	{
-		return prefixType
-			? fmt::format("int {}", get<int>(item))
-			: fmt::format("{}", get<int>(item));
-
 	}
 	else if (holds_alternative<double>(item))
 	{
@@ -102,7 +95,7 @@ public:
 		}
 		else if (arg == "dupn")
 		{
-			auto n = ParseInt(Pop<string>());
+			auto n = PopInt();
 			for (int i = 0; i < n; ++i)
 				Push(stack[nextopen - n]);
 		}
@@ -116,7 +109,7 @@ public:
 		}
 		else if (arg == "dropn")
 		{
-			auto n = ParseInt(Pop<string>());
+			auto n = PopInt();
 			for (int i = 0; i < n; ++i)
 				Pop();
 		}
@@ -142,11 +135,11 @@ public:
 		}
 		else if (arg == "depth")
 		{
-			Push(fmt::format("{}", nextopen));
+			Push((double)nextopen);
 		}
 		else if (arg == "roll")
 		{
-			int n = ParseInt(Pop<string>());
+			int n = PopInt();
 			auto vec = PopN(n);
 			for (int i = n-2; i >= 0; --i)
 				Push(vec[i]);
@@ -155,7 +148,7 @@ public:
 		}
 		else if (arg == "rolld")
 		{
-			int n = ParseInt(Pop<string>());
+			int n = PopInt();
 			auto vec = PopN(n);
 			if (n > 0)
 				Push(vec[0]);
@@ -164,7 +157,7 @@ public:
 		}
 		else if (arg == "pick")
 		{
-			int n = ParseInt(Pop<string>());
+			int n = PopInt();
 			auto item = Peek(n);
 			Push(item);
 		}
@@ -172,11 +165,23 @@ public:
 			throw runtime_error(fmt::format("unknown stack op {}", arg));
 	}
 
+	int PopInt()
+	{
+		auto d = Pop<double>();
+		return (int)d;
+	}
+
 	template<typename T>
 	void Push(T item)
 	{
 		Resize();
 		stack[nextopen++] = item;
+	}
+	template<>
+	void Push(int item)
+	{
+		Resize();
+		stack[nextopen++] = (double)item;
 	}
 	template<typename T>
 	T Pop()
@@ -206,5 +211,21 @@ public:
 		auto index = nextopen - 1 - n;
 		if (nextopen < 0) throw runtime_error("stack out of bounds");
 		return stack[index];
+	}
+	// types: D = double, S = string
+	bool NextTypes(const string & types)
+	{
+		if (types.size() > nextopen) 
+			return false; // not enough items
+		for (auto i = 0; i < types.size(); ++i)
+		{
+			auto v = Peek(i);
+			auto c = types[i];
+			if (c == 'D' && !holds_alternative<double>(v))
+				return false;
+			else if (c == 'S' && !holds_alternative<string>(v))
+				return false;
+		}
+		return true;
 	}
 };

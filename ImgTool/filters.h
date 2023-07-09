@@ -143,7 +143,7 @@ struct CatmullRomPieces {
     static float k0(float u) { return ((.5f * u - .5f) * u) * u; }
     static float k1(float u) { return ((-1.5f * u + 2.f) * u + .5f) * u; }
     static float k2(float u) { return ((1.5f * u - 2.5f) * u) * u + 1.f; }
-    static float k3(float u) { return ((-.5 * u + 1.f) * u - .5f) * u; }
+    static float k3(float u) { return ((-.5f * u + 1.f) * u - .5f) * u; }
 };
 
 struct CatmullRom final : Symmetric4Pieces<CatmullRomPieces> {

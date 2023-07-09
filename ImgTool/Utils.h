@@ -19,21 +19,16 @@ using namespace std; // todo - remove
 		transform(s.begin(), s.end(), s.begin(), [](char c) {return std::tolower(c); });
 		return s;
 	}
-	int ParseInt(const string& item)
-	{
-		// todo - error checking?
-		return stoi(item);
-	}
 	double ParseDouble(const string& item)
 	{
 		// todo - error checking?
 		return stod(item);
 	}
 
-	// can parse to double?
+	// can parse to double? (requires decimal?)
 	bool IsDouble(const string& text)
 	{
-		return regex_match(text, regex("^(-?)(0|([1-9][0-9]*))(\\.[0-9]+)?$"));
+		return regex_match(text, regex("^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$"));		
 	}
 
 	const std::string WHITESPACE = " \n\r\t\f\v";

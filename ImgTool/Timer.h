@@ -33,7 +33,7 @@ public:
 	// use as cout << Timer::format_us(duration) << endl;
 	static string format_us(const duration_t& duration) {
 		using namespace std::chrono;
-		double t = duration_cast<microseconds>(duration).count();
-		return fmt::format("{:0.4f}us", t);
+		auto t = duration_cast<microseconds>(duration).count();
+		return fmt::format("{}us", t);
 	}
 };

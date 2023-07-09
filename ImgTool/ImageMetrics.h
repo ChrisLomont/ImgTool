@@ -222,16 +222,16 @@ namespace Lomont::Graphics {
             Array2D(size_t w, size_t h)
             {
                 this->resize(w * h);
-                width = w;
-                height = h;
+                width = (int)w;
+                height = (int)h;
             }
 
             // create array2d from pixel source
             Array2D(size_t w, size_t h, const GetPixel& pixels)
             {
                 this->resize(w * h);
-                width = w;
-                height = h;
+                width = (int)w;
+                height = (int)h;
                 for (auto j = 0; j < height; ++j)
                     for (auto i = 0; i < width; ++i)
                     {

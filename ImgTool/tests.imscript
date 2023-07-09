@@ -1,5 +1,6 @@
 # imscript tests
 0 verbosity
+
 "when done, this should print # of errors, # of successes, and TESTS DONE" print
 
 # counters
@@ -13,7 +14,6 @@ successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 
 5 6 == 1 -
 successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
-
 5 6 != 
 successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 
@@ -67,9 +67,6 @@ successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 
-#ok print halt
-
-
 1.5 round 2 == # this tricky - float round to even?
 2.5 round 3 ==
 1.499 round 1 ==
@@ -120,16 +117,12 @@ successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 # TODO - STRING COMPARISONS
 
 # ---------------------------------- STACK OPS -----------------------
-ok1 print 
-
 1 2 drop 1 ==
 2 1 drop 2 ==
 depth 2 ==
 successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
-
-ok2 print
 
 3 dup + 6 ==
 successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
@@ -232,18 +225,94 @@ successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 
 # ---------------------------------- STRING OPS ------------------------
 a a == 
-
 successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
-halt
+
 this
 " "
 is
 " one line " + + +
-"this is one line " == 
+"this is one line " 
+== 
 successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+
 depth 0 == 
 successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 
+a b !=
+b a !=
+b b == 
+b b != 1 -
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+
+a b >
+a a > 1 - 
+b a > 1 -
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+
+b a <
+a a < 1 - 
+a b < 1 -
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+
+a b >=
+a a >= 
+b a >= 1 -
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+
+a b <= 1 -
+a a <= 
+b a <= 
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+
+# ---------------------------------- CONTROL ---------------------------
+
+0    # sum
+0    # index
+label1 label # loop here
+1 +  # next index
+swap over + # increment sum
+swap # index back on top
+
+dup 10 == 1 - label1 je # loop
+drop # index gone
+55 == # sum 1-10
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+
+""
+-3 12 rangeloop
+->str
++ endloop
+"-3-2-10123456789101112"
+== 
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+
+""
+4 -2 rangeloop
+->str
++ endloop
+"43210-1-2"
+== 
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
+
+""
+bob ann fred monkey 4
+itemloop
+drop # drop index
+" " + + 
+endloop
+"bob ann fred monkey " ==
+successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 
 
 # ---------------------------------- PRINT STATS -----------------------
@@ -256,10 +325,9 @@ successes rcl print
 "TESTS DONE"
 print
 
-halt
+0 halt
 "if you see this, halt doesn't work" print
-
-
+-1 halt
 
 # ---------------------------------- TODO _ TEST THESE -----------------------
 #	{"read","filename -> image",ReadImage},
@@ -294,19 +362,9 @@ halt
 #
 
 #	// flow & state
-#	{"label", "name-> , create named label for next item index",StateOp},
-#	{"ja", "label -> , JumpAlways: goto label",StateOp},
-#	{"je", "val label -> , JumpEqual: if val != 0, goto label",StateOp},
-#	{"sto" ,"item, name -> , store item in name", StateOp},
-#	{"rcl" ,"name -> item, look up item", StateOp},
 #	{"dumpstate" ," -> , print out state items", StateOp},
 #	{"system" ,"cmd -> return_value, execute cmd on system call - WARNING - be careful!", StateOp},
-#	{"verbosity","v -> , set verbosity 0=none, 1=info, 2= all", StateOp},
 #	{"if","t1 t2 .. tn f1 f2 .. fm n m b -> ti or fj, if b != 0, keep t1..tn, else keep f1..fm", StateOp},
 #
-#	// loop
-#	{"rangeloop","min max -> , loops over index in [min,max], each iter puts index on stack, use endloop",StateOp},
-#	{"itemloop","i1 i2 .. in n -> , loops over items in {i1,i2,..,in}, each iter puts item then index i=0+ on stack, use endloop", StateOp},
-#	{"endloop"," -> , ends loop, jumps to top", StateOp},
 
 

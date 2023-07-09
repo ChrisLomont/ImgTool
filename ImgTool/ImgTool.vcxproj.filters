@@ -62,6 +62,9 @@
     <ClInclude Include="Colorspace.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="MathOps.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="test1.imgscript" />

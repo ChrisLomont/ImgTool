@@ -8,6 +8,7 @@
 #include <numbers>
 #include <fstream>
 #include <regex>
+#include <typeinfo>
 
 // some compilers puke, even with c++ 20, so...
 //#include <format>
@@ -21,7 +22,7 @@
 #include "Timer.h"
 #include "ImageOps.h"
 #include "Colorspace.h"
-
+#include "MathOps.h"
 
 namespace fs = std::filesystem;
 using namespace std;
@@ -31,6 +32,10 @@ using namespace std;
 * works on stack machine - can put images on stack, do ops
   
   TODO
+	- type on stack command
+	- eval command, executes a string
+    - type converters , ->str,->float,->int
+	- make new image, blank, fill, ops
     - clean command descriptions, order better
 	- use double instead of string for numerical stuff on stack, less conversions
 	- abstract out Do0 - Do3, abstract handlers nicer
@@ -104,272 +109,16 @@ void ImageSize(State& s, const string& args)
 {
 	auto img = s.Peek<ImagePtr>();
 	auto [w, h] = img->Size();
-	s.Push(fmt::format("{}", w));
-	s.Push(fmt::format("{}", h));
-}
-
-/*------------------------ Eval and operations -------------------------*/
-using NonaryFunc = function<double()>;
-using UnaryFunc = function<double(double)>;
-using BinaryFunc = function<double(double, double)>;
-using TrinaryFunc = function<double(double, double, double)>;
-// todo - make these more table driven, Julia multi dispatch style
-void Do0(State& s, const NonaryFunc & f)
-{
-	s.Push(format("{}",f()));
-}
-void Do1(State& s,const UnaryFunc & f)
-{
-	auto v = s.Pop();
-	if (holds_alternative<string>(v))
-	{
-		s.Push(fmt::format("{}", f(ParseDouble(get<string>(v)))));
-	}
-	else if (holds_alternative<ImagePtr>(v))
-	{
-		auto img = get<ImagePtr>(v);
-		img->Apply([&](Color & c) {
-			c.ApplyRGB(f);
-			}
-		);
-		s.Push(img);
-	}
-	else
-		throw runtime_error("Invalid types in op");
-}
-void Do2(State& s, const BinaryFunc & f)
-{
-	auto item2 = s.Pop(); // NOTE 1 and 2 swap here!
-	auto item1 = s.Pop();
-
-	if (holds_alternative<string>(item1) && holds_alternative<string>(item2))
-	{
-		auto v1 = ParseDouble(get<string>(item1));
-		auto v2 = ParseDouble(get<string>(item2));
-		auto ans = f(v1, v2);
-		s.Push(fmt::format("{}", ans));
-	}
-	else if (holds_alternative<string>(item1) && holds_alternative<ImagePtr>(item2))
-	{
-		auto v = ParseDouble(get<string>(item1));
-		auto src = get<ImagePtr>(item2);
-		auto [w, h] = src->Size();
-		ImagePtr dst = make_shared<Image>(w, h);
-		dst->Apply([&](int i, int j) {
-			auto c = src->Get(i, j);
-			c.r = f(v, c.r);
-			c.g = f(v, c.g);
-			c.b = f(v, c.b);
-			c.a = 1.0; // todo - blend?
-			return c;
-			}
-		);
-		s.Push(dst);
-	}
-	else if (holds_alternative<ImagePtr>(item1) && holds_alternative<string>(item2))
-	{
-		auto src = get<ImagePtr>(item1);
-		auto v = ParseDouble(get<string>(item2));
-		auto [w, h] = src->Size();
-		ImagePtr dst = make_shared<Image>(w, h);
-		dst->Apply([&](int i, int j) {
-			auto c = src->Get(i, j);
-			c.r = f(c.r, v);
-			c.g = f(c.g, v);
-			c.b = f(c.b, v);
-			c.a = 1.0; // todo - blend?
-			return c;
-			}
-		);
-		s.Push(dst);
-	}
-	else if (holds_alternative<ImagePtr>(item1) && holds_alternative<ImagePtr>(item2))
-	{
-		auto img1 = get<ImagePtr>(item1);
-		auto img2 = get<ImagePtr>(item2);
-		auto [w, h] = img1->Size();
-		ImagePtr img = make_shared<Image>(w, h);
-		img->Apply([&](int i, int j) {
-			auto c1 = img1->Get(i, j);
-			auto c2 = img2->Get(i, j);
-			Color c;
-			c.r = f(c1.r, c2.r);
-			c.g = f(c1.g, c2.g);
-			c.b = f(c1.b, c2.b);
-			c.a = 1.0; // todo - blend?
-			return c;
-			}
-		);
-		s.Push(img);
-	}
-	else
-		throw runtime_error("Invalid types in op");
-}
-void Do3(State& s, const TrinaryFunc & f)
-{
-	auto c = ParseDouble(s.Pop<string>());
-	auto b = ParseDouble(s.Pop<string>());
-	auto item = s.Pop();
-	if (holds_alternative<string>(item))
-	{
-		auto a = ParseDouble(get<string>(item));
-		auto v = f(a, b, c);
-		s.Push(fmt::format("{}", v));
-	}
-	else if (holds_alternative<ImagePtr>(item))
-	{
-		auto img = get<ImagePtr>(item);
-		img->Apply([&](Color& co) {co.ApplyRGB([&](double v) {return f(v, b, c); }); });
-		s.Push(img);
-	}
-	else
-		throw runtime_error("Invalid types in op");
+	s.Push(w);
+	s.Push(h);
 }
 
 
-struct OpDef
-{
-	string name;
-	variant<
-		NonaryFunc,
-		UnaryFunc,
-		BinaryFunc,
-		TrinaryFunc
-	> func;
-};
-template <typename T> int sgn(T val) {
-	return (T(0) < val) - (val < T(0));
-} // https://stackoverflow.com/questions/1903954/is-there-a-standard-sign-function-signum-sgn-in-c-c
-const vector<OpDef> opDefs = {
-	{"abs",[](double v) { return abs(v); }},
-	{"sin",[](double v) { return sin(v); }},
-	{"cos",[](double v) { return cos(v); }},
-	{"+",[](double a, double b) { return a + b; }},
-	{"-",[](double a, double b) { return a - b; }},
-	{"*",[](double a, double b) { return a * b; }},
-	{"/",[](double a, double b) { return a / b; }},
-	{"mod",[](double a, double b) { return fmod(a,b); }}, // todo - make positive mod version?
-	
-	{"==",[](double a, double b) { return a == b; }},
-	{"!=",[](double a, double b) { return a != b; }},
-	{"<=",[](double a, double b) { return a <= b; }},
-	{">=",[](double a, double b) { return a >= b; }},
-	{"<",[](double a, double b) { return a < b; }},
-	{">",[](double a, double b) { return a > b; }},
-	{"clamp",[](double a, double b, double c) { return clamp(a,b,c); }},
-
-	{"round",[](double v) { return round(v); }},
-	{"floor",[](double v) { return floor(v); }},
-	{"ceil",[](double v) { return ceil(v); }},
-	
-	{"min",[](double a, double b) { return min(a,b); }},
-	{"max",[](double a, double b) { return max(a,b); }},
-
-	{"pow",[](double a, double b) { return pow(a,b); }},
-	{"exp",[](double x) { return exp(x); }},
-	{"log",[](double val, double base) { return log(val)/log(base); }},
-
-	{"neg",[](double v) { return -v; }},
-	{"sign",[](double v) { return sgn(v); }},
-
-	{"pi",[]() { return (double)std::numbers::pi; }},
-	{"e",[]() { return  (double)std::numbers::e;  }},
-};
-
-// try string add, commit it if so, return true, else false
-bool StringOp(State & s, const string & args)
-{
-	if (s.Pos() < 2) return false;
-	auto i1 = s.Pop();
-	auto i2 = s.Pop();
-	if (holds_alternative<string>(i1) && holds_alternative<string>(i2))
-	{
-		auto s1 = get<string>(i1);
-		auto s2 = get<string>(i2);
-		if (!IsDouble(s1) && !IsDouble(s2))
-		{
-			if (args == "+")
-			{
-				s.Push(s2 + s1);
-				return true;
-			}
-			/*
-			else if (args == "==")
-			{
-				s.Push(s2 == s1 ? "1" : "0");
-				return true;
-			}
-			else if (args == "!=")
-			{
-				s.Push(s2 != s1 ? "1" : "0");
-				return true;
-			}
-			else if (args == "<")
-			{
-				s.Push(s2 < s1 ? "1" : "0");
-				return true;
-			}
-			else if (args == ">")
-			{
-				s.Push(s2 > s1 ? "1" : "0");
-				return true;
-			}
-			else if (args == "<=")
-			{
-				s.Push(s2 <= s1 ? "1" : "0");
-				return true;
-			}
-			else if (args == ">=")
-			{
-				s.Push(s2 >= s1 ? "1" : "0");
-				return true;
-			}
-			*/
-		}
-	}
-	// put back
-	s.Push(i2);
-	s.Push(i1);
-	return false;
-}
-
-
-void MathOp(State& s, const string& args)
-{
-	// special case: string ops: +, ==, !=, <, >, <=, >=
-	// todo - make better way to merge these
-	if (StringOp(s, args))
-	{
-		return;
-	}
-
-	for (auto& op : opDefs)
-	{
-		if (op.name == args)
-		{
-			auto& v = op.func;
-			if (holds_alternative<NonaryFunc>(v))
-				Do0(s, get<NonaryFunc>(v));
-			else if (holds_alternative<UnaryFunc>(v))
-				Do1(s, get<UnaryFunc>(v));
-			else if (holds_alternative<UnaryFunc>(v))
-				Do1(s, get<UnaryFunc>(v));
-			else if (holds_alternative<BinaryFunc>(v))
-				Do2(s, get<BinaryFunc>(v));
-			else if (holds_alternative<TrinaryFunc>(v))
-				Do3(s, get<TrinaryFunc>(v));
-			else
-				throw runtime_error("Invalid func type");
-			return;
-		}
-	}
-	throw runtime_error(fmt::format("Unknown math op {}",args));
-}
 void Print(State& s, const string& args)
 {
 	int n = 1;
 	if (args == "printn")
-		n = ParseInt(s.Pop<string>());
+		n = s.PopInt();
 	if (s.verbosity >= 2)
 		cout << "Printing:\n";
 	for (int i = 0; i < n; ++i)
@@ -404,15 +153,15 @@ void GetFiles(State & s, const string & args)
 	{
 		s.Push(f);
 	}
-	s.Push(fmt::format("{}",files.size()));
+	s.Push((int)files.size());
 }
 
 void PixelOp(State & s, const string & args)
 {
 	if (args == "getpixel")
 	{
-		auto j   = ParseInt(s.Pop<string>());
-		auto i   = ParseInt(s.Pop<string>());
+		auto j   = s.PopInt();
+		auto i   = s.PopInt();
 		auto img = s.Pop<ImagePtr>();
 		auto c = img->Get(i,j);
 		s.Push(img);
@@ -424,12 +173,12 @@ void PixelOp(State & s, const string & args)
 	else if (args == "setpixel")
 	{
 		// { "setpixel", "img i j r g b a -> img, writes pixel", PixelOp },
-		auto a = ParseDouble(s.Pop<string>());
-		auto b = ParseDouble(s.Pop<string>());
-		auto g = ParseDouble(s.Pop<string>());
-		auto r = ParseDouble(s.Pop<string>());
-		auto j = ParseInt(s.Pop<string>());
-		auto i = ParseInt(s.Pop<string>());
+		auto a = s.Pop<double>();
+		auto b = s.Pop<double>();
+		auto g = s.Pop<double>();
+		auto r = s.Pop<double>();
+		auto j = s.PopInt();
+		auto i = s.PopInt();
 		auto img = s.Pop<ImagePtr>();
 		Color c(r,g,b,a);
 		img->Set(i, j, c);
@@ -531,13 +280,15 @@ vector<Command> commands = {
 	{"label", "name -> , create named label for next item index",StateOp},
 	{"ja", "label -> , JumpAlways: goto label",StateOp},
 	{"je", "val label -> , JumpEqual: if val != 0, goto label",StateOp},
-	{"halt" ,"-> , stops program", StateOp},
+	{"halt" ," exitcode -> , stops program, returns code", StateOp},
 	{"sto" ,"item name -> , store item in name", StateOp},
 	{"rcl" ,"name -> item, look up item", StateOp},
 	{"dumpstate" ," -> , print out state items", StateOp},
 	{"system" ,"cmd -> return_value, execute cmd on system call - WARNING - be careful!", StateOp},
 	{"verbosity","v -> , set verbosity 0=none, 1=info, 2= all", StateOp},
 	{"if","t1 t2 .. tn f1 f2 .. fm n m b -> ti or fj, if b != 0, keep t1..tn, else keep f1..fm", StateOp},
+	{"->str","item -> 'item', formats item as string", StateOp},
+
 
 	// loop
 	{"rangeloop","min max -> , loops over index in [min,max], each iter puts index on stack, use endloop",StateOp},
@@ -593,7 +344,10 @@ bool Process(const vector<string> & tokens, bool verbose)
 			}
 			if (cIndex >= commands.size())
 			{ // was no item, push it
-				state.Push(token);
+				if (IsDouble(token))
+					state.Push(ParseDouble(token));
+				else
+					state.Push(token);
 			}
 
 		}

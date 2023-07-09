@@ -58,6 +58,7 @@ class State : public Stack
 public:
 	//  0 = none, 1 = info, 2 = all
 	int verbosity = 1;
+	int exitCode{ 0 }; // exit code on halt
 
 	void StateOp(const string & args)
 	{
@@ -82,6 +83,7 @@ public:
 		}
 		else if (args == "halt")
 		{
+			exitCode = Pop<double>();
 			programPosition = 1 << 30; // out of bounds - todo - make const?, flag?
 		}
 		else if (args == "sto")
@@ -112,15 +114,15 @@ public:
 		}
 		else if (args == "rangeloop")
 		{
-			auto b = ParseInt(Pop<string>());
-			auto a = ParseInt(Pop<string>());
+			auto b = PopInt();
+			auto a = PopInt();
 			vector<Item> t;
 			AddLoop(a,b,t);
 			DoLoop();
 		}
 		else if (args == "itemloop")
 		{
-			auto n = ParseInt(Pop<string>());
+			auto n = PopInt();
 			vector<Item> items;
 			for (auto i = 0; i < n; ++i)
 				items.push_back(Pop());
@@ -135,24 +137,30 @@ public:
 		{
 			auto cmd = Pop<string>();
 			auto retval = system(cmd.c_str());
-			Push(fmt::format("{}",retval));
+			Push(retval);
 		}
 		else if (args=="verbosity")
 		{
-			auto v = ParseInt(Pop<string>());
+			auto v = PopInt();
 			verbosity = v;
 		}
 		else if (args == "if")
 		{
-			auto v = ParseDouble(Pop<string>());
-			auto m = ParseInt(Pop<string>());
-			auto n = ParseInt(Pop<string>());
+			auto isTrue = Pop<double>() != 0;
+
+			auto m = PopInt();
+			auto n = PopInt();
 			vector<Item> f = PopN(m);
 			vector<Item> t = PopN(n);
-			if (v != 0)
+			if (isTrue)
 				PushN(t);
 			else
 				PushN(f);
+		}
+		else if (args == "->str")
+		{
+			auto v = Pop();
+			Push(FormatItem(v, false));
 		}
 		else 
 			throw runtime_error(fmt::format("unknown state op {}",args));

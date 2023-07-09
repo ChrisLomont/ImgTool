@@ -195,55 +195,32 @@ ImagePtr ResizeLanczosRadial(ImagePtr src, int w, int h, double a)
 
 
 void ResizeImage(State& s, const string& args)
-{ // "" -> default, "%" -> percent, "*" -> multiplier
+{ 
 	auto method = ToLower(s.Pop<string>());
 	ImagePtr img{ nullptr };
 	int w2 = 0, h2 = 0;
 	if (args == "resize")
 	{
-
-		auto ht = s.Pop<string>();
-		auto wt = s.Pop<string>();
 		img = s.Pop<ImagePtr>();
 		auto [w, h] = img->Size();
 
 		// compute output width, height
-		if (wt[wt.size() - 1] == '%')
-		{ // both percentages
-			double pw = ParseDouble(wt);
-			double ph = ParseDouble(ht);
-			if (pw == 0)
-			{
-				// pw/ph = w/h
-				pw = (int)round(ph * w / h);
-			}
-			if (ph == 0)
-			{
-				// pw/ph = w/h
-				ph = (int)round(pw * h / w);
-			}
-			w2 = (int)(round(pw * w / 100.0));
-			h2 = (int)(round(ph * h / 100.0));
-		}
-		else
+		w2 = s.PopInt();
+		h2 = s.PopInt();
+		if (w2 == 0)
 		{
-			w2 = ParseInt(wt);
-			h2 = ParseInt(ht);
-			if (w2 == 0)
-			{
-				// w2/h2 = w/h
-				w2 = (int)round((double)h2 * w / h);
-			}
-			else if (h2 == 0)
-			{
-				// w2/h2 = w/h
-				h2 = (int)round((double)w2 * h / w);
-			}
+			// w2/h2 = w/h
+			w2 = (int)round((double)h2 * w / h);
+		}
+		else if (h2 == 0)
+		{
+			// w2/h2 = w/h
+			h2 = (int)round((double)w2 * h / w);
 		}
 	}
 	else if (args == "resize%")
 	{
-		auto pct = ParseDouble(s.Pop<string>());
+		auto pct = s.Pop<double>();
 		img = s.Pop<ImagePtr>();
 		auto [w, h] = img->Size();
 		w2 = (int)(round(w * pct / 100.0));
@@ -251,7 +228,7 @@ void ResizeImage(State& s, const string& args)
 	}
 	else if (args == "resize*")
 	{
-		auto m = ParseDouble(s.Pop<string>());
+		auto m = s.Pop<double>();
 		img = s.Pop<ImagePtr>();
 		auto [w, h] = img->Size();
 		w2 = (int)(round(w * m));
@@ -294,14 +271,14 @@ void GaussianBlur(State& s, const string& args)
 
 void PadImage(State& s, const string& args)
 {
-	auto a = ParseInt(s.Pop<string>());
-	auto b = ParseInt(s.Pop<string>());
-	auto g = ParseInt(s.Pop<string>());
-	auto r = ParseInt(s.Pop<string>());
-	auto right = ParseInt(s.Pop<string>());
-	auto left = ParseInt(s.Pop<string>());
-	auto bottom = ParseInt(s.Pop<string>());
-	auto top = ParseInt(s.Pop<string>());
+	auto a = s.PopInt();
+	auto b = s.PopInt();
+	auto g = s.PopInt();
+	auto r = s.PopInt();
+	auto right = s.PopInt();
+	auto left = s.PopInt();
+	auto bottom = s.PopInt();
+	auto top = s.PopInt();
 	auto img = s.Pop<ImagePtr>();
 	Color c(
 		clamp(r, 0, 255) / 255.0,
@@ -356,10 +333,10 @@ void FlipImage(State& s, const string& args)
 
 void CropImage(State& s, const string& args)
 {
-	auto y2 = ParseInt(s.Pop<string>());
-	auto x2 = ParseInt(s.Pop<string>());
-	auto y1 = ParseInt(s.Pop<string>());
-	auto x1 = ParseInt(s.Pop<string>());
+	auto y2 = s.PopInt();
+	auto x2 = s.PopInt();
+	auto y1 = s.PopInt();
+	auto x1 = s.PopInt();
 	if (x2 < x1) swap(x1, x2);
 	if (y2 < y1) swap(y1, y2);
 	auto src = s.Pop<ImagePtr>();
@@ -417,7 +394,7 @@ void ImageError(State& s, const string& args)
 			return c;
 			});
 		cout << fmt::format("maxc {:0.3f}\n", maxc);
-		s.Push(format("{}", maxc));
+		s.Push(maxc);
 	}
 	else
 	{

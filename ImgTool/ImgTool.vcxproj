@@ -139,6 +139,7 @@
     <ClInclude Include="Image.h" />
     <ClInclude Include="ImageMetrics.h" />
     <ClInclude Include="ImageOps.h" />
+    <ClInclude Include="MathOps.h" />
     <ClInclude Include="Stack.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="stb_image.h" />
