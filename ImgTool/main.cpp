@@ -299,6 +299,14 @@ vector<Command> commands = {
 	{"itemloop","i1 i2 .. in n -> , loops over items in {i1,i2,..,in}, each iter puts item then index i=0+ on stack, use endloop", StateOp},
 	{"endloop"," -> , ends loop, jumps to top", StateOp},
 
+	// subroutines
+	{ "subroutine"," name -> , starts subroutine, ends with endsub", StateOp },
+	{ "endsub"," name -> , ends subroutine", StateOp },
+	{ "gosub"," name -> , jumps to subroutine ", StateOp },
+	{ "return"," -> , returns from subroutine", StateOp },
+
+
+
 	// store items in array
 	
 
@@ -332,6 +340,9 @@ bool Process(const vector<string> & tokens, bool verbose)
 		{
 			const string & token = tokens[state.programPosition];
 			state.programPosition++; // next position
+
+			if (state.inSubroutineDefinition && token != "endsub")
+				continue; // do nothing
 
 			int cIndex = 0;
 			while (cIndex < commands.size())

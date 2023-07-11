@@ -1,5 +1,6 @@
 #pragma once
 #include <unordered_map>
+#include <stack>
 #include "Stack.h"
 
 using namespace std; // todo - remove
@@ -55,10 +56,13 @@ class State : public Stack
 		}
 	}
 
+	std::stack<int> programCounterStack;	
+
 public:
 	//  0 = none, 1 = info, 2 = all
 	int verbosity = 1;
 	int exitCode{ 0 }; // exit code on halt
+	bool inSubroutineDefinition{ false };
 
 	void StateOp(const string & args)
 	{
@@ -66,6 +70,27 @@ public:
 		{
 			auto label = Pop<string>();
 			labels[label] = programPosition;
+		}
+		else if (args == "subroutine")
+		{
+			auto label = Pop<string>();
+			labels[label] = programPosition;
+			inSubroutineDefinition = true;
+		}
+		else if (args == "endsub")
+		{
+			inSubroutineDefinition = false;
+		}
+		else if (args == "gosub")
+		{
+			auto label = Pop<string>();
+			programCounterStack.push(programPosition);
+			programPosition = labels[label];
+		}
+		else if (args == "return")
+		{
+			programPosition = programCounterStack.top();
+			programCounterStack.pop();
 		}
 		else if (args == "ja")
 		{

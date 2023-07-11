@@ -1,3 +1,24 @@
+2 verbosity
+
+fred subroutine
+	3 - 
+	return
+endsub
+
+bob subroutine
+	dup * fred gosub
+	return
+endsub
+
+2 bob gosub print
+5 bob gosub print
+7 fred gosub print
+
+
+0 halt
+
+
+
 0 verbosity
 ../images/lenna.bmp read
 linear colorspace
