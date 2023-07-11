@@ -149,6 +149,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="example.imgscript" />
+    <None Include="playground.imgscript" />
     <None Include="testImages.imgscript" />
     <None Include="tests.imgscript" />
   </ItemGroup>

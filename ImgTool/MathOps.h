@@ -254,17 +254,17 @@ void MathOp(State& s, const string& args)
 					s.Push(f());
 					return;
 				}
-				else if (holds_alternative<FuncDD>(vf) && s.NextTypes("D"))
+				else if (holds_alternative<FuncDD>(vf) && s.NextTypes("X"))
 				{
 					Do1(s, get<FuncDD>(vf));
 					return;
 				}
-				else if (holds_alternative<FuncDDD>(vf) && s.NextTypes("DD"))
+				else if (holds_alternative<FuncDDD>(vf) && s.NextTypes("XX")) // todo- make these in op def? DD or XX
 				{
 					Do2(s, get<FuncDDD>(vf));
 					return;
 				}
-				else if (holds_alternative<FuncDDDD>(vf) && s.NextTypes("DDD"))
+				else if (holds_alternative<FuncDDDD>(vf) && s.NextTypes("XXX"))
 				{
 					Do3(s, get<FuncDDDD>(vf));
 					return;

@@ -1,0 +1,32 @@
+2 verbosity
+../images/lenna.bmp read
+lenna sto
+
+# NearestRight in mathematica is my NN ?
+
+lenna rcl 200 200 lanczos3 resize
+../images/lenna_lanc.bmp read
+- abs   20 * 
+
+
+
+
+#diff.bmp write
+## 0 1 clamp 
+#maxc
+
+0 halt
+
+lanczos3 print
+lenna rcl
+128 128 lanczos3 resize
+512 512 lanczos3 resize
+lenna rcl
+psnr error
+
+nn print
+lenna rcl
+128 128 nn resize
+512 512 nn resize
+lenna rcl
+psnr error

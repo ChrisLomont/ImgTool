@@ -193,6 +193,70 @@ ImagePtr ResizeLanczosRadial(ImagePtr src, int w, int h, double a)
 	// todo
 }
 
+double LanczosFunc(double v, int a)
+{
+	v = abs(v);
+	if (v >= a) return 0;
+	if (v == 0.0) return 1;
+	double px = numbers::pi * v;
+	// todo - for near 0, use taylor series, compute a few and put here
+	return a * sin(px) * sin(px / a) / (px * px);
+}
+
+ImagePtr ResizeLanczos(ImagePtr src, int w, int h, double a)
+{
+	// todo; - make using kernel?
+	const auto [w1, h1] = src->Size();
+	const int w2 = w, h2 = h;
+	// stretch width:
+	ImagePtr temp = make_shared<Image>(w2, h1);
+	for (int j = 0; j < h1; ++j) // each temp row
+		for (int i = 0; i < w2; ++i) // each temp column
+		{
+			// compute source index of pixel center:
+			double px = (i + 0.5) * w1 / w2;
+			int i0 = (int)(floor(px - a - 1));
+			int i1 = i0 + 2 * a;
+			Color c(0, 0, 0, 0);
+			double total = 0.0;
+			for (int ii = i0; ii <= i1; ++ii)
+			{
+				double dx = (ii + 0.5) - px; // dist in source space
+				double weight = LanczosFunc(dx, a);
+				total += weight;
+				c += weight * src->Get(ii, j);
+			}
+			c = 1.0/total * c; // todo - div by 0 ?
+			c.a = 1; // todo - blend?
+			temp->Set(i, j, c);
+		}
+
+	// stretch height
+	ImagePtr dst = make_shared<Image>(w2, h2);
+
+	for (int j = 0; j < h2; ++j) // each dest row
+		for (int i = 0; i < w2; ++i) // each dest column
+		{
+			// compute source index of pixel center:
+			double py = (j + 0.5) * h1 / h2;
+			int j0 = (int)(floor(py - a - 1));
+			int j1 = j0 + 2 * a;
+			Color c(0, 0, 0, 0);
+			double total = 0.0;
+			for (int jj = j0; jj <= j1; ++jj)
+			{
+				double dy = (jj + 0.5) - py; // dist in source space
+				double weight = LanczosFunc(dy, a);
+				total += weight;
+				c += weight * temp->Get(i, jj);
+			}
+			c = 1.0 / total * c; // todo - div by 0?
+			c.a = 1; // todo - blend?
+			dst->Set(i, j, c);
+		}
+	return dst;
+}
+
 
 void ResizeImage(State& s, const string& args)
 { 

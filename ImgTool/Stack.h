@@ -212,7 +212,7 @@ public:
 		if (nextopen < 0) throw runtime_error("stack out of bounds");
 		return stack[index];
 	}
-	// types: D = double, S = string
+	// types: D = double, S = string, X = double or string
 	bool NextTypes(const string & types)
 	{
 		if (types.size() > nextopen) 
@@ -222,6 +222,8 @@ public:
 			auto v = Peek(i);
 			auto c = types[i];
 			if (c == 'D' && !holds_alternative<double>(v))
+				return false;
+			else if (c == 'X' && !(holds_alternative<double>(v)|| holds_alternative<ImagePtr>(v)))
 				return false;
 			else if (c == 'S' && !holds_alternative<string>(v))
 				return false;

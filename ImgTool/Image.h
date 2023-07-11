@@ -40,7 +40,20 @@ struct Color
 		g = f(g);
 		b = f(b);
 	}
+	Color& operator +=(const Color& c)
+	{
+		r += c.r;
+		g += c.g;
+		b += c.b;
+		// todo - alpha belnding?
+		return *this;
+	}
 };
+Color operator *(double w, const Color& c)
+{
+	return Color(w * c.r, w * c.g, w * c.g, c.a);
+}
+
 class Image {
 	vector<Color> data_;
 	int w, h;
