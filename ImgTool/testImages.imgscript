@@ -37,6 +37,8 @@ successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 successes swap errors swap 1 swap 1 swap if dup rcl 1 + swap sto
 dup 512 512 bilinear resize
 
+lenna rcl
+
 # some metrics
 mse error # 0.125 or so
 
@@ -79,6 +81,10 @@ depth dropn
 lenna rcl
 
 depth printn
+
+#lenna rcl 200 200 lanczos3 resize 512 512 resize
+#lenna rcl
+#- abs 20 * maxc
 
 #	{"resize","img w h style -> resize to w h by style nn,bilinear,bicubic,lanczos2,lanczos3,lanczos4",ResizeImage},
 

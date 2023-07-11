@@ -6,7 +6,9 @@
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 #define STB_IMAGE_WRITE_IMPLEMENTATION
+#ifdef _MSC_VER  // needed for visual c++
 #define __STDC_LIB_EXT1__ // sprintf -> sprintf_s
+#endif
 #include "stb_image_write.h"
 
 #include "Timer.h"
@@ -189,7 +191,7 @@ struct  Lanczos6 : Lanczos<6> {};
 
 ImagePtr ResizeLanczosRadial(ImagePtr src, int w, int h, double a)
 {
-	throw runtime_error("radial lanczos not impelmented");
+	throw runtime_error("radial lanczos not implemented");
 	// todo
 }
 
@@ -270,7 +272,8 @@ void ResizeImage(State& s, const string& args)
 		w2 = s.PopInt();
 
 		img = s.Pop<ImagePtr>();
-		auto [w, h] = img->Size();
+		auto [wi, hi] = img->Size();
+		int w = wi, h = hi; // clang has issue with auto vars...
 
 		if (w2 == 0)
 		{
@@ -312,11 +315,20 @@ void ResizeImage(State& s, const string& args)
 	else if (method == "bicubic")
 		img = ResizeBicubic(img, w2, h2);
 	else if (method == "lanczos2")
+	{
 		img = ApplyFilter<Lanczos2>(img, w2, h2);
+		img = ResizeLanczos(img, w2, h2, 2);
+	}
 	else if (method == "lanczos3")
-		img = ApplyFilter<Lanczos3>(img, w2, h2);
+	{
+		//img = ApplyFilter<Lanczos3>(img, w2, h2);
+		img = ResizeLanczos(img, w2, h2, 3);
+	}
 	else if (method == "lanczos4")
-		img = ApplyFilter<Lanczos4>(img, w2, h2);
+	{
+		//img = ApplyFilter<Lanczos4>(img, w2, h2);
+		img = ResizeLanczos(img, w2, h2, 4);
+	}
 	else if (method == "lanczosr3")
 		img = ResizeLanczosRadial(img, w2, h2, 3.0);
 	else

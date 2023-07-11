@@ -28,7 +28,7 @@ using namespace std; // todo - remove
 	// can parse to double? (requires decimal?)
 	bool IsDouble(const string& text)
 	{
-		return regex_match(text, regex("^[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?$"));		
+		return regex_match(text, regex("^[-+]?[0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?$"));		
 	}
 
 	const std::string WHITESPACE = " \n\r\t\f\v";

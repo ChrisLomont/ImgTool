@@ -32,6 +32,9 @@ using namespace std;
 * works on stack machine - can put images on stack, do ops
   
   TODO
+    - function support: <name> subroutine/endsub and <name> gosub/return
+	- print endl 
+	- format prints
     - assert
 	- type on stack command
 	- eval command, executes a string
@@ -370,6 +373,12 @@ bool Process(const vector<string> & tokens, bool verbose)
 
 void GetScriptTokens(vector<string> & tokens, const string & filename)
 {
+	if (!fs::exists(filename))
+	{
+		cout << "Error: file does not exist " << filename << endl;
+		return;
+	}
+
 	std::ifstream file(filename);
 	std::string line;
 	while (std::getline(file, line))

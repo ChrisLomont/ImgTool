@@ -100,7 +100,7 @@ TODO:
 
 
 namespace Lomont::Graphics {
-    static class ImageMetrics {
+    class ImageMetrics {
     public:
 
         // ImageMetrics version

@@ -1,14 +1,28 @@
-2 verbosity
+0 verbosity
 ../images/lenna.bmp read
+linear colorspace
 lenna sto
 
 # NearestRight in mathematica is my NN ?
 
-lenna rcl 200 200 lanczos3 resize
-../images/lenna_lanc.bmp read
-- abs   20 * 
+nn bilinear bicubic lanczos2 lanczos3 lanczos4
+depth 
+itemloop
+drop
+method sto
 
+lenna rcl 2000 1000 method rcl resize
+512 512 method rcl resize
+lenna rcl 
+dup2 - abs 20 * maxc print 
+YCbCr colorspace swap YCbCr colorspace
+psnr error
 
+method rcl swap ->str ": " swap + + print
+
+endloop
+
+0 halt
 
 
 #diff.bmp write
