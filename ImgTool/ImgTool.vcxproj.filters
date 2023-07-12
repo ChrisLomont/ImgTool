@@ -65,6 +65,12 @@
     <ClInclude Include="MathOps.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="rand.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="csv.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="testImages.imgscript" />

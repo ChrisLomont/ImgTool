@@ -135,11 +135,13 @@
   <ItemGroup>
     <ClInclude Include="Colorspace.h" />
     <ClInclude Include="Command.h" />
+    <ClInclude Include="csv.h" />
     <ClInclude Include="filters.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="ImageMetrics.h" />
     <ClInclude Include="ImageOps.h" />
     <ClInclude Include="MathOps.h" />
+    <ClInclude Include="rand.h" />
     <ClInclude Include="Stack.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="stb_image.h" />

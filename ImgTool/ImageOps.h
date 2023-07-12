@@ -503,37 +503,64 @@ void ImageError(State& s, const string& args)
 	if (s.verbosity >= 1)
 		cout << msg;
 }
-
-void ReadImage(State& s, const string& args)
+void ImageOp(State& s, const string& args)
 {
-	int w, h, n;
-	int channels = 4; // request RGBA
-	string filename = s.Pop<string>();
-	if (s.verbosity >= 1)
-		cout << "Reading " << filename << endl;
-	unsigned char* data = stbi_load(filename.c_str(), &w, &h, &n, channels);
-	if (data == nullptr)
+	if (args == "read")
 	{
-		throw runtime_error(fmt::format("Cannot load file {}\n", filename));
+		int w, h, n;
+		int channels = 4; // request RGBA
+		string filename = s.Pop<string>();
+		if (s.verbosity >= 1)
+			cout << "Reading " << filename << endl;
+		unsigned char* data = stbi_load(filename.c_str(), &w, &h, &n, channels);
+		if (data == nullptr)
+		{
+			throw runtime_error(fmt::format("Cannot load file {}\n", filename));
+		}
+		//cout << "Data " << data << endl;
+		auto img = make_shared<Image>(w, h, channels, data);
+		stbi_image_free(data);
+		s.Push(img);
 	}
-	//cout << "Data " << data << endl;
-	auto img = make_shared<Image>(w, h, channels, data);
-	stbi_image_free(data);
-	s.Push(img);
-}
-void WriteImage(State& s, const string& args)
-{
-	vector<uint8_t> data;
-	auto filename = s.Pop<string>();
-	auto img = s.Pop<ImagePtr>();
-	img->GetData(data);
-	auto [w, h] = img->Size();
-	cout << "Writing " << filename << endl;
+	else if (args == "write")
+	{
+		vector<uint8_t> data;
+		auto filename = s.Pop<string>();
+		auto img = s.Pop<ImagePtr>();
+		img->GetData(data);
+		auto [w, h] = img->Size();
+		cout << "Writing " << filename << endl;
 
-	int error = stbi_write_png(filename.c_str(),
-		w, h, img->channels, data.data(), w * img->channels);
-	s.Push(img);
+		int error = stbi_write_png(filename.c_str(),
+			w, h, img->channels, data.data(), w * img->channels);
+		s.Push(img);
+	}
+	else if (args == "size")
+	{
+
+		auto img = s.Peek<ImagePtr>();
+		auto [w, h] = img->Size();
+		s.Push(w);
+		s.Push(h);
+	}
+	else if (args == "image")
+	{
+		// 	{"image","w h r g b a -> image, makes image size w x h, color rgba in 0-1",ImageOp},
+		double a = s.Pop<double>();
+		double b = s.Pop<double>();
+		double g = s.Pop<double>();
+		double r = s.Pop<double>();
+		int h = s.PopInt();
+		int w = s.PopInt();
+		Color color(r, g, b, a);
+		auto img = make_shared<Image>(w,h);
+		img->Apply([=](int i, int j) { return color; });
+		s.Push(img);
+	}
+	else throw runtime_error("Unknown image op");
 }
+
+
 
 void RotateImage(State& s, const string& args)
 {

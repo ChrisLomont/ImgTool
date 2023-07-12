@@ -23,6 +23,7 @@
 #include "ImageOps.h"
 #include "Colorspace.h"
 #include "MathOps.h"
+#include "csv.h"
 
 namespace fs = std::filesystem;
 using namespace std;
@@ -32,23 +33,23 @@ using namespace std;
 * works on stack machine - can put images on stack, do ops
   
   TODO
-    - function support: <name> subroutine/endsub and <name> gosub/return
-	- print endl 
+  X - function support: <name> subroutine/endsub and <name> gosub/return
+  X	- printing of endlines
 	- format prints
     - assert
 	- type on stack command
-	- eval command, executes a string
-    - type converters , ->str,->float,->int
-	- make new image, blank, fill, ops
-    - clean command descriptions, order better
-	- use double instead of string for numerical stuff on stack, less conversions
-	- abstract out Do0 - Do3, abstract handlers nicer
-    - string ==, != > < >= <= 
-    - array of items (incl other arrays)
-	- get and line args as "n getarg" to get nth arg, or maybe use rcl and special name
 	- eval a string as a set of commands
+	- type converters ,
+  X    ->str,
+	   ->float, 
+	
+	- clean command descriptions, order better
+  X - use double instead of string for numerical stuff on stack, less conversions
+	- abstract out Do0 - Do3, abstract handlers nicer
+  X - string ==, != > < >= <= 
+    - array of items (incl other arrays)
+  X	- get and line args as "n getarg" to get nth arg, or maybe use rcl and special name
 	- check string construction
-	- printing of endlines?
     - make CSV, would be good for running image tests
     - test script to test all, catch regressions
   X - better parser, handles comments, strings inline
@@ -58,7 +59,6 @@ using namespace std;
   X - test scripts
   X - run script command
   X - run external command
-    - some simple drawing - box, line, text ;)
   X - add verbosity output
     - add more filters, check
     - rotations, 
@@ -66,13 +66,23 @@ using namespace std;
   X - expand (add border, etc), 
     - shift image around ops?
     - blit and composite using alphas?
-    - basic drawing, text
+
+  X	- version
+
+  X	- make new image, blank,
   X - pixel get/set
 	- pixel functions
 	- more pixel ops
+	- draw line
+	- draw rect
+	- draw circle
+	- text
+	- fill, ops
+
     - Gaussian (good fast approx, Wells, PAMI, Mar 1986), edge stuff?, list filter to apply convolution?
   X - spawn command using std::system() calls
 	- bilateral filter, noise, median filter, edge stuff?
+
 * And now we recreated Image Magic :)
 */
 
@@ -85,11 +95,11 @@ x   math on size
    split into path, filename base, extension
 x   crop/trim/resize whatever
 x   perform image metrics (ssim, psnr, maybe all, maybe diff, abs, scale, max of cells?)
-   format string with result
-   append result to some internal var
-   format new filename (path, name+??, extension)
+  x format string with result
+  x append result to some internal var
+  x format new filename (path, name+??, extension)
 x   save result(1 or more images)
-save/dump total psnr, results, etc....
+x save/dump total psnr, results, etc....
 
 */
 
@@ -109,17 +119,30 @@ void StackOp(State& s, const string& args)
 	s.StackOp(args);
 }
 
-void ImageSize(State& s, const string& args)
+void RandOp(State& s, const string& args)
 {
-	auto img = s.Peek<ImagePtr>();
-	auto [w, h] = img->Size();
-	s.Push(w);
-	s.Push(h);
+	if (args == "rand")
+	{
+		auto b = s.PopInt();
+		auto a = s.PopInt();
+		auto val = randUniform(s.randState, a, b);
+		s.Push(val);
+	}
+	else if (args == "srand")
+	{
+		auto seed = s.PopInt();
+		s.randState = randSeed(seed);
+	}
+	else throw runtime_error(fmt::format("Unknown command {}",args));
 }
-
 
 void Print(State& s, const string& args)
 {
+	if (args == "endl")
+	{
+		s.Push("\n");
+		return;
+	}
 	int n = 1;
 	if (args == "printn")
 		n = s.PopInt();
@@ -134,6 +157,26 @@ void Print(State& s, const string& args)
 	}
 	cout << endl;
 }
+void SystemOp(State& s, const string& args)
+{
+		if (args == "version") 
+		{
+			// version - todo, make at top somewhere?
+			s.Push(0);
+			s.Push(1); 
+		}
+		else if (args == "timeus")
+		{
+			s.Push(s.elapsedUs());
+		}
+		else if (args == "arg")
+		{
+			auto n = s.PopInt();
+			s.Push(s.args[n]);
+		}
+	else throw runtime_error("Unknown system op");
+}
+
 
 void GetFiles(State & s, const string & args)
 {
@@ -195,54 +238,18 @@ void PixelOp(State & s, const string & args)
 
 
 vector<Command> commands = {
-	{"read","filename -> image, loads image",ReadImage},
-	{"write","image filename -> ,  outputs saved image",WriteImage},
-	{"colorspace","image space -> image', where space=[linear|sRGB|YCbCr|RGB], does conversion",ColorTransform},
-	{"error","im1 im2 errtype -> im1 im2 errval, prints error type mse, psnr, ssim",ImageError},
-	{"maxc","img -> max, max value of all r,g,b values in image",ImageError},
-	{"size","img -> w h, where w,h is size in pixels",ImageSize},
-	{"files","path regex -> f1 f2 ... fn n, reads files matching regex, pushes on stack with count",GetFiles},
-
+	// image stuff
+	{"read","filename -> image, loads image",ImageOp},
+	{"write","image filename -> ,  outputs saved image",ImageOp},
+	{"image","w h r g b a -> image, makes image size w x h, color rgba in 0-1",ImageOp},
 	{"getpixel","img i j -> img r g b a, reads pixel 0-1",PixelOp},
 	{"setpixel","img i j r g b a -> img, writes pixel 0-1",PixelOp},
 
-	// and,or,not,xor,rand, rdz(randseed), >>,<<	
-	// ticks = time, 
-	// type - object type
+	{"colorspace","image space -> image', where space=[linear|sRGB|YCbCr|RGB], does conversion",ColorTransform},
 
-
-	{"abs","item -> abs(img)",MathOp},
-	{"ceil","item -> ceil(item)",MathOp},
-	{"floor","item -> floor(img)",MathOp},
-	{"round","item -> round(item)",MathOp},
-	{"min","a b -> min(a,b)",MathOp},
-	{"max","a b -> max(a,b)",MathOp},
-	{"clamp","item1 a b -> clamp(item1,a,b)",MathOp},
-
-	{"sin","item -> abs(img)",MathOp},
-	{"cos","item -> abs(img)",MathOp},
-
-	{"pi"," -> pi",MathOp},
-	{"e","  -> e",MathOp},
-
-	{"pow","item1 item2 -> pow(item1,item2)",MathOp},
-	{"exp","a -> e^a ",MathOp},
-	{"log","val base -> log_base(val)",MathOp},
-
-	{"neg","a -> -a",MathOp},
-	{"sign","a -> sign(a), is -1,0,1",MathOp},
-
-	{"+","item1 item2 -> item1+item2",MathOp},
-	{"-","item1 item2 -> item1-item2",MathOp},
-	{"*","item1 item2 -> item1*item2",MathOp},
-	{"/","item1 item2 -> item1/item2",MathOp},
-	{"mod","a b -> a mod b",MathOp},
-	{"==","item1 item2 -> item1==item2, 0 if false, else 1",MathOp},
-	{"!=","item1 item2 -> item1!=item2, 0 if false, else 1",MathOp},
-	{">=","item1 item2 -> item1>=item2, 0 if false, else 1",MathOp},
-	{"<=","item1 item2 -> item1<=item2, 0 if false, else 1",MathOp},
-	{">","item1 item2 -> item1>item2, 0 if false, else 1",MathOp},
-	{"<","item1 item2 -> item1<item2, 0 if false, else 1",MathOp},
+	{"error","im1 im2 errtype -> im1 im2 errval, prints error type mse, psnr, ssim",ImageError},
+	{"maxc","img -> max, max value of all r,g,b values in image",ImageError},
+	{"size","img -> w h, where w,h is size in pixels",ImageOp},
 
 	// image ops
 	{"resize","img w h style -> img', resize to w h by style nn,bilinear,bicubic,lanczos2,lanczos3,lanczos4",ResizeImage},
@@ -259,6 +266,51 @@ vector<Command> commands = {
 	{"flipy", "img -> img2, flip image", FlipImage},
 	// todo - draw, text, trim
 
+	// system
+	{"files","path regex -> f1 f2 ... fn n, reads files matching regex, pushes on stack with count",GetFiles},
+	{"version"," -> major minor, get version", SystemOp},
+	{"timeus"," -> time_us, get elapsed time in us", SystemOp},
+	{"rand","a b -> rand32(a,b), uniform random integer in [a,b)",RandOp},
+	{"srand","seed -> , set random seed to integer seed",RandOp},
+	{"arg", " n -> arg, get command line arg n, passed via -a item, n = 1,2,...",SystemOp},
+
+	// and,or,not,xor,
+	// >>,<<	
+	// type - object type
+
+	// CSV - todo - finish
+	//{"csvstart", " csvname header1 header2 ... n -> , start a CSV file with given headers",CsvOp},
+	//{"csvput"  , " val header csvname -> , stores val under header name in named csv",CsvOp},
+	//{"csvwrite", " csvname filename -> , ",CsvOp},
+
+	// math
+	{"abs","item -> abs(img)",MathOp},
+	{"ceil","item -> ceil(item)",MathOp},
+	{"floor","item -> floor(img)",MathOp},
+	{"round","item -> round(item)",MathOp},
+	{"min","a b -> min(a,b)",MathOp},
+	{"max","a b -> max(a,b)",MathOp},
+	{"clamp","item1 a b -> clamp(item1,a,b)",MathOp},
+	{"sin","item -> abs(img)",MathOp},
+	{"cos","item -> abs(img)",MathOp},
+	{"pi"," -> pi",MathOp},
+	{"e","  -> e",MathOp},
+	{"pow","item1 item2 -> pow(item1,item2)",MathOp},
+	{"exp","a -> e^a ",MathOp},
+	{"log","val base -> log_base(val)",MathOp},
+	{"neg","a -> -a",MathOp},
+	{"sign","a -> sign(a), is -1,0,1",MathOp},
+	{"+","item1 item2 -> item1+item2",MathOp},
+	{"-","item1 item2 -> item1-item2",MathOp},
+	{"*","item1 item2 -> item1*item2",MathOp},
+	{"/","item1 item2 -> item1/item2",MathOp},
+	{"mod","a b -> a mod b",MathOp},
+	{"==","item1 item2 -> item1==item2, 0 if false, else 1",MathOp},
+	{"!=","item1 item2 -> item1!=item2, 0 if false, else 1",MathOp},
+	{">=","item1 item2 -> item1>=item2, 0 if false, else 1",MathOp},
+	{"<=","item1 item2 -> item1<=item2, 0 if false, else 1",MathOp},
+	{">","item1 item2 -> item1>item2, 0 if false, else 1",MathOp},
+	{"<","item1 item2 -> item1<item2, 0 if false, else 1",MathOp},
 
 	// stack commands
 	{"dup","a -> a a, duplicates top item",StackOp},
@@ -279,6 +331,7 @@ vector<Command> commands = {
 
 	{"print","item -> , prints top item",Print},
 	{"printn","x1 x2 ... xn  n -> , prints top N items",Print},
+	{"endl", " -> endline, pushes an endline string", Print},
 
 	// flow & state
 	{"label", "name -> , create named label for next item index",StateOp},
@@ -329,9 +382,15 @@ void ShowUsage()
 	}
 }
 
-bool Process(const vector<string> & tokens, bool verbose)
+Item ToItem(const string& text)
 {
-	State state;
+	if (IsDouble(text))
+		return Item(ParseDouble(text));
+	return Item(text);
+}
+
+bool Process(State & state, const vector<string> & tokens, bool verbose)
+{
 	state.verbosity = verbose?2:1;
 	
 	state.programPosition = 0; 
@@ -359,10 +418,7 @@ bool Process(const vector<string> & tokens, bool verbose)
 			}
 			if (cIndex >= commands.size())
 			{ // was no item, push it
-				if (IsDouble(token))
-					state.Push(ParseDouble(token));
-				else
-					state.Push(token);
+				state.Push(ToItem(token));
 			}
 
 		}
@@ -431,6 +487,8 @@ int main(int argc, char ** argv)
 	vector<string> tokens;
 	bool verbose = false;
 	
+	State s;
+
 	int argpos = 1; // skip initial exe
 	while (argpos < argc&& argv[argpos][0]=='-')
 	{ // parse options
@@ -446,6 +504,11 @@ int main(int argc, char ** argv)
 			cout << "Verbose = true\n";
 			verbose = true;
 		}
+		else if (opt == "-a")
+		{
+			string t(argv[argpos++]);
+			s.args.push_back(ToItem(t));
+		}
 		else {
 			cerr << fmt::format("Unknown option {}\n",opt);
 			return -1;
@@ -456,7 +519,7 @@ int main(int argc, char ** argv)
 		tokens.push_back(argv[i]);
 
 	cout << "Current path is " << fs::current_path() << '\n'; 
-	auto retval = Process(tokens, verbose) ? 1 : 0;
+	auto retval = Process(s, tokens, verbose) ? 1 : 0;
 	cout << "Done\n";
 	return retval;
 }

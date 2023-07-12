@@ -2,6 +2,8 @@
 #include <string>
 #include <algorithm>
 #include <regex>
+#include <cstdint>
+#include "rand.h"
 
 using namespace std; // todo - remove
 
@@ -48,5 +50,8 @@ using namespace std; // todo - remove
 	std::string trim(const std::string& s) {
 		return rtrim(ltrim(s));
 	}
+
+
+	
 
 // }
