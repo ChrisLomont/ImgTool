@@ -11,7 +11,7 @@ using namespace std; // todo - remove
 
 using Item = variant<string, ImagePtr, double>;
 
-string FormatItem(Item & item, bool prefixType)
+string FormatItem(const Item & item, bool prefixType)
 {
 	if (holds_alternative<ImagePtr>(item))
 	{

@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <regex>
 #include <cstdint>
+#include <unordered_map>
 #include "rand.h"
 
 using namespace std; // todo - remove
@@ -51,6 +52,11 @@ using namespace std; // todo - remove
 		return rtrim(ltrim(s));
 	}
 
+	template<typename TKey, typename TValue>
+	bool contains(const std::unordered_map<TKey,TValue> & map, const TKey & key)
+	{
+		return map.find(key) != map.end();
+	}
 
 	
 

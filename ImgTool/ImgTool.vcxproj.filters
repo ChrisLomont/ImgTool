@@ -77,5 +77,6 @@
     <None Include="tests.imgscript" />
     <None Include="example.imgscript" />
     <None Include="playground.imgscript" />
+    <None Include="testcsv.imgscript" />
   </ItemGroup>
 </Project>

@@ -1,0 +1,38 @@
+# testing csv functions
+
+2 verbosity
+
+# start 3 of them
+csv1 header1_1 header1_2 header1_3 3 csvstart
+csv2 header2_1 header2_2 2 csvstart
+csv3 monkey 17 skeety 3 csvstart
+
+# add some rows (mix ops, do csv1 column wise, csv2 row wise, leave csv3 empty)
+0 csv1 header1_1 csvput
+A csv1 header1_1 csvput
+z csv1 header1_1 csvput
+
+1 csv1 header1_2 csvput
+B csv1 header1_2 csvput
+zz csv1 header1_2 csvput
+
+2 csv1 header1_3 csvput
+C csv1 header1_3 csvput
+zz-top csv1 header1_3 csvput
+
+A1 csv2 header2_1 csvput
+B1 csv2 header2_2 csvput
+A2 csv2 header2_1 csvput
+A3 csv2 header2_1 csvput
+B2 csv2 header2_2 csvput
+B3 csv2 header2_2 csvput
+B4 csv2 header2_2 csvput
+A4 csv2 header2_1 csvput
+
+# save them
+csv2 filename2.csv csvwrite
+csv3 filename3.csv csvwrite
+csv1 filename1.csv csvwrite
+
+"depth should be 0: " print
+depth print

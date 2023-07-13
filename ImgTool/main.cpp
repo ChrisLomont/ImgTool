@@ -1,6 +1,12 @@
+
 // simple image tool
 // chris lomont 2020-2023
 // resize, error metrics, gamma stuff
+
+// https://github.com/ChrisLomont/ImgTool
+// to compile on *nix, g++ main.cpp fmt/format.cc -std=c++20 -O2 -o imgtool
+// then copy imgtool to /usr/local/bin to make available on terminals
+
 #include <iostream>
 #include <string>
 #include <cstring>
@@ -28,11 +34,17 @@
 namespace fs = std::filesystem;
 using namespace std;
 
+const int VERSION_MAJOR = 0;
+const int VERSION_MINOR = 2;
+
 // NOTES:
 /*syntax:
 * works on stack machine - can put images on stack, do ops
   
   TODO
+    - default scripts, ex: diffimg, errimg, histogram, etc.
+  X	- script can see # of args passed
+    - better io control to make silent via verbosity
   X - function support: <name> subroutine/endsub and <name> gosub/return
   X	- printing of endlines
 	- format prints
@@ -42,7 +54,7 @@ using namespace std;
 	- type converters ,
   X    ->str,
 	   ->float, 
-	
+	- replace Hoppe code, license not clear
 	- clean command descriptions, order better
   X - use double instead of string for numerical stuff on stack, less conversions
 	- abstract out Do0 - Do3, abstract handlers nicer
@@ -161,9 +173,9 @@ void SystemOp(State& s, const string& args)
 {
 		if (args == "version") 
 		{
-			// version - todo, make at top somewhere?
-			s.Push(0);
-			s.Push(1); 
+			// version
+			s.Push(VERSION_MAJOR);
+			s.Push(VERSION_MINOR);
 		}
 		else if (args == "timeus")
 		{
@@ -174,7 +186,11 @@ void SystemOp(State& s, const string& args)
 			auto n = s.PopInt();
 			s.Push(s.args[n]);
 		}
-	else throw runtime_error("Unknown system op");
+		else if (args == "argcount")
+		{
+			s.Push((int)s.args.size());
+		}
+		else throw runtime_error("Unknown system op");
 }
 
 
@@ -273,15 +289,16 @@ vector<Command> commands = {
 	{"rand","a b -> rand32(a,b), uniform random integer in [a,b)",RandOp},
 	{"srand","seed -> , set random seed to integer seed",RandOp},
 	{"arg", " n -> arg, get command line arg n, passed via -a item, n = 1,2,...",SystemOp},
+	{"argcount", "  -> argcount, count of command line args passed via via -a",SystemOp},
 
 	// and,or,not,xor,
 	// >>,<<	
 	// type - object type
 
-	// CSV - todo - finish
-	//{"csvstart", " csvname header1 header2 ... n -> , start a CSV file with given headers",CsvOp},
-	//{"csvput"  , " val header csvname -> , stores val under header name in named csv",CsvOp},
-	//{"csvwrite", " csvname filename -> , ",CsvOp},
+	// CSV 
+	{"csvstart", " csvname header1 header2 ... n -> , start a CSV file with given headers",CsvOp},
+	{"csvput"  , " val header csvname -> , stores val under header name in named csv",CsvOp},
+	{"csvwrite", " csvname filename -> , ",CsvOp},
 
 	// math
 	{"abs","item -> abs(img)",MathOp},
@@ -478,7 +495,7 @@ void GetScriptTokens(vector<string> & tokens, const string & filename)
 
 int main(int argc, char ** argv)
 {
-	cout << "Chris Lomont's RPN image tool v0.1\n";
+	cout << fmt::format("Chris Lomont's RPN image tool v{}.{}\n", VERSION_MAJOR, VERSION_MINOR);
 	if (argc <= 1)
 	{
 		ShowUsage();

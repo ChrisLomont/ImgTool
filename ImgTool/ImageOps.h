@@ -386,7 +386,8 @@ void PadImage(State& s, const string& args)
 void FlipImage(State& s, const string& args)
 {
 	auto img = s.Pop<ImagePtr>();
-	auto [w, h] = img->Size();
+	auto [w1, h1] = img->Size();
+	int w = w1, h = h1; // todo - needed for clang issues on using w1,h1 in lambdas
 	auto dst = make_shared<Image>(w,h);
 	if (args == "flipx")
 	{

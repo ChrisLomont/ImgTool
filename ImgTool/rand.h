@@ -55,7 +55,7 @@ int32_t randUniform(uint64_t& state, int32_t min, int32_t max)
 	int delta = max - min;
 
 	if (delta <= 0) return 0;
-	auto threshold = (uint32_t)((1UL << 32) - (uint64_t)delta) % delta;
+	auto threshold = (uint32_t)((1ULL << 32) - (uint64_t)delta) % delta;
 
 	while (true)
 	{
