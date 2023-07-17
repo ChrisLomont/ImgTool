@@ -40,11 +40,19 @@ const int VERSION_MINOR = 2;
 // NOTES:
 /*syntax:
 * works on stack machine - can put images on stack, do ops
+
+    - doc assumptions: read file does no conversion except byte values -> double rgba
+ 
   
   TODO
-    - default scripts, ex: diffimg, errimg, histogram, etc.
+    - set edge boundary mode for image stuff: reflection, clamp, etc...
+    - filename processing, or more general regex stuff?
+	- abstract out rpn and stack engine, it's decent
+	- script processing - look direct name, if not, and name has no /, then look in scripts subdir
+	- default scripts, ex: diffimg, errimg, histogram, etc.
   X	- script can see # of args passed
     - better io control to make silent via verbosity
+	- console tools run offline can hide output
   X - function support: <name> subroutine/endsub and <name> gosub/return
   X	- printing of endlines
 	- format prints
@@ -62,7 +70,7 @@ const int VERSION_MINOR = 2;
     - array of items (incl other arrays)
   X	- get and line args as "n getarg" to get nth arg, or maybe use rcl and special name
 	- check string construction
-    - make CSV, would be good for running image tests
+  X - make CSV, would be good for running image tests
     - test script to test all, catch regressions
   X - better parser, handles comments, strings inline
   X - get files matching pattern
@@ -80,6 +88,7 @@ const int VERSION_MINOR = 2;
     - blit and composite using alphas?
 
   X	- version
+  X - int rgba <-> double rgba
 
   X	- make new image, blank,
   X - pixel get/set
@@ -91,7 +100,8 @@ const int VERSION_MINOR = 2;
 	- text
 	- fill, ops
 
-    - Gaussian (good fast approx, Wells, PAMI, Mar 1986), edge stuff?, list filter to apply convolution?
+  X - Gaussian 
+	   - (good fast approx, Wells, PAMI, Mar 1986), edge stuff?, list filter to apply convolution?
   X - spawn command using std::system() calls
 	- bilateral filter, noise, median filter, edge stuff?
 
@@ -100,7 +110,7 @@ const int VERSION_MINOR = 2;
 
 /*
 Min viable product (x = done):
-Foreach file in dir (possible recursive?)
+x Foreach file in dir (possible recursive?)
 x   open image
 x  get size
 x   math on size
@@ -272,7 +282,7 @@ vector<Command> commands = {
 	{"resize%","img v style -> img', resize by v%, style as above",ResizeImage},
 	{"resize*","img m style -> img', resize by multiplier m, style as above",ResizeImage},
 
-	{"gaussian","img s -> img' , gaussian blur, std dev s",GaussianBlur},
+	{"gaussian","img radius -> img' , gaussian blur with given radius",GaussianBlur},
 
 	{"rotate","TODO: img angle expand -> img', rotate image by angle degrees, expand true makes bigger to center, false keeps size",RotateImage},
 
@@ -281,6 +291,11 @@ vector<Command> commands = {
 	{"flipx", "img -> img2, flip image", FlipImage},
 	{"flipy", "img -> img2, flip image", FlipImage},
 	// todo - draw, text, trim
+
+	todo;
+	//{"->rgbai","r g b a -> ri gi bi ai, converts color values in 0-1 to integer color values in 0-255",ImageOp},
+	//{"->rgbad","r g b a -> rd gd bd ad, converts integer color values in 0-255 to color values in 0-1",ImageOp},
+	//{"apply","img funcname -> img', applies function funcname(i,j,r,g,b,a)->(r,g,b,a) to image pixels.",ImageOp},
 
 	// system
 	{"files","path regex -> f1 f2 ... fn n, reads files matching regex, pushes on stack with count",GetFiles},
@@ -346,6 +361,7 @@ vector<Command> commands = {
 // todo - ??	{"unpick","X -> , NOT opposite of unpick. removes item level 1",StackOp},
 	{"depth","... -> n , pushes depth to top of stack",StackOp},
 
+	// printing
 	{"print","item -> , prints top item",Print},
 	{"printn","x1 x2 ... xn  n -> , prints top N items",Print},
 	{"endl", " -> endline, pushes an endline string", Print},

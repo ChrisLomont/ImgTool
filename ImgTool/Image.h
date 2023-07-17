@@ -48,6 +48,14 @@ struct Color
 		// todo - alpha belnding?
 		return *this;
 	}
+	Color& operator /=(double v)
+	{
+		r /= v;
+		g /= v;
+		b /= v;
+		// todo - alpha?
+		return *this;
+	}
 };
 Color operator *(double w, const Color& c)
 {
@@ -62,6 +70,10 @@ class Image {
 	static int f64ToI(double v) { return (int)(clamp(floor(v * 256.0), 0.0, 255.0)); }
 
 public:
+	static shared_ptr<Image> Make(int w, int h)
+	{
+		return make_shared<Image>(w,h);
+	}
 	bool Legal(int i, int j) const { return 0 <= i && 0 <= j && i < w && j < h; }
 
 	int channels;
