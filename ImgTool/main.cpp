@@ -278,7 +278,7 @@ vector<Command> commands = {
 	{"size","img -> w h, where w,h is size in pixels",ImageOp},
 
 	// image ops
-	{"resize","img w h style -> img', resize to w h by style nn,bilinear,bicubic,lanczos2,lanczos3,lanczos4",ResizeImage},
+	{"resize","img w h style -> img', resize to w h by style nn,bilinear,bicubic,lanczos2,lanczos3,lanczos4,lanczos2r,lanczos3r,lanczos4r",ResizeImage},
 	{"resize%","img v style -> img', resize by v%, style as above",ResizeImage},
 	{"resize*","img m style -> img', resize by multiplier m, style as above",ResizeImage},
 
@@ -292,9 +292,10 @@ vector<Command> commands = {
 	{"flipy", "img -> img2, flip image", FlipImage},
 	// todo - draw, text, trim
 
-	todo;
-	//{"->rgbai","r g b a -> ri gi bi ai, converts color values in 0-1 to integer color values in 0-255",ImageOp},
-	//{"->rgbad","r g b a -> rd gd bd ad, converts integer color values in 0-255 to color values in 0-1",ImageOp},
+	
+
+	{"i->f","f1 f2 .. fn n -> i1 i2 .. in, converts n values in 0-1 to n values in 0-255, useful for colors",ImageOp},
+	{"f->i","i1 i2 .. in n -> f1 f2 .. fn, converts n values in 0.255 to n values in 0-1, useful for colors",ImageOp},
 	//{"apply","img funcname -> img', applies function funcname(i,j,r,g,b,a)->(r,g,b,a) to image pixels.",ImageOp},
 
 	// system

@@ -66,10 +66,11 @@ class Image {
 	vector<Color> data_;
 	int w, h;
 
+
+public:
 	static double iToF64(int v) { return v / 255.0; }
 	static int f64ToI(double v) { return (int)(clamp(floor(v * 256.0), 0.0, 255.0)); }
 
-public:
 	static shared_ptr<Image> Make(int w, int h)
 	{
 		return make_shared<Image>(w,h);

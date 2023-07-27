@@ -189,12 +189,6 @@ struct  Lanczos4 : Lanczos<4> {};
 struct  Lanczos5 : Lanczos<5> {};
 struct  Lanczos6 : Lanczos<6> {};
 
-ImagePtr ResizeLanczosRadial(ImagePtr src, int w, int h, double a)
-{
-	throw runtime_error("radial lanczos not implemented");
-	// todo
-}
-
 double LanczosFunc(double v, int a)
 {
 	v = abs(v);
@@ -204,6 +198,47 @@ double LanczosFunc(double v, int a)
 	// todo - for near 0, use taylor series, compute a few and put here
 	return a * sin(px) * sin(px / a) / (px * px);
 }
+
+ImagePtr ResizeLanczosRadial(ImagePtr src, int w, int h, double a)
+{ // radial lanczos
+	auto [w1, h1] = src->Size();
+	int ws = w1, hs = h1; // clang error!
+	auto dst = make_shared<Image>(w,h);
+	int min = floor(a), max = ceil(a);
+	auto r2 = a * a;
+	dst->Apply(
+		[&](int i, int j)
+		{
+			// center pixel into src location
+			double cx = ((i + 0.5) * w1) / w;
+			double cy = ((j + 0.5) * h1) / h;
+			double sum = 0;
+			Color c;
+			for (int sj = floor(cy-a); sj <= ceil(cy+a); ++sj)
+				for (int si = floor(cx - a); si <= ceil(cx + a); ++si)
+				{
+					if (!src->Legal(si, sj)) continue;
+					auto dx = cx - (si + 0.5);
+					auto dy = cy - (sj + 0.5);
+					auto d2 = dx * dx + dy * dy;
+					if (d2 <= r2)
+					{
+						auto wt = LanczosFunc(sqrt(d2),a);
+						sum += wt;
+						c += wt * src->Get(si, sj);						
+					}					
+				}
+			
+			c /= sum; // todo - can sum = 0 here?
+			c.a = 1.0; // todo?
+			return c;
+		}
+	);
+
+	return dst;	
+}
+
+
 
 ImagePtr ResizeLanczos(ImagePtr src, int w, int h, double a)
 {
@@ -329,8 +364,12 @@ void ResizeImage(State& s, const string& args)
 		//img = ApplyFilter<Lanczos4>(img, w2, h2);
 		img = ResizeLanczos(img, w2, h2, 4);
 	}
-	else if (method == "lanczosr3")
+	else if (method == "lanczos2r")
+		img = ResizeLanczosRadial(img, w2, h2, 2.0);
+	else if (method == "lanczosr3r")
 		img = ResizeLanczosRadial(img, w2, h2, 3.0);
+	else if (method == "lanczosr4r")
+		img = ResizeLanczosRadial(img, w2, h2, 4.0);
 	else
 		throw runtime_error(fmt::format("Unknown resize method {}", method));
 	auto elapsed = timer.get_elapsed_time();
@@ -352,7 +391,6 @@ void GaussianBlur(State& s, const string& args)
 	const double sigma = 1.0; // todo - base on kernel length?
 	const double eConst = 2 * sigma * sigma;
 	const double gConst = 1.0 / (eConst*  std::numbers::pi);
-	const double eConst = 2 * sigma * sigma;
 
 	dst->Apply([=](int i, int j) {
 		Color color(0, 0, 0, 0);
@@ -584,6 +622,26 @@ void ImageOp(State& s, const string& args)
 		auto img = make_shared<Image>(w,h);
 		img->Apply([=](int i, int j) { return color; });
 		s.Push(img);
+	}
+	else if (args == "i->f")
+	{
+		//		{"i->f", "f1 f2 .. fn n -> i1 i2 .. in, converts n values in 0-1 to n values in 0-255, useful for colors", ImageOp},
+		int n = s.PopInt();
+		vector<int> v;
+		for (int i = 0; i < n; ++i)
+			v.push_back(s.PopInt());
+		for (int i = n - 1; i >= 0; --i)
+			s.Push(Image::iToF64(v[i]));
+	}
+	else if (args == "f->i")
+	{
+		//		{ "f->i","i1 i2 .. in n -> f1 f2 .. fn, converts n values in 0.255 to n values in 0-1, useful for colors",ImageOp },
+		int n = s.PopInt();
+		vector<double> v;
+		for (int i = 0; i < n; ++i)
+			v.push_back(s.Pop<double>());
+		for (int i = n - 1; i >= 0; --i)
+			s.Push((int)(Image::f64ToI(v[i])));
 	}
 	else throw runtime_error("Unknown image op");
 }
