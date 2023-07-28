@@ -72,12 +72,4 @@
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
-  <ItemGroup>
-    <None Include="testImages.imgscript" />
-    <None Include="tests.imgscript" />
-    <None Include="example.imgscript" />
-    <None Include="playground.imgscript" />
-    <None Include="testcsv.imgscript" />
-    <None Include="gamma.imgscript" />
-  </ItemGroup>
 </Project>
