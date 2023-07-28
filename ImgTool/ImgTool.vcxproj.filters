@@ -78,5 +78,6 @@
     <None Include="example.imgscript" />
     <None Include="playground.imgscript" />
     <None Include="testcsv.imgscript" />
+    <None Include="gamma.imgscript" />
   </ItemGroup>
 </Project>

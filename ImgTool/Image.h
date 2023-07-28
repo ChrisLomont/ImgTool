@@ -59,7 +59,7 @@ struct Color
 };
 Color operator *(double w, const Color& c)
 {
-	return Color(w * c.r, w * c.g, w * c.g, c.a);
+	return Color(w * c.r, w * c.g, w * c.b, c.a);
 }
 
 class Image {

@@ -203,6 +203,46 @@ void SystemOp(State& s, const string& args)
 		else throw runtime_error("Unknown system op");
 }
 
+void LogicOp(State& s, const string& args)
+{
+	//{"and", "a b -> (a and b), bitwise 'and' on integers", LogicOp},
+	//{ "or","a b -> (a or b), bitwise 'or' on integers",LogicOp },
+	//{ "xor","a b -> (a xor b), bitwise 'xor' on integers",LogicOp },
+	//{ "not","a b -> (a not b), treating 0 as false, != 0 as true, boolean not",LogicOp },
+	if (args == "and")
+	{
+
+	}
+	else if (args == "and")
+	{
+		auto b = s.PopInt();
+		auto a = s.PopInt();
+		s.Push(a & b);
+	}
+	else if (args == "or")
+	{
+		auto b = s.PopInt();
+		auto a = s.PopInt();
+		s.Push(a | b);
+
+	}
+	else if (args == "xor")
+	{
+		auto b = s.PopInt();
+		auto a = s.PopInt();
+		s.Push(a ^ b);
+
+	}
+	else if (args == "not")
+	{
+		auto a = s.PopInt() == 0;
+		s.Push(a ? 1 : 0);
+	}
+	else 
+		throw runtime_error("Unknown op");
+
+}
+
 
 void GetFiles(State & s, const string & args)
 {
@@ -290,12 +330,15 @@ vector<Command> commands = {
 	{"pad", "img top bottom left right r g b a -> img2, pad image with given color, given pixel margins", PadImage},
 	{"flipx", "img -> img2, flip image", FlipImage},
 	{"flipy", "img -> img2, flip image", FlipImage},
+	{"blit", "src dst sx sy dx dy w h -> src dst' copy pixels from src to dst, (sx,sy) src upper left, (dx,dy) dst, size w,h, ", ImageOp},
+	
+	
 	// todo - draw, text, trim
 
 	
 
-	{"i->f","f1 f2 .. fn n -> i1 i2 .. in, converts n values in 0-1 to n values in 0-255, useful for colors",ImageOp},
-	{"f->i","i1 i2 .. in n -> f1 f2 .. fn, converts n values in 0.255 to n values in 0-1, useful for colors",ImageOp},
+	{"f->i","f1 f2 .. fn n -> i1 i2 .. in, converts n values in 0-1 to n values in 0-255, useful for colors",ImageOp},
+	{"i->f","i1 i2 .. in n -> f1 f2 .. fn, converts n values in 0-255 to n values in 0-1, useful for colors",ImageOp},
 	//{"apply","img funcname -> img', applies function funcname(i,j,r,g,b,a)->(r,g,b,a) to image pixels.",ImageOp},
 
 	// system
@@ -307,7 +350,6 @@ vector<Command> commands = {
 	{"arg", " n -> arg, get command line arg n, passed via -a item, n = 1,2,...",SystemOp},
 	{"argcount", "  -> argcount, count of command line args passed via via -a",SystemOp},
 
-	// and,or,not,xor,
 	// >>,<<	
 	// type - object type
 
@@ -344,6 +386,10 @@ vector<Command> commands = {
 	{"<=","item1 item2 -> item1<=item2, 0 if false, else 1",MathOp},
 	{">","item1 item2 -> item1>item2, 0 if false, else 1",MathOp},
 	{"<","item1 item2 -> item1<item2, 0 if false, else 1",MathOp},
+	{"and","a b -> (a and b), bitwise 'and' on integers",LogicOp},
+	{"or","a b -> (a or b), bitwise 'or' on integers",LogicOp},
+	{"xor","a b -> (a xor b), bitwise 'xor' on integers",LogicOp},
+	{"not","a -> (not a), treating 0 as false, != 0 as true, boolean not",LogicOp},
 
 	// stack commands
 	{"dup","a -> a a, duplicates top item",StackOp},
@@ -407,7 +453,7 @@ vector<Command> commands = {
 void ShowUsage()
 {
 	cout << "Usage: This is an RPN based image tool. Command args are RPN commands.\n";
-	cout << "       Commands either on command line or run as --script filename\n";
+	cout << "       Commands either on command line or run as -s filename\n";
 	cout << "       --verbose to print more\n";
 	cout << "       Each command shows what it does to the stack.\n";
 	for (auto& c : commands)
@@ -528,7 +574,7 @@ int main(int argc, char ** argv)
 	{ // parse options
 		string opt(argv[argpos]);
 		argpos++;
-		if (opt == "--script")
+		if (opt == "-s")
 		{
 			cout << "Executing script " << argv[argpos] << endl;
 			GetScriptTokens(tokens, argv[argpos++]);

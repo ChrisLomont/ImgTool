@@ -210,10 +210,10 @@ ImagePtr ResizeLanczosRadial(ImagePtr src, int w, int h, double a)
 		[&](int i, int j)
 		{
 			// center pixel into src location
-			double cx = ((i + 0.5) * w1) / w;
-			double cy = ((j + 0.5) * h1) / h;
+			double cx = ((i + 0.5) * ws) / w;
+			double cy = ((j + 0.5) * hs) / h;
 			double sum = 0;
-			Color c;
+			Color c(0,0,0,1);
 			for (int sj = floor(cy-a); sj <= ceil(cy+a); ++sj)
 				for (int si = floor(cx - a); si <= ceil(cx + a); ++si)
 				{
@@ -229,7 +229,7 @@ ImagePtr ResizeLanczosRadial(ImagePtr src, int w, int h, double a)
 					}					
 				}
 			
-			c /= sum; // todo - can sum = 0 here?
+			c /= (sum>0)?sum:1;
 			c.a = 1.0; // todo?
 			return c;
 		}
@@ -366,9 +366,9 @@ void ResizeImage(State& s, const string& args)
 	}
 	else if (method == "lanczos2r")
 		img = ResizeLanczosRadial(img, w2, h2, 2.0);
-	else if (method == "lanczosr3r")
+	else if (method == "lanczos3r")
 		img = ResizeLanczosRadial(img, w2, h2, 3.0);
-	else if (method == "lanczosr4r")
+	else if (method == "lanczos4r")
 		img = ResizeLanczosRadial(img, w2, h2, 4.0);
 	else
 		throw runtime_error(fmt::format("Unknown resize method {}", method));
@@ -432,9 +432,9 @@ void PadImage(State& s, const string& args)
 	);
 
 	right  = max(right,0);
-	left   = max(right, 0);
-	top    = max(right, 0);
-	bottom = max(right, 0);
+	left   = max(left, 0);
+	top    = max(top, 0);
+	bottom = max(bottom, 0);
 	
 	auto [w, h] = img->Size();
 	auto dst = make_shared<Image>(left + w + right, top + h + bottom);
@@ -619,7 +619,7 @@ void ImageOp(State& s, const string& args)
 		int h = s.PopInt();
 		int w = s.PopInt();
 		Color color(r, g, b, a);
-		auto img = make_shared<Image>(w,h);
+		auto img = make_shared<Image>(w, h);
 		img->Apply([=](int i, int j) { return color; });
 		s.Push(img);
 	}
@@ -642,6 +642,26 @@ void ImageOp(State& s, const string& args)
 			v.push_back(s.Pop<double>());
 		for (int i = n - 1; i >= 0; --i)
 			s.Push((int)(Image::f64ToI(v[i])));
+	}
+	else if (args == "blit")
+	{ 
+		// 	{"blit", "src dst sx sy dx dy w h -> src dst' copy pixels from src to dst, (sx,sy) src upper left, (dx,dy) dst, size w,h, ", ImageOp},
+		auto h = s.PopInt();
+		auto w = s.PopInt();
+		auto dy = s.PopInt();
+		auto dx = s.PopInt();
+		auto sy = s.PopInt();
+		auto sx = s.PopInt();
+		auto dst = s.Pop<ImagePtr>();
+		auto src = s.Pop<ImagePtr>();
+
+		for (int j = 0; j < h; ++j)
+			for (int i = 0; i < w; ++i)
+			{
+				dst->Set(i + dx, j + dy, src->Get(i + sx, j + sy));
+			}
+		s.Push(src);
+		s.Push(dst);
 	}
 	else throw runtime_error("Unknown image op");
 }

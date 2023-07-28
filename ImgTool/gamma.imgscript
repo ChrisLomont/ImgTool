@@ -1,0 +1,68 @@
+# code to create a test image, then resize it in various methods
+# 2 verbosity
+0 verbosity
+
+256 psize sto                  # image size
+psize rcl 3 / left sto         # left cutoff
+psize rcl left rcl - right sto # right cutoff
+
+256 256 0.5 0.5 0.5 1.0 image # make gray image
+image1 sto # save it
+
+left rcl right rcl rangeloop
+   # index j on stack
+   j sto
+   left rcl right rcl rangeloop
+      # i on stack
+      i sto
+
+      image1 rcl i rcl j rcl # prepare for setpixel
+
+      i rcl j rcl + 2 mod # 0 or 1 // 0 or 1      
+      dup dup 1.0 
+
+      setpixel # store
+
+      drop # image off stack
+   
+   endloop
+endloop
+
+image1 rcl # the image
+
+linear.bmp write
+linear.png write
+
+
+sRGB colorspace # convert
+gamma.bmp write
+gamma.png write
+
+drop
+
+# experiment 
+# do upsize save as linear and gamma
+# do upsize as gamma, then do linear and gamma save
+image1 rcl
+psize rcl 2 * dup bilinear resize
+linear_linear_2x.bmp write
+linear_linear_2x.png write
+
+sRGB colorspace
+linear_gamma_2x.bmp write
+linear_gamma_2x.png write
+
+drop
+image1 rcl 
+sRGB colorspace
+psize rcl 2 * dup bilinear resize
+gamma_gamma_2x.bmp write
+gamma_gamma_2x.png write
+
+linear colorspace
+gamma_linear_2x.bmp write
+gamma_linear_2x.png write
+
+drop
+
+Done! print
