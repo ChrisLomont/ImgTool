@@ -1,0 +1,57 @@
+# code to test include
+
+# ensure include expands at correct place
+
+1
+include1.txt include # put 5 on stack
+2
+include2.txt include # put 7 on stack
+3
+
+# stack 3 7 2 5 1
+
++ 2 * + 5 * # 110 5 1
++ 3 * swap -
+344 == 
+"include success 1!" "include error 1!" 1 1 
+4 pick if print
+drop
+
+# ignore include again
+include1.txt include
+
+# depth printn halt
+
+depth 0 == 
+"include success 2!" "include error 2!" 1 1 
+4 pick if print
+drop
+
+
+
+include3.txt include
+# should leave on stack:
+# 1 2 5 11 8 9 10 12 13 6 7 3 4
+
+0 ans sto
+
+4 == ans rcl + ans sto
+  3 == ans rcl + ans sto
+  7 == ans rcl + ans sto
+  6 == ans rcl + ans sto
+ 13 == ans rcl + ans sto
+ 12 == ans rcl + ans sto
+ 10 == ans rcl + ans sto
+ 9 == ans rcl + ans sto
+ 8 == ans rcl + ans sto
+ 11 == ans rcl + ans sto
+ 5 == ans rcl + ans sto
+ 2 == ans rcl + ans sto
+ 1 == ans rcl + ans sto
+
+ "include success 3" "include error 3" 1 1 
+ ans rcl 13 == 
+ 
+ if print 
+
+ #end

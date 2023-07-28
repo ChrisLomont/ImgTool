@@ -1,0 +1,2 @@
+# put 5 on stack
+5

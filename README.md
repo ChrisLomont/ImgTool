@@ -7,11 +7,10 @@ RPN based, like old HP calculators.
 Here's the current commands, obtained by running the tool without arguments.
 
 ```
-
-Chris Lomont's RPN image tool v0.1
+Chris Lomont's RPN image tool v0.2
 Usage: This is an RPN based image tool. Command args are RPN commands.
-       Commands either on command line or run as --script filename
-       --verbose to print more
+       Commands either on command line or run as -s filename
+       --verbose to print more, 0=none, 1=info, 2=all
        Each command shows what it does to the stack.
 read        : filename -> image, loads image
 write       : image filename -> ,  outputs saved image
@@ -22,21 +21,29 @@ colorspace  : image space -> image', where space=[linear|sRGB|YCbCr|RGB], does c
 error       : im1 im2 errtype -> im1 im2 errval, prints error type mse, psnr, ssim
 maxc        : img -> max, max value of all r,g,b values in image
 size        : img -> w h, where w,h is size in pixels
-resize      : img w h style -> img', resize to w h by style nn,bilinear,bicubic,lanczos2,lanczos3,lanczos4
+resize      : img w h style -> img', resize to w h by style nn,bilinear,bicubic,lanczos2,lanczos3,lanczos4,lanczos2r,lanczos3r,lanczos4r
 resize%     : img v style -> img', resize by v%, style as above
 resize*     : img m style -> img', resize by multiplier m, style as above
-gaussian    : img s -> img' , gaussian blur, std dev s
+gaussian    : img radius -> img' , gaussian blur with given radius
 rotate      : TODO: img angle expand -> img', rotate image by angle degrees, expand true makes bigger to center, false keeps size
 crop        : img x1 y1 x2 y2 -> img', crop image to rectangle (x1,y1)-(x2,y2) inclusive
 pad         : img top bottom left right r g b a -> img2, pad image with given color, given pixel margins
 flipx       : img -> img2, flip image
 flipy       : img -> img2, flip image
+blit        : src dst sx sy dx dy w h -> src dst' copy pixels from src to dst, (sx,sy) src upper left, (dx,dy) dst, size w,h,
+f->i        : f1 f2 .. fn n -> i1 i2 .. in, converts n values in 0-1 to n values in 0-255, useful for colors
+i->f        : i1 i2 .. in n -> f1 f2 .. fn, converts n values in 0-255 to n values in 0-1, useful for colors
 files       : path regex -> f1 f2 ... fn n, reads files matching regex, pushes on stack with count
 version     :  -> major minor, get version
 timeus      :  -> time_us, get elapsed time in us
 rand        : a b -> rand32(a,b), uniform random integer in [a,b)
 srand       : seed -> , set random seed to integer seed
 arg         :  n -> arg, get command line arg n, passed via -a item, n = 1,2,...
+argcount    :   -> argcount, count of command line args passed via via -a
+include     :  filename -> , include file as text, each file included at most once
+csvstart    :  csvname header1 header2 ... n -> , start a CSV file with given headers
+csvput      :  val header csvname -> , stores val under header name in named csv
+csvwrite    :  csvname filename -> ,
 abs         : item -> abs(img)
 ceil        : item -> ceil(item)
 floor       : item -> floor(img)
@@ -64,6 +71,10 @@ mod         : a b -> a mod b
 <=          : item1 item2 -> item1<=item2, 0 if false, else 1
 >           : item1 item2 -> item1>item2, 0 if false, else 1
 <           : item1 item2 -> item1<item2, 0 if false, else 1
+and         : a b -> (a and b), bitwise 'and' on integers
+or          : a b -> (a or b), bitwise 'or' on integers
+xor         : a b -> (a xor b), bitwise 'xor' on integers
+not         : a -> (not a), treating 0 as false, != 0 as true, boolean not
 dup         : a -> a a, duplicates top item
 dup2        : a b -> a b a b, duplicates top item
 dupn        : x1 x2 .. xn n -> x1 x2 .. xn x1 x2 .. xn, duplicate top n
@@ -89,7 +100,7 @@ sto         : item name -> , store item in name
 rcl         : name -> item, look up item
 dumpstate   :  -> , print out state items
 system      : cmd -> return_value, execute cmd on system call - WARNING - be careful!
-verbosity   : v -> , set verbosity 0=none, 1=info, 2= all
+verbosity   : v -> , set verbosity 0=none, 1=info, 2=all
 if          : t1 t2 .. tn f1 f2 .. fm n m b -> ti or fj, if b != 0, keep t1..tn, else keep f1..fm
 ->str       : item -> 'item', formats item as string
 rangeloop   : min max -> , loops over index in [min,max], each iter puts index on stack, use endloop
@@ -99,5 +110,4 @@ subroutine  :  name -> , starts subroutine, ends with endsub
 endsub      :  name -> , ends subroutine
 gosub       :  name -> , jumps to subroutine
 return      :  -> , returns from subroutine
-
 ```
