@@ -16,6 +16,12 @@
     <Filter Include="Source Files\fmt">
       <UniqueIdentifier>{121b6d0a-588c-4e26-82e0-a53da5c02d2a}</UniqueIdentifier>
     </Filter>
+    <Filter Include="scripts">
+      <UniqueIdentifier>{20a50027-1a5a-45ad-9092-ef8bcd0b58db}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="tests">
+      <UniqueIdentifier>{76745efb-c851-41bb-8bf3-aa25b8d6cf35}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -71,5 +77,49 @@
     <ClInclude Include="csv.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\tests\testcsv.txt">
+      <Filter>tests</Filter>
+    </Text>
+    <Text Include="..\tests\testImages.txt">
+      <Filter>tests</Filter>
+    </Text>
+    <Text Include="..\tests\tests.txt">
+      <Filter>tests</Filter>
+    </Text>
+    <Text Include="..\scripts\example.txt">
+      <Filter>scripts</Filter>
+    </Text>
+    <Text Include="..\scripts\gamma.txt">
+      <Filter>scripts</Filter>
+    </Text>
+    <Text Include="..\scripts\playground.txt">
+      <Filter>scripts</Filter>
+    </Text>
+    <Text Include="..\tests\include1.txt">
+      <Filter>tests</Filter>
+    </Text>
+    <Text Include="..\tests\include2.txt">
+      <Filter>tests</Filter>
+    </Text>
+    <Text Include="..\tests\include3.txt">
+      <Filter>tests</Filter>
+    </Text>
+    <Text Include="..\tests\testInclude.txt">
+      <Filter>tests</Filter>
+    </Text>
+    <Text Include="..\tests\include4.txt">
+      <Filter>tests</Filter>
+    </Text>
+    <Text Include="..\tests\include5.txt">
+      <Filter>tests</Filter>
+    </Text>
+    <Text Include="..\tests\include6.txt">
+      <Filter>tests</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\README.md" />
   </ItemGroup>
 </Project>

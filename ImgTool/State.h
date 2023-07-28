@@ -62,6 +62,8 @@ class State : public Stack
 	Timer timer{};
 
 public:
+	vector<string> tokens;
+
 	State() {
 		randState = randSeed(42);
 	}

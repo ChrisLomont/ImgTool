@@ -15,6 +15,7 @@
 #include <fstream>
 #include <regex>
 #include <typeinfo>
+#include <set>
 
 // some compilers puke, even with c++ 20, so...
 //#include <format>
@@ -175,7 +176,7 @@ void Print(State& s, const string& args)
 		auto v = s.Pop();
 		if (s.verbosity >= 2)
 			cout << fmt::format("{}: ",i);
-		cout << FormatItem(v,s.verbosity>=2);
+		cout << FormatItem(v,s.verbosity>=2) << " ";
 	}
 	cout << endl;
 }
@@ -302,6 +303,68 @@ void PixelOp(State & s, const string & args)
 
 }
 
+set<string> filesRead;
+
+void GetScriptTokens(vector<string>& tokens, const string& filename)
+{
+	// insert each line
+	if (!fs::exists(filename))
+	{
+		throw runtime_error(fmt::format("File {} does not exist", filename));
+	}
+	if (filesRead.find(filename) != filesRead.end())
+	{
+		return; // do not load again
+	}
+	cout << "Reading file " << filename << endl;
+
+	filesRead.insert(filename); // mark first to prevent recursive includes
+
+
+	std::ifstream file(filename);
+	std::string line;
+	while (std::getline(file, line))
+	{
+		line = trim(line);
+
+		// string split by regex
+		// grab strings "..." whole
+		// take comment #... to end of line
+		// split on spaces
+		// ignore multiple spaces
+
+		regex rgx("(#.+$|\"[^\"]+\"|[^\\s]+)");
+		sregex_token_iterator iter(
+			line.begin(),
+			line.end(),
+			rgx);
+		sregex_token_iterator end;
+		for (; iter != end; ++iter)
+		{
+			string token = *iter;
+			//cout << format("tok: <{}>",token);
+			if (token[0] == '#') continue; // comment
+			if (token[0] == '"') token = token.substr(1, token.size() - 2); // string
+			//cout << format(" => <{}>\n", token);
+			tokens.push_back(token);
+		}
+	}
+}
+
+void IncludeFile(State & s, const string & args)
+{
+//	{"include", " filename -> , include file as text, each file included at most once", IncludeFile},
+	if (args == "include")
+	{
+		auto filename = s.Pop<string>();
+		
+		vector<string> tokens;
+		GetScriptTokens(tokens, filename);
+		s.tokens.insert(next(s.tokens.begin(),s.programPosition), tokens.begin(), tokens.end());
+	}
+	else
+		throw runtime_error("unknown Include option");
+}
 
 vector<Command> commands = {
 	// image stuff
@@ -349,6 +412,8 @@ vector<Command> commands = {
 	{"srand","seed -> , set random seed to integer seed",RandOp},
 	{"arg", " n -> arg, get command line arg n, passed via -a item, n = 1,2,...",SystemOp},
 	{"argcount", "  -> argcount, count of command line args passed via via -a",SystemOp},
+	
+	{"include", " filename -> , include file as text, each file included at most once",IncludeFile},
 
 	// >>,<<	
 	// type - object type
@@ -422,7 +487,7 @@ vector<Command> commands = {
 	{"rcl" ,"name -> item, look up item", StateOp},
 	{"dumpstate" ," -> , print out state items", StateOp},
 	{"system" ,"cmd -> return_value, execute cmd on system call - WARNING - be careful!", StateOp},
-	{"verbosity","v -> , set verbosity 0=none, 1=info, 2= all", StateOp},
+	{"verbosity","v -> , set verbosity 0=none, 1=info, 2=all", StateOp},
 	{"if","t1 t2 .. tn f1 f2 .. fm n m b -> ti or fj, if b != 0, keep t1..tn, else keep f1..fm", StateOp},
 	{"->str","item -> 'item', formats item as string", StateOp},
 
@@ -454,7 +519,7 @@ void ShowUsage()
 {
 	cout << "Usage: This is an RPN based image tool. Command args are RPN commands.\n";
 	cout << "       Commands either on command line or run as -s filename\n";
-	cout << "       --verbose to print more\n";
+	cout << "       --verbose to print more, 0=none, 1=info, 2=all\n";
 	cout << "       Each command shows what it does to the stack.\n";
 	for (auto& c : commands)
 	{
@@ -469,15 +534,15 @@ Item ToItem(const string& text)
 	return Item(text);
 }
 
-bool Process(State & state, const vector<string> & tokens, bool verbose)
+bool Process(State & state, bool verbose)
 {
 	state.verbosity = verbose?2:1;
 	
 	state.programPosition = 0; 
 	try {
-		while (state.programPosition < tokens.size())
+		while (state.programPosition < state.tokens.size())
 		{
-			const string & token = tokens[state.programPosition];
+			const string & token = state.tokens[state.programPosition];
 			state.programPosition++; // next position
 
 			if (state.inSubroutineDefinition && token != "endsub")
@@ -518,43 +583,7 @@ bool Process(State & state, const vector<string> & tokens, bool verbose)
 }
 
 
-void GetScriptTokens(vector<string> & tokens, const string & filename)
-{
-	if (!fs::exists(filename))
-	{
-		cout << "Error: file does not exist " << filename << endl;
-		return;
-	}
 
-	std::ifstream file(filename);
-	std::string line;
-	while (std::getline(file, line))
-	{
-		line = trim(line);
-
-		// string split by regex
-		// grab strings "..." whole
-		// take comment #... to end of line
-		// split on spaces
-		// ignore multiple spaces
-
-		regex rgx("(#.+$|\"[^\"]+\"|[^\\s]+)");
-		sregex_token_iterator iter(
-			line.begin(),
-			line.end(),
-			rgx);
-		sregex_token_iterator end;
-		for (; iter != end; ++iter)
-		{
-			string token = *iter;
-			//cout << format("tok: <{}>",token);
-			if (token[0] == '#') continue; // comment
-			if (token[0] == '"') token = token.substr(1, token.size() - 2); // string
-			//cout << format(" => <{}>\n", token);
-			tokens.push_back(token);
-		}
-	}
-}
 
 int main(int argc, char ** argv)
 {
@@ -564,7 +593,6 @@ int main(int argc, char ** argv)
 		ShowUsage();
 		return -1;
 	}
-	vector<string> tokens;
 	bool verbose = false;
 	
 	State s;
@@ -577,7 +605,7 @@ int main(int argc, char ** argv)
 		if (opt == "-s")
 		{
 			cout << "Executing script " << argv[argpos] << endl;
-			GetScriptTokens(tokens, argv[argpos++]);
+			GetScriptTokens(s.tokens, argv[argpos++]);
 		}
 		else if (opt == "--verbose")
 		{
@@ -596,10 +624,10 @@ int main(int argc, char ** argv)
 	}
 	// tokenize any other command line options
 	for (int i = argpos; i < argc; ++i)
-		tokens.push_back(argv[i]);
+		s.tokens.push_back(argv[i]);
 
 	cout << "Current path is " << fs::current_path() << '\n'; 
-	auto retval = Process(s, tokens, verbose) ? 1 : 0;
+	auto retval = Process(s, verbose) ? 1 : 0;
 	cout << "Done\n";
 	return retval;
 }

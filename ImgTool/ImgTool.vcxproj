@@ -149,6 +149,24 @@
     <ClInclude Include="Timer.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>
+  <ItemGroup>
+    <Text Include="..\scripts\example.txt" />
+    <Text Include="..\scripts\gamma.txt" />
+    <Text Include="..\scripts\playground.txt" />
+    <Text Include="..\tests\include1.txt" />
+    <Text Include="..\tests\include2.txt" />
+    <Text Include="..\tests\include3.txt" />
+    <Text Include="..\tests\include4.txt" />
+    <Text Include="..\tests\include5.txt" />
+    <Text Include="..\tests\include6.txt" />
+    <Text Include="..\tests\testcsv.txt" />
+    <Text Include="..\tests\testImages.txt" />
+    <Text Include="..\tests\testInclude.txt" />
+    <Text Include="..\tests\tests.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\README.md" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
