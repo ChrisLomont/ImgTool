@@ -2,7 +2,9 @@
 
 A command line and/or scriptable image hackery tool.
 
-RPN based, like old HP calculators.
+Reverse Polish Notation (RPN) and stack based, like old HP calculators.
+
+[Github](https://github.com/ChrisLomont/ImgTool)
 
 Here's the current commands, obtained by running the tool without arguments.
 

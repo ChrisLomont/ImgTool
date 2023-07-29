@@ -596,9 +596,6 @@ bool Process(State & state, bool verbose)
 	return true;
 }
 
-
-
-
 int main(int argc, char ** argv)
 {
 	cout << fmt::format("Chris Lomont's RPN image tool v{}.{}\n", VERSION_MAJOR, VERSION_MINOR);

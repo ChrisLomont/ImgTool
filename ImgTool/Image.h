@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <memory>
 #include <stdexcept>
+#include "Boundary.h"
 
 using namespace std; // todo - remove this
 
@@ -121,7 +122,9 @@ public:
 				Set(i, j, colorFunc(i, j));
 			}
 	}
-
+	
+	// todo boundary implementation
+	BoundaryMode boundaryMode{ BoundaryMode::Reflect };
 	void Set(int i, int j, const Color& c) { if (Legal(i, j))data_[i + j * w] = c; }
 	Color Get(int i, int j) const { if (Legal(i, j)) return data_[i + j * w]; return Color(1, 0, 1, 1); }
 
