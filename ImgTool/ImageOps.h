@@ -493,6 +493,34 @@ void CropImage(State& s, const string& args)
 			dst->Set(i, j, src->Get(i + x1, j + y1));
 	s.Push(dst);
 }
+// alpha blend
+Color Blend(const Color & over, const Color & under)
+{
+	auto alphaOver = over.a;
+	auto alphaUnder = under.a;
+	auto alpha = alphaOver + alphaUnder * (1 - alphaOver);
+	//c = (cOver*aOver + cUnder*bUnder*(1-aover))/alpha;
+	auto c = (alphaOver * over + alphaUnder * (1 - alphaOver) * under);
+	if (alpha != 0)
+		c = (1.0 / alpha) * c;
+	else
+		c.r = c.g = c.b = c.a = 0;
+	c.a = alpha;
+	return c;
+}
+
+void Blit(ImagePtr dst, int dx, int dy, ImagePtr src, int x1, int y1, int w, int h)
+{
+
+for (int j = 0; j < h; ++j)
+	for (int i = 0; i < w; ++i)
+	{
+		auto srcColor = src->Get(i + x1, j + y1);
+		auto dstColor = dst->Get(i + dx, j + dy);
+		auto color = Blend(srcColor, dstColor);
+		dst->Set(i + dx, j + dy, color);
+	}
+}
 
 /* -------------------- Metrics ------------------------------*/
 double MetricMSE(ImagePtr src, ImagePtr dst)
@@ -643,24 +671,43 @@ void ImageOp(State& s, const string& args)
 		for (int i = n - 1; i >= 0; --i)
 			s.Push((int)(Image::f64ToI(v[i])));
 	}
-	else if (args == "blit")
+	else if (args == "blit" || args == "blitc" || args == "blitr")
 	{ 
-		// 	{"blit", "src dst sx sy dx dy w h -> src dst' copy pixels from src to dst, (sx,sy) src upper left, (dx,dy) dst, size w,h, ", ImageOp},
-		auto h = s.PopInt();
-		auto w = s.PopInt();
-		auto dy = s.PopInt();
-		auto dx = s.PopInt();
-		auto sy = s.PopInt();
-		auto sx = s.PopInt();
-		auto dst = s.Pop<ImagePtr>();
-		auto src = s.Pop<ImagePtr>();
+		int dx = 0, dy = 0, x1 = 0, y1 = 0, w = 0, h = 0;
+		ImagePtr src{ nullptr }, dst{ nullptr };
+		if (args == "blit")
+		{
+			//{"blit", "dst src -> dst', copy pixels from src to dst", ImageOp},
+			auto src = s.Pop<ImagePtr>();
+			auto dst = s.Pop<ImagePtr>();
+			auto [w1, h1] = src->Size();
+			w = w1; h = h1;
+		}
+		else if (args == "blitc")
+		{
+			//{ "blitc", "dst dx dy src -> dst' copy src pixels to dst, placing dest corner at dx dy", ImageOp },
+			auto src = s.Pop<ImagePtr>();
+			dy = s.PopInt();
+			dx = s.PopInt();
+			auto dst = s.Pop<ImagePtr>();
+			auto [w1, h1] = src->Size();
+			w = w1; h = h1;
+		}
+		else if (args == "blitr")
+		{
+			//{ "blitr", "dst dx dy src x1 y1 w h  -> dst', copy rect from src x1 y1 w h to dst at dx dy", ImageOp },
+			h = s.PopInt();
+			w = s.PopInt();
+			y1 = s.PopInt();
+			x1 = s.PopInt();
 
-		for (int j = 0; j < h; ++j)
-			for (int i = 0; i < w; ++i)
-			{
-				dst->Set(i + dx, j + dy, src->Get(i + sx, j + sy));
-			}
-		s.Push(src);
+			auto src = s.Pop<ImagePtr>();
+			dy = s.PopInt();
+			dx = s.PopInt();
+		}
+
+		Blit(dst, dx, dy, src, x1, y1, w, h);
+
 		s.Push(dst);
 	}
 	else throw runtime_error("Unknown image op");

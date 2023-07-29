@@ -61,7 +61,10 @@ Color operator *(double w, const Color& c)
 {
 	return Color(w * c.r, w * c.g, w * c.b, c.a);
 }
-
+Color operator +(const Color & c1, const Color& c2)
+{
+	return Color(c1.r + c2.r, c1.g + c2.g, c1.b + c2.b, (c1.a + c2.a) / 2);
+}
 class Image {
 	vector<Color> data_;
 	int w, h;

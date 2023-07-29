@@ -119,11 +119,27 @@ public:
 			auto label = Pop<string>();
 			programPosition = labels[label];
 		}
-		else if (args == "je")
+		else if (
+			args == "je" ||
+			args == "jne" ||
+			args == "jlt" ||
+			args == "jle" ||
+			args == "jgt" ||
+			args == "jge"
+			)
 		{
 			auto label = Pop<string>();
-			auto v = Pop<double>();
-			if (v != 0)
+			auto item2 = Pop<double>();
+			auto item1 = Pop<double>();
+
+			bool test1 = args == "je" && item1 == item2;
+			bool test2 = args == "jne" && item1 != item2;
+			bool test3 = args == "jlt" && item1 < item2;
+			bool test4 = args == "jle" && item1 <= item2;
+			bool test5 = args == "jgt" && item1 > item2;
+			bool test6 = args == "jge" && item1 >= item2;
+
+			if (test1 || test2 || test3 || test4 || test5 || test6)
 			{
 				programPosition = labels[label];
 			}

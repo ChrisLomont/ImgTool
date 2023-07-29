@@ -46,6 +46,13 @@ const int VERSION_MINOR = 2;
  
   
   TODO
+    - 
+    - string with func name runs, e.g., "error" triggers error. Make quoted strings allowed as strings and labels and var names...
+    - better help - explin images loaded as is, more
+    - point to github
+      - add complete color space support - for experiments
+          - tag images with color space details to allow proper "to" conversions
+          - how to read/save such images? stb likely does not handle it....
     - set edge boundary mode for image stuff: reflection, clamp, etc...
     - filename processing, or more general regex stuff?
 	- abstract out rpn and stack engine, it's decent
@@ -76,7 +83,7 @@ const int VERSION_MINOR = 2;
   X - better parser, handles comments, strings inline
   X - get files matching pattern
   X - lanczos, 
-    - lanczos radial
+  X - lanczos radial
   X - test scripts
   X - run script command
   X - run external command
@@ -86,7 +93,7 @@ const int VERSION_MINOR = 2;
   X - crop, 
   X - expand (add border, etc), 
     - shift image around ops?
-    - blit and composite using alphas?
+  X - blit and composite using alphas?
 
   X	- version
   X - int rgba <-> double rgba
@@ -376,7 +383,7 @@ vector<Command> commands = {
 
 	{"colorspace","image space -> image', where space=[linear|sRGB|YCbCr|RGB], does conversion",ColorTransform},
 
-	{"error","im1 im2 errtype -> im1 im2 errval, prints error type mse, psnr, ssim",ImageError},
+	{"error","im1 im2 errtype -> im1 im2 errval, prints error, errtype mse, psnr, ssim",ImageError},
 	{"maxc","img -> max, max value of all r,g,b values in image",ImageError},
 	{"size","img -> w h, where w,h is size in pixels",ImageOp},
 
@@ -393,12 +400,12 @@ vector<Command> commands = {
 	{"pad", "img top bottom left right r g b a -> img2, pad image with given color, given pixel margins", PadImage},
 	{"flipx", "img -> img2, flip image", FlipImage},
 	{"flipy", "img -> img2, flip image", FlipImage},
-	{"blit", "src dst sx sy dx dy w h -> src dst' copy pixels from src to dst, (sx,sy) src upper left, (dx,dy) dst, size w,h, ", ImageOp},
-	
-	
-	// todo - draw, text, trim
 
-	
+	{"blit", "dst src -> dst', copy pixels from src to dst", ImageOp},
+	{"blitc", "dst dx dy src -> dst' copy src pixels to dst, placing dest corner at dx dy", ImageOp },
+	{"blitr", "dst dx dy src x1 y1 w h  -> dst', copy rect from src x1 y1 w h to dst at dx dy", ImageOp },
+
+	// todo - draw, text, trim
 
 	{"f->i","f1 f2 .. fn n -> i1 i2 .. in, converts n values in 0-1 to n values in 0-255, useful for colors",ImageOp},
 	{"i->f","i1 i2 .. in n -> f1 f2 .. fn, converts n values in 0-255 to n values in 0-1, useful for colors",ImageOp},
@@ -430,27 +437,27 @@ vector<Command> commands = {
 	{"round","item -> round(item)",MathOp},
 	{"min","a b -> min(a,b)",MathOp},
 	{"max","a b -> max(a,b)",MathOp},
-	{"clamp","item1 a b -> clamp(item1,a,b)",MathOp},
-	{"sin","item -> abs(img)",MathOp},
-	{"cos","item -> abs(img)",MathOp},
+	{"clamp","item a b -> clamp(item,a,b)",MathOp},
+	{"sin","item -> sin(item), values in radians",MathOp},
+	{"cos","item -> cos(item), values in radians",MathOp},
 	{"pi"," -> pi",MathOp},
 	{"e","  -> e",MathOp},
 	{"pow","item1 item2 -> pow(item1,item2)",MathOp},
-	{"exp","a -> e^a ",MathOp},
+	{"exp","item -> e^item ",MathOp},
 	{"log","val base -> log_base(val)",MathOp},
-	{"neg","a -> -a",MathOp},
-	{"sign","a -> sign(a), is -1,0,1",MathOp},
-	{"+","item1 item2 -> item1+item2",MathOp},
-	{"-","item1 item2 -> item1-item2",MathOp},
-	{"*","item1 item2 -> item1*item2",MathOp},
-	{"/","item1 item2 -> item1/item2",MathOp},
-	{"mod","a b -> a mod b",MathOp},
-	{"==","item1 item2 -> item1==item2, 0 if false, else 1",MathOp},
-	{"!=","item1 item2 -> item1!=item2, 0 if false, else 1",MathOp},
-	{">=","item1 item2 -> item1>=item2, 0 if false, else 1",MathOp},
-	{"<=","item1 item2 -> item1<=item2, 0 if false, else 1",MathOp},
-	{">","item1 item2 -> item1>item2, 0 if false, else 1",MathOp},
-	{"<","item1 item2 -> item1<item2, 0 if false, else 1",MathOp},
+	{"neg","item -> -item",MathOp},
+	{"sign","item -> sign(item), is -1,0,1",MathOp},
+	{"+","item1 item2 -> item1 + item2",MathOp},
+	{"-","item1 item2 -> item1 - item2",MathOp},
+	{"*","item1 item2 -> item1 * item2",MathOp},
+	{"/","item1 item2 -> item1 / item2",MathOp},
+	{"mod","item1 item2 -> item1 mod item2",MathOp},
+	{"==","item1 item2 -> item1 == item2, 0 if false, else 1",MathOp},
+	{"!=","item1 item2 -> item1 != item2, 0 if false, else 1",MathOp},
+	{">=","item1 item2 -> item1 >= item2, 0 if false, else 1",MathOp},
+	{"<=","item1 item2 -> item1 <= item2, 0 if false, else 1",MathOp},
+	{">","item1 item2 -> item1 > item2, 0 if false, else 1",MathOp},
+	{"<","item1 item2 -> item1 < item2, 0 if false, else 1",MathOp},
 	{"and","a b -> (a and b), bitwise 'and' on integers",LogicOp},
 	{"or","a b -> (a or b), bitwise 'or' on integers",LogicOp},
 	{"xor","a b -> (a xor b), bitwise 'xor' on integers",LogicOp},
@@ -476,13 +483,20 @@ vector<Command> commands = {
 	// printing
 	{"print","item -> , prints top item",Print},
 	{"printn","x1 x2 ... xn  n -> , prints top N items",Print},
-	{"endl", " -> endline, pushes an endline string", Print},
+	{"endl", "-> endline, pushes an endline string", Print},
 
 	// flow & state
 	{"label", "name -> , create named label for next item index",StateOp},
 	{"ja", "label -> , JumpAlways: goto label",StateOp},
-	{"je", "val label -> , JumpEqual: if val != 0, goto label",StateOp},
-	{"halt" ," exitcode -> , stops program, returns code", StateOp},
+	{"je", "item1 item2 label -> , jump to label if item1 == item2",StateOp},
+
+	{ "jne", "item1 item2 label -> , jump to label if item1 != item2",StateOp },
+	{ "jlt", "item1 item2 label -> , jump to label if item1 < item2",StateOp },
+	{ "jle", "item1 item2 label -> , jump to label if item1 <= item2",StateOp },
+	{ "jgt", "item1 item2 label -> , jump to label if item1 > item2",StateOp },
+	{ "jge", "item1 item2 label -> , jump to label if item1 >= item2",StateOp },
+
+	{"halt" ,"exitcode -> , stops program, returns code", StateOp},
 	{"sto" ,"item name -> , store item in name", StateOp},
 	{"rcl" ,"name -> item, look up item", StateOp},
 	{"dumpstate" ," -> , print out state items", StateOp},
