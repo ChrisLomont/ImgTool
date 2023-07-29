@@ -137,7 +137,9 @@
     <ClInclude Include="Colorspace.h" />
     <ClInclude Include="Command.h" />
     <ClInclude Include="csv.h" />
+    <ClInclude Include="Draw.h" />
     <ClInclude Include="filters.h" />
+    <ClInclude Include="Font9x16.h" />
     <ClInclude Include="Image.h" />
     <ClInclude Include="ImageMetrics.h" />
     <ClInclude Include="ImageOps.h" />

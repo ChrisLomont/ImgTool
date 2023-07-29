@@ -28,6 +28,7 @@
 #include "State.h"
 #include "Timer.h"
 #include "ImageOps.h"
+#include "Draw.h"
 #include "Colorspace.h"
 #include "MathOps.h"
 #include "csv.h"
@@ -36,7 +37,7 @@ namespace fs = std::filesystem;
 using namespace std;
 
 const int VERSION_MAJOR = 0;
-const int VERSION_MINOR = 2;
+const int VERSION_MINOR = 3;
 
 // NOTES:
 /*syntax:
@@ -46,13 +47,15 @@ const int VERSION_MINOR = 2;
  
   
   TODO
-    - 
+	- {"apply","img funcname -> img', applies function funcname(i,j,r,g,b,a)->(r,g,b,a) to image pixels.",ImageOp},
+	- todo - trim to pixels not matching some value
+
     - string with func name runs, e.g., "error" triggers error. Make quoted strings allowed as strings and labels and var names...
-    - better help - explin images loaded as is, more
-    - point to github
-      - add complete color space support - for experiments
-          - tag images with color space details to allow proper "to" conversions
-          - how to read/save such images? stb likely does not handle it....
+    - better help - explain images loaded as is, more
+  X - point to github
+    - add complete color space support - for experiments
+        - tag images with color space details to allow proper "to" conversions
+        - how to read/save such images? stb likely does not handle it....
   X - set edge boundary mode for image stuff: reflection, clamp, etc...
     - filename processing, or more general regex stuff?
 	- abstract out rpn and stack engine, it's decent
@@ -67,7 +70,7 @@ const int VERSION_MINOR = 2;
     - assert
 	- type on stack command
 	- eval a string as a set of commands
-	- type converters ,
+	- type converters 
   X    ->str,
 	   ->float, 
 	- replace Hoppe code, license not clear
@@ -407,12 +410,17 @@ vector<Command> commands = {
 
 	{"boundary", "img mode -> img', set sample boundary mode to clamp, reflect, reverse, tile", ImageOp },
 
+	{"line",    "img x1 y1 x2 y2 r g b a -> img with line",DrawOp},
+	{"circle",  "img x1 y1 radius r g b a -> img with circle",DrawOp},
+	{"circlef", "img x1 y1 radius r g b a -> img with filled circle",DrawOp},
+	{"rect",    "img x1 y1 x2 y2 r g b a -> img with rectangle",DrawOp},
+	{"rectf",   "img x1 y1 x2 y2 r g b a -> img with filled rectangle",DrawOp},
+	{"text",    "img x1 y1 r g b a text 0 m -> img x2 y2, draws text in font (always 0), pixel size m, returns img and final position",DrawOp },
 
-	// todo - draw, text, trim
+
 
 	{"f->i","f1 f2 .. fn n -> i1 i2 .. in, converts n values in 0-1 to n values in 0-255, useful for colors",ImageOp},
 	{"i->f","i1 i2 .. in n -> f1 f2 .. fn, converts n values in 0-255 to n values in 0-1, useful for colors",ImageOp},
-	//{"apply","img funcname -> img', applies function funcname(i,j,r,g,b,a)->(r,g,b,a) to image pixels.",ImageOp},
 
 	// system
 	{"files","path regex -> f1 f2 ... fn n, reads files matching regex, pushes on stack with count",GetFiles},
