@@ -217,7 +217,7 @@ ImagePtr ResizeLanczosRadial(ImagePtr src, int w, int h, double a)
 			for (int sj = floor(cy-a); sj <= ceil(cy+a); ++sj)
 				for (int si = floor(cx - a); si <= ceil(cx + a); ++si)
 				{
-					if (!src->Legal(si, sj)) continue;
+					//	if (!src->Legal(si, sj)) continue; 
 					auto dx = cx - (si + 0.5);
 					auto dy = cy - (sj + 0.5);
 					auto d2 = dx * dx + dy * dy;
@@ -710,6 +710,24 @@ void ImageOp(State& s, const string& args)
 
 		s.Push(dst);
 	}
+	else if (args == "boundary")
+	{
+		// {"boundary", "img mode -> img', set sample boundary mode to clamp, reflect, reverse, tile", ImageOp },
+		auto mode = s.Pop<string>();
+		auto img = s.Pop<ImagePtr>();
+		if (mode == "clamp")
+			img->boundaryMode = BoundaryMode::Clamp;
+		else if (mode == "reflect")
+			img->boundaryMode = BoundaryMode::Reflect;
+		else if (mode == "reverse")
+			img->boundaryMode = BoundaryMode::Reverse;
+		else if (mode == "Tile")
+			img->boundaryMode = BoundaryMode::Tile;
+		else throw runtime_error("Unknown boundary mode");
+
+		s.Push(img);
+	}
+
 	else throw runtime_error("Unknown image op");
 }
 

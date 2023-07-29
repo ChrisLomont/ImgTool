@@ -53,7 +53,7 @@ const int VERSION_MINOR = 2;
       - add complete color space support - for experiments
           - tag images with color space details to allow proper "to" conversions
           - how to read/save such images? stb likely does not handle it....
-    - set edge boundary mode for image stuff: reflection, clamp, etc...
+  X - set edge boundary mode for image stuff: reflection, clamp, etc...
     - filename processing, or more general regex stuff?
 	- abstract out rpn and stack engine, it's decent
 	- script processing - look direct name, if not, and name has no /, then look in scripts subdir
@@ -404,6 +404,9 @@ vector<Command> commands = {
 	{"blit", "dst src -> dst', copy pixels from src to dst", ImageOp},
 	{"blitc", "dst dx dy src -> dst' copy src pixels to dst, placing dest corner at dx dy", ImageOp },
 	{"blitr", "dst dx dy src x1 y1 w h  -> dst', copy rect from src x1 y1 w h to dst at dx dy", ImageOp },
+
+	{"boundary", "img mode -> img', set sample boundary mode to clamp, reflect, reverse, tile", ImageOp },
+
 
 	// todo - draw, text, trim
 

@@ -4,10 +4,10 @@
 // boundary conditions
 enum class BoundaryMode
 {
-	Clamp = 0,
-	Reflect = 1, // reflect edge, edge pixel only occurs once
-	Reverse = 2,  // reflect edge, edge pixel occurs twice
-	Tile = 3
+	Clamp = 1,
+	Reflect = 2, // reflect edge, edge pixel only occurs once
+	Reverse = 3,  // reflect edge, edge pixel occurs twice
+	Tile = 4
 };
 
 // compute positive part of v%m for any v,m

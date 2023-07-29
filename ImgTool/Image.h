@@ -126,7 +126,15 @@ public:
 	// todo boundary implementation
 	BoundaryMode boundaryMode{ BoundaryMode::Reflect };
 	void Set(int i, int j, const Color& c) { if (Legal(i, j))data_[i + j * w] = c; }
-	Color Get(int i, int j) const { if (Legal(i, j)) return data_[i + j * w]; return Color(1, 0, 1, 1); }
+
+	Color Get(int i, int j) const { 
+		if (Legal(i, j)) 
+			return data_[i + j * w]; 
+		i = BoundaryClamp(boundaryMode, i, 0, w);
+		j = BoundaryClamp(boundaryMode, j, 0, h);
+		return data_[i + j * w];
+	}
+
 
 	void GetData(vector<uint8_t>& data) const
 	{
