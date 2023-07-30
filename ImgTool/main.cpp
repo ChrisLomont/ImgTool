@@ -622,7 +622,7 @@ bool Process(State & state, bool verbose)
 
 int main(int argc, char ** argv)
 {
-	cout << fmt::format("Chris Lomont's RPN image tool v{}.{}\n", VERSION_MAJOR, VERSION_MINOR);
+	cout << fmt::format("Chris Lomont's RPN image tool v{}.{}, https://github.com/ChrisLomont/ImgTool\n", VERSION_MAJOR, VERSION_MINOR);
 	if (argc <= 1)
 	{
 		ShowUsage();

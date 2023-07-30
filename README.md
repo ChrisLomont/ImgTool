@@ -4,12 +4,24 @@ A command line and/or scriptable image hackery tool.
 
 Reverse Polish Notation (RPN) and stack based, like old HP calculators.
 
+The input is a string of 'tokens'; those that are 'verbs' execute, those that are not are pushed onto a stack.
+
+The stack can hold float64s, strings, and image pointers.
+
+Each 'verb' pops 0 or more items on the stack, operates on them, then pushes 0 or more items back on the stack.
+
+The list of tokens, after expanding all 'include's, is indexed by a program counter, allowing labels, loops, and other control flow.
+
+Tokens can be given raw on the command line, or imported as scripts.
+
+Good luck!
+
 [Github](https://github.com/ChrisLomont/ImgTool)
 
 Here's the current commands, obtained by running the tool without arguments.
 
 ```
-Chris Lomont's RPN image tool v0.2
+Chris Lomont's RPN image tool v0.3, https://github.com/ChrisLomont/ImgTool
 Usage: This is an RPN based image tool. Command args are RPN commands.
        Commands either on command line or run as -s filename
        --verbose to print more, 0=none, 1=info, 2=all
@@ -20,19 +32,29 @@ image       : w h r g b a -> image, makes image size w x h, color rgba in 0-1
 getpixel    : img i j -> img r g b a, reads pixel 0-1
 setpixel    : img i j r g b a -> img, writes pixel 0-1
 colorspace  : image space -> image', where space=[linear|sRGB|YCbCr|RGB], does conversion
-error       : im1 im2 errtype -> im1 im2 errval, prints error type mse, psnr, ssim
+error       : im1 im2 errtype -> im1 im2 errval, prints error, errtype mse, psnr, ssim
 maxc        : img -> max, max value of all r,g,b values in image
 size        : img -> w h, where w,h is size in pixels
 resize      : img w h style -> img', resize to w h by style nn,bilinear,bicubic,lanczos2,lanczos3,lanczos4,lanczos2r,lanczos3r,lanczos4r
 resize%     : img v style -> img', resize by v%, style as above
 resize*     : img m style -> img', resize by multiplier m, style as above
 gaussian    : img radius -> img' , gaussian blur with given radius
-rotate      : TODO: img angle expand -> img', rotate image by angle degrees, expand true makes bigger to center, false keeps size
+rotate      : img angle filter -> img', rotate image by angle degrees using filter nn,bilinear,bicubic
+shift       : img dx dy filter -> img', shift image by dx dy using filter (todo all nn for now)
 crop        : img x1 y1 x2 y2 -> img', crop image to rectangle (x1,y1)-(x2,y2) inclusive
 pad         : img top bottom left right r g b a -> img2, pad image with given color, given pixel margins
 flipx       : img -> img2, flip image
 flipy       : img -> img2, flip image
-blit        : src dst sx sy dx dy w h -> src dst' copy pixels from src to dst, (sx,sy) src upper left, (dx,dy) dst, size w,h,
+blit        : dst src -> dst', copy pixels from src to dst
+blitc       : dst dx dy src -> dst' copy src pixels to dst, placing dest corner at dx dy
+blitr       : dst dx dy src x1 y1 w h  -> dst', copy rect from src x1 y1 w h to dst at dx dy
+boundary    : img [r g b a] mode -> img', set sample boundary mode to color (with rgba), clamp, reflect, reverse, tile
+line        : img x1 y1 x2 y2 r g b a -> img with line
+circle      : img x1 y1 radius r g b a -> img with circle
+circlef     : img x1 y1 radius r g b a -> img with filled circle
+rect        : img x1 y1 x2 y2 r g b a -> img with rectangle
+rectf       : img x1 y1 x2 y2 r g b a -> img with filled rectangle
+text        : img x1 y1 r g b a text 0 m -> img x2 y2, draws text in font (always 0), pixel size m, returns img and final position
 f->i        : f1 f2 .. fn n -> i1 i2 .. in, converts n values in 0-1 to n values in 0-255, useful for colors
 i->f        : i1 i2 .. in n -> f1 f2 .. fn, converts n values in 0-255 to n values in 0-1, useful for colors
 files       : path regex -> f1 f2 ... fn n, reads files matching regex, pushes on stack with count
@@ -52,27 +74,27 @@ floor       : item -> floor(img)
 round       : item -> round(item)
 min         : a b -> min(a,b)
 max         : a b -> max(a,b)
-clamp       : item1 a b -> clamp(item1,a,b)
-sin         : item -> abs(img)
-cos         : item -> abs(img)
+clamp       : item a b -> clamp(item,a,b)
+sin         : item -> sin(item), values in radians
+cos         : item -> cos(item), values in radians
 pi          :  -> pi
 e           :   -> e
 pow         : item1 item2 -> pow(item1,item2)
-exp         : a -> e^a
+exp         : item -> e^item
 log         : val base -> log_base(val)
-neg         : a -> -a
-sign        : a -> sign(a), is -1,0,1
-+           : item1 item2 -> item1+item2
--           : item1 item2 -> item1-item2
-*           : item1 item2 -> item1*item2
-/           : item1 item2 -> item1/item2
-mod         : a b -> a mod b
-==          : item1 item2 -> item1==item2, 0 if false, else 1
-!=          : item1 item2 -> item1!=item2, 0 if false, else 1
->=          : item1 item2 -> item1>=item2, 0 if false, else 1
-<=          : item1 item2 -> item1<=item2, 0 if false, else 1
->           : item1 item2 -> item1>item2, 0 if false, else 1
-<           : item1 item2 -> item1<item2, 0 if false, else 1
+neg         : item -> -item
+sign        : item -> sign(item), is -1,0,1
++           : item1 item2 -> item1 + item2
+-           : item1 item2 -> item1 - item2
+*           : item1 item2 -> item1 * item2
+/           : item1 item2 -> item1 / item2
+mod         : item1 item2 -> item1 mod item2
+==          : item1 item2 -> item1 == item2, 0 if false, else 1
+!=          : item1 item2 -> item1 != item2, 0 if false, else 1
+>=          : item1 item2 -> item1 >= item2, 0 if false, else 1
+<=          : item1 item2 -> item1 <= item2, 0 if false, else 1
+>           : item1 item2 -> item1 > item2, 0 if false, else 1
+<           : item1 item2 -> item1 < item2, 0 if false, else 1
 and         : a b -> (a and b), bitwise 'and' on integers
 or          : a b -> (a or b), bitwise 'or' on integers
 xor         : a b -> (a xor b), bitwise 'xor' on integers
@@ -93,11 +115,16 @@ pick        : xn ... x1 n -> xn ... x1 xn , copies item xn to top
 depth       : ... -> n , pushes depth to top of stack
 print       : item -> , prints top item
 printn      : x1 x2 ... xn  n -> , prints top N items
-endl        :  -> endline, pushes an endline string
+endl        : -> endline, pushes an endline string
 label       : name -> , create named label for next item index
 ja          : label -> , JumpAlways: goto label
-je          : val label -> , JumpEqual: if val != 0, goto label
-halt        :  exitcode -> , stops program, returns code
+je          : item1 item2 label -> , jump to label if item1 == item2
+jne         : item1 item2 label -> , jump to label if item1 != item2
+jlt         : item1 item2 label -> , jump to label if item1 < item2
+jle         : item1 item2 label -> , jump to label if item1 <= item2
+jgt         : item1 item2 label -> , jump to label if item1 > item2
+jge         : item1 item2 label -> , jump to label if item1 >= item2
+halt        : exitcode -> , stops program, returns code
 sto         : item name -> , store item in name
 rcl         : name -> item, look up item
 dumpstate   :  -> , print out state items
