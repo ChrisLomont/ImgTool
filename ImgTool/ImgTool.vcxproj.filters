@@ -86,6 +86,9 @@
     <ClInclude Include="Font9x16.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="Color.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\tests\testcsv.txt">
@@ -125,6 +128,9 @@
       <Filter>tests</Filter>
     </Text>
     <Text Include="..\tests\include6.txt">
+      <Filter>tests</Filter>
+    </Text>
+    <Text Include="..\tests\testBoundary.txt">
       <Filter>tests</Filter>
     </Text>
   </ItemGroup>

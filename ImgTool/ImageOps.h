@@ -2,6 +2,8 @@
 #include <vector>
 #include <iostream>
 #include <algorithm>
+#include <numbers>
+
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -293,7 +295,6 @@ ImagePtr ResizeLanczos(ImagePtr src, int w, int h, double a)
 		}
 	return dst;
 }
-
 
 void ResizeImage(State& s, const string& args)
 { 
@@ -714,16 +715,29 @@ void ImageOp(State& s, const string& args)
 	{
 		// {"boundary", "img mode -> img', set sample boundary mode to clamp, reflect, reverse, tile", ImageOp },
 		auto mode = s.Pop<string>();
-		auto img = s.Pop<ImagePtr>();
-		if (mode == "clamp")
-			img->boundaryMode = BoundaryMode::Clamp;
+		BoundaryMode bmode;
+		if (mode == "color")
+		{
+			bmode.mode = BoundaryMode::Mode::Color;
+			double a = s.Pop<double>();
+			double b = s.Pop<double>();
+			double g = s.Pop<double>();
+			double r = s.Pop<double>();
+			bmode.color = Color(r,g,b,a);
+		}
+		else if (mode == "clamped")
+			bmode.mode = BoundaryMode::Mode::Clamped;
 		else if (mode == "reflect")
-			img->boundaryMode = BoundaryMode::Reflect;
+			bmode.mode = BoundaryMode::Mode::Reflect;
 		else if (mode == "reverse")
-			img->boundaryMode = BoundaryMode::Reverse;
-		else if (mode == "Tile")
-			img->boundaryMode = BoundaryMode::Tile;
+			bmode.mode = BoundaryMode::Mode::Reverse;
+		else if (mode == "tile")
+			bmode.mode = BoundaryMode::Mode::Tile;
 		else throw runtime_error("Unknown boundary mode");
+
+		auto img = s.Pop<ImagePtr>();
+
+		img->boundaryMode = bmode;
 
 		s.Push(img);
 	}
@@ -732,9 +746,223 @@ void ImageOp(State& s, const string& args)
 }
 
 
+/* -------------------- Rotation -----------------------------*/
+
+typedef std::function<Color(const ImagePtr&, double, double)> InterpFunc;
+
+// loop over dest pixels, backproject, interp
+ImagePtr RotateDest(const ImagePtr& src, float angleInRadians, bool expand, InterpFunc Interp)
+{
+	auto [ws, hs] = src->Size();
+
+	// treat pixel centers as 0.5, 1.5, 2.5, ... w-0.5
+
+	// get center of src image
+	double csx = ws / 2.0;
+	double csy = hs / 2.0;
+
+	int radius, sideLen;
+	double cdx, cdy;
+	if (expand)
+	{
+
+		// compute center of dest image
+		// want integer or half integer the same as src image to align pixels better
+		// embed in circle inside square image
+		radius = ceil(sqrtf(csx * csx + csy * csy)); // at least this
+		cdx = radius + (ws & 1) / 2.0f;
+		cdy = radius + (hs & 1) / 2.0f;
+		sideLen = ceil(2 * max(cdx, cdy)); // big enough
+	}
+	else
+	{
+		sideLen = max(ws, hs);
+		cdx = cdy = sideLen / 2.0f;
+	}
+
+	auto dst = Image::Make(sideLen, sideLen);
+
+	// angle backwards to invert projection
+	double cc = cos(angleInRadians);
+	double ss = sin(angleInRadians);
+
+	// iterate over dest pixels
+	for (int i = 0; i < sideLen; ++i)
+		for (int j = 0; j < sideLen; ++j)
+		{
+			// distance from dest pixel center to center of dest image
+			double dx = (i + 0.5) - cdx;
+			double dy = (j + 0.5) - cdy;
+
+			//if (i2*i2 + j2*j2 >= r * r)
+			//	continue; // not in frame
+
+
+			// position in source image (rotate dx,dy)
+			double sx = cc * dx - ss * dy + csx;
+			double sy = ss * dx + cc * dy + csy;
+
+			// now do interpolation:
+			Color c = Interp(src, sx, sy);
+			c.Clamp();
+			dst->Set(i, j, c);
+		}
+
+	return dst;
+}
+Color Interp(const Color& c1, const Color& c2, double interp)
+{
+	return (1 - interp) * c1 + interp * c2;
+}
+
+// interpolate the pixel location
+Color InterpNN(const ImagePtr& src, double x, double y)
+{
+	int si = round(x);
+	int sj = round(y);
+	return src->Get( si, sj);
+}
+// interpolate the pixel location
+Color InterpBilinear(const ImagePtr& src, double x, double y)
+{
+	// todo - this not quite bilin? check carefully
+	int si = floor(x);
+	int sj = floor(y);
+	double fi = x - si;
+	double fj = y - sj;
+
+	auto c00 = src->Get(si, sj);
+	auto c10 = src->Get( si + 1, sj);
+
+	auto c01 = src->Get(si, sj + 1);
+	auto c11 = src->Get(si + 1, sj + 1);
+
+	auto color = Interp(
+		Interp(c00, c10, fi),
+		Interp(c01, c11, fi),
+		fj);
+	color.a = 1;
+	return color;
+}
+
+
+// todo - allow other types, use mitchell B,C parameterization?
+// for t in 0-1
+// interpolate the pixel location, default bad color outside
+// uses Keys bicubic, a = -0.5, most common (?)
+Color InterpBicubic(const ImagePtr& src, double x, double y)
+{
+	// https://en.wikipedia.org/wiki/Bicubic_interpolation
+
+	// todo - this not quite bicub? check carefully
+	int si = floor(x);
+	int sj = floor(y);
+	double tx = x - si; // in 0-1
+	double ty = y - sj;
+
+	// interp
+	auto p = [](double t, Color c0, Color c1, Color c2, Color c3) {
+		/* // todo - make matrix forms?
+		1/2 * [1 t t^2 t^3]*M*[c0 c1 c2 c3]^T
+
+			|  0  2  0  0 |
+		M = | -1  0  1  0 |
+			|  2 -5  4 -1 |
+			| -1  3 -3  1 |
+		*/
+
+		// mathematica, without the /2 part
+		// c2(t + 4 t ^ 2 - 3 t ^ 3) + c0(-t + 2 t ^ 2 - t ^ 3) + c3(-t ^ 2 + t ^ 3) + c1(2 - 5 t ^ 2 + 3 t ^ 3)
+		assert(0 <= t && t < 1);
+		auto t2 = t * t;
+		auto t3 = t * t2;
+		auto c =
+			c0 * (-t + 2 * t2 - t3) +
+			c1 * (2 - 5 * t2 + 3 * t3) +
+			c2 * (t + 4 * t2 - 3 * t3) +
+			c3 * (-t2 + t3);
+		c = c * 0.5f;
+		c.a = 1.0; // todo - right?
+		c.Clamp();
+		return c;
+	};
+	// sample
+	auto f = [&](int di, int dj) {
+		return src->Get( si + di, sj + dj);
+	};
+
+	// bn = b_{-1}
+	auto bn = p(tx, f(-1, -1), f(+0, -1), f(+1, -1), f(2, -1));
+	auto b0 = p(tx, f(-1, +0), f(+0, +0), f(+1, +0), f(2, +0));
+	auto b1 = p(tx, f(-1, +1), f(+0, +1), f(+1, +1), f(2, +1));
+	auto b2 = p(tx, f(-1, +2), f(+0, +2), f(+1, +2), f(2, +2));
+	return p(ty, bn, b0, b1, b2);
+}
+
 
 void RotateImage(State& s, const string& args)
 {
-	throw runtime_error("Rotate functions not implemented");
+	// {"rotate", "img angle filter -> img', rotate image by angle degrees using filter (see resize)", RotateImage},
+	auto filter = s.Pop<string>();
+	auto degrees = s.Pop<double>();
+	auto img = s.Pop<ImagePtr>();
+
+	auto radians = degrees * numbers::pi / 180.0;
+
+	if (filter == "nn")
+	{
+		img = RotateDest(img, radians, false, InterpNN);
+	}
+	else if (filter == "bilinear")
+	{
+		img = RotateDest(img, radians, false, InterpBilinear);
+	}
+	else if (filter == "bicubic")
+	{
+		img = RotateDest(img, radians, false, InterpBicubic);
+	}
+	else
+		throw runtime_error("Unsupported rotate filter");
+
+
+	s.Push(img);
 }
 
+/* -------------------- Shift --------------------------------*/
+
+ImagePtr ShiftImage2(ImagePtr img, double dx, double dy, InterpFunc Interp)
+{
+	auto [w, h] = img->Size();
+	auto dst = make_shared<Image>(w,h);
+	int w1 = w, h1 = h; // avoid clang error
+
+	dst->Apply([&](int i, int j) {
+		return img->Get(i+dx,j+dy);
+		});
+	return dst;
+}
+
+void ShiftImage(State& s, const string& args)
+{
+	auto filter = s.Pop<string>();
+	auto dy = s.Pop<double>();
+	auto dx = s.Pop<double>();
+	auto img = s.Pop<ImagePtr>();
+	if (filter == "nn")
+	{
+		img = ShiftImage2(img, dx, dy, InterpNN);
+	}
+	else if (filter == "bilinear")
+	{
+		img = ShiftImage2(img, dx, dy, InterpBilinear);
+
+	}
+	else if (filter == "bicubic")
+	{
+		img = ShiftImage2(img, dx, dy, InterpBicubic);
+	}
+	else throw runtime_error("Unsupported filter in ShiftImage");
+
+	s.Push(img);
+
+}

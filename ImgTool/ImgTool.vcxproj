@@ -134,6 +134,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Boundary.h" />
+    <ClInclude Include="Color.h" />
     <ClInclude Include="Colorspace.h" />
     <ClInclude Include="Command.h" />
     <ClInclude Include="csv.h" />
@@ -162,6 +163,7 @@
     <Text Include="..\tests\include4.txt" />
     <Text Include="..\tests\include5.txt" />
     <Text Include="..\tests\include6.txt" />
+    <Text Include="..\tests\testBoundary.txt" />
     <Text Include="..\tests\testcsv.txt" />
     <Text Include="..\tests\testImages.txt" />
     <Text Include="..\tests\testInclude.txt" />

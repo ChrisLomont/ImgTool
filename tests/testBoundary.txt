@@ -1,0 +1,14 @@
+# test boundary modes via lenna image and shifts
+
+images\lenna.bmp read lenna sto
+
+lenna rcl tile boundary 100 100 nn shift lenna_tile.bmp write drop
+
+lenna rcl reverse boundary 100 100 nn shift lenna_reverse.bmp write drop
+
+lenna rcl reflect boundary 100 100 nn shift lenna_reflect.bmp write drop
+
+lenna rcl clamped boundary 100 100 nn shift lenna_clamped.bmp write drop
+
+lenna rcl 0 1 1 0.5 color boundary 100 100 nn shift lenna_colored.bmp write drop
+

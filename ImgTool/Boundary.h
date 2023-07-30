@@ -1,13 +1,20 @@
 #pragma once
 #include <algorithm>
+#include "Color.h"
 
-// boundary conditions
-enum class BoundaryMode
-{
-	Clamp = 1,
-	Reflect = 2, // reflect edge, edge pixel only occurs once
-	Reverse = 3,  // reflect edge, edge pixel occurs twice
-	Tile = 4
+struct BoundaryMode {
+	// boundary conditions
+	enum class Mode
+	{
+		Color = 0,   // use color below
+		Clamped = 1,
+		Reflect = 2, // reflect edge, edge pixel only occurs once
+		Reverse = 3, // reflect edge, edge pixel occurs twice
+		Tile = 4     // 
+	};
+	Mode mode{Mode::Reflect};
+	// color if mode is Color
+	Color color{0,0,0,0};
 };
 
 // compute positive part of v%m for any v,m
@@ -19,15 +26,16 @@ int PositiveMod(int v, int m)
 // perform clamping
 // usually used on integer coords [0,w) for an image
 // min inclusive, max exclusive
-int BoundaryClamp(BoundaryMode mode, int val, int min, int max)
+// do not pass Color mode into here, check outside?
+int BoundaryClamp(const BoundaryMode & mode, int val, int min, int max)
 {
-	if (mode == BoundaryMode::Clamp)
+	if (mode.mode == BoundaryMode::Mode::Clamped)
 		return std::clamp(val,min,max-1);
-	else if (mode == BoundaryMode::Tile)
+	else if (mode.mode == BoundaryMode::Mode::Tile)
 	{ 
 		return PositiveMod(val, max - min) + min;
 	}
-	else if (mode == BoundaryMode::Reverse)
+	else if (mode.mode == BoundaryMode::Mode::Reverse)
 	{ // repeat edge item
 		const auto w = max - min;
 		const auto m = 2 * w;
@@ -36,7 +44,7 @@ int BoundaryClamp(BoundaryMode mode, int val, int min, int max)
 			v1 = 2 * w - v1 - 1;
 		return v1;
 	}
-	else if (mode == BoundaryMode::Reflect)
+	else if (mode.mode == BoundaryMode::Mode::Reflect)
 	{
 		// don't repeat edge item
 		const auto w = max - min - 1;
@@ -46,5 +54,5 @@ int BoundaryClamp(BoundaryMode mode, int val, int min, int max)
 			v1 = 2 * w - v1;
 		return v1;
 	}
-	return (min + max) / 2;
+	throw runtime_error("Invalid boundary mode");
 }

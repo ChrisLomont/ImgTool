@@ -5,67 +5,12 @@
 #include <memory>
 #include <stdexcept>
 #include "Boundary.h"
+#include "Color.h"
 
 using namespace std; // todo - remove this
 
-/*------------------- Color and Image ----------------------*/
-struct Color
-{
-	double r, g, b, a;
-	Color(double r = 1, double g = 0, double b = 1, double a = 1)
-		: r(r)
-		, g(g)
-		, b(b)
-		, a(a)
-	{
-	}
-	double operator[](int index) const
-	{
-		if (index == 0) return r;
-		if (index == 1) return g;
-		if (index == 2) return b;
-		if (index == 3) return a;
-		throw runtime_error("Invalid color channel index");
-	}
-	double& operator[](int index)
-	{
-		if (index == 0) return r;
-		if (index == 1) return g;
-		if (index == 2) return b;
-		if (index == 3) return a;
-		throw runtime_error("Invalid color channel index");
-	}
-	void ApplyRGB(const function<double(double)>& f)
-	{
-		r = f(r);
-		g = f(g);
-		b = f(b);
-	}
-	Color& operator +=(const Color& c)
-	{
-		r += c.r;
-		g += c.g;
-		b += c.b;
-		// todo - alpha belnding?
-		return *this;
-	}
-	Color& operator /=(double v)
-	{
-		r /= v;
-		g /= v;
-		b /= v;
-		// todo - alpha?
-		return *this;
-	}
-};
-Color operator *(double w, const Color& c)
-{
-	return Color(w * c.r, w * c.g, w * c.b, c.a);
-}
-Color operator +(const Color & c1, const Color& c2)
-{
-	return Color(c1.r + c2.r, c1.g + c2.g, c1.b + c2.b, (c1.a + c2.a) / 2);
-}
+/*---------------------- Image -----------------------------*/
+
 class Image {
 	vector<Color> data_;
 	int w, h;
@@ -124,12 +69,14 @@ public:
 	}
 	
 	// todo boundary implementation
-	BoundaryMode boundaryMode{ BoundaryMode::Reflect };
+	BoundaryMode boundaryMode;
 	void Set(int i, int j, const Color& c) { if (Legal(i, j))data_[i + j * w] = c; }
 
 	Color Get(int i, int j) const { 
 		if (Legal(i, j)) 
 			return data_[i + j * w]; 
+		if (boundaryMode.mode == BoundaryMode::Mode::Color)
+			return boundaryMode.color;
 		i = BoundaryClamp(boundaryMode, i, 0, w);
 		j = BoundaryClamp(boundaryMode, j, 0, h);
 		return data_[i + j * w];

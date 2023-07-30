@@ -47,6 +47,15 @@ const int VERSION_MINOR = 3;
  
   
   TODO
+    - ensure shift works on fractional pixels, do test against papers
+	- do major refactor:
+	   * split out RPN engine
+	   * make commands infra cleaner
+	   * split out all graphics into standalone lib
+	   * move many files to cpp, integrate lots of my old code
+    - add virtual slice, make filters use them, unify filter stuff, template them all? :)
+    -  check blending works for all drawing functions
+	   - do gamma tests, show errors under different things
 	- {"apply","img funcname -> img', applies function funcname(i,j,r,g,b,a)->(r,g,b,a) to image pixels.",ImageOp},
 	- todo - trim to pixels not matching some value
 
@@ -92,10 +101,10 @@ const int VERSION_MINOR = 3;
   X - run external command
   X - add verbosity output
     - add more filters, check
-    - rotations, 
   X - crop, 
   X - expand (add border, etc), 
-    - shift image around ops?
+  X - shift image around ops?
+  X	- rotations,
   X - blit and composite using alphas?
 
   X	- version
@@ -105,11 +114,12 @@ const int VERSION_MINOR = 3;
   X - pixel get/set
 	- pixel functions
 	- more pixel ops
-	- draw line
-	- draw rect
-	- draw circle
-	- text
-	- fill, ops
+  X - draw line
+  X - draw rect
+  X - draw circle
+  X - text
+  X - fill, 
+	- ops
 
   X - Gaussian 
 	   - (good fast approx, Wells, PAMI, Mar 1986), edge stuff?, list filter to apply convolution?
@@ -354,7 +364,7 @@ void GetScriptTokens(vector<string>& tokens, const string& filename)
 			string token = *iter;
 			//cout << format("tok: <{}>",token);
 			if (token[0] == '#') continue; // comment
-			if (token[0] == '"') token = token.substr(1, token.size() - 2); // string
+			//if (token[0] == '"') token = token.substr(1, token.size() - 2); // string keeps quotes, stripped in execution
 			//cout << format(" => <{}>\n", token);
 			tokens.push_back(token);
 		}
@@ -397,7 +407,8 @@ vector<Command> commands = {
 
 	{"gaussian","img radius -> img' , gaussian blur with given radius",GaussianBlur},
 
-	{"rotate","TODO: img angle expand -> img', rotate image by angle degrees, expand true makes bigger to center, false keeps size",RotateImage},
+	{"rotate","img angle filter -> img', rotate image by angle degrees using filter nn,bilinear,bicubic",RotateImage},
+	{"shift","img dx dy filter -> img', shift image by dx dy using filter (todo all nn for now)",ShiftImage},
 
 	{"crop","img x1 y1 x2 y2 -> img', crop image to rectangle (x1,y1)-(x2,y2) inclusive", CropImage},
 	{"pad", "img top bottom left right r g b a -> img2, pad image with given color, given pixel margins", PadImage},
@@ -408,7 +419,7 @@ vector<Command> commands = {
 	{"blitc", "dst dx dy src -> dst' copy src pixels to dst, placing dest corner at dx dy", ImageOp },
 	{"blitr", "dst dx dy src x1 y1 w h  -> dst', copy rect from src x1 y1 w h to dst at dx dy", ImageOp },
 
-	{"boundary", "img mode -> img', set sample boundary mode to clamp, reflect, reverse, tile", ImageOp },
+	{"boundary", "img [r g b a] mode -> img', set sample boundary mode to color (with rgba), clamp, reflect, reverse, tile", ImageOp },
 
 	{"line",    "img x1 y1 x2 y2 r g b a -> img with line",DrawOp},
 	{"circle",  "img x1 y1 radius r g b a -> img with circle",DrawOp},
@@ -516,7 +527,6 @@ vector<Command> commands = {
 	{"if","t1 t2 .. tn f1 f2 .. fm n m b -> ti or fj, if b != 0, keep t1..tn, else keep f1..fm", StateOp},
 	{"->str","item -> 'item', formats item as string", StateOp},
 
-
 	// loop
 	{"rangeloop","min max -> , loops over index in [min,max], each iter puts index on stack, use endloop",StateOp},
 	{"itemloop","i1 i2 .. in n -> , loops over items in {i1,i2,..,in}, each iter puts item then index i=0+ on stack, use endloop", StateOp},
@@ -536,7 +546,7 @@ vector<Command> commands = {
 	// str-> (execute string), 
 	// ->str (object to string?), 
 	// vars - dump stored items (vars, labels)
-    //	if/then/else, switch?
+	// switch?
 };
 
 
@@ -588,7 +598,10 @@ bool Process(State & state, bool verbose)
 			}
 			if (cIndex >= commands.size())
 			{ // was no item, push it
-				state.Push(ToItem(token));
+				// strip outer string quotes here 
+				auto s = token;
+				if (s[0] == '"') s = s.substr(1, s.size() - 2); // string keeps quotes, stripped in execution
+				state.Push(ToItem(s));
 			}
 
 		}
