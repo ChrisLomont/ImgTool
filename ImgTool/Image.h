@@ -24,7 +24,8 @@ public:
 	{
 		return make_shared<Image>(w,h);
 	}
-	bool Legal(int i, int j) const { return 0 <= i && 0 <= j && i < w && j < h; }
+
+	[[nodiscard]] bool Legal(int i, int j) const { return 0 <= i && 0 <= j && i < w && j < h; }
 
 	int channels;
 	Image(int w, int h, int channels = 4, const unsigned char* data = nullptr)
@@ -47,7 +48,8 @@ public:
 				}
 		}
 	}
-	pair<int, int> Size() const { return pair(w, h); }
+
+	[[nodiscard]] pair<int, int> Size() const { return pair(w, h); }
 
 	void Apply(const function<void(Color& c)>& colorMap)
 	{
@@ -72,9 +74,9 @@ public:
 	BoundaryMode boundaryMode;
 	void Set(int i, int j, const Color& c) { if (Legal(i, j))data_[i + j * w] = c; }
 
-	Color Get(int i, int j) const { 
-		if (Legal(i, j)) 
-			return data_[i + j * w]; 
+	[[nodiscard]] Color Get(int i, int j) const {
+		if (Legal(i, j))
+			return data_[i + j * w];
 		if (boundaryMode.mode == BoundaryMode::Mode::Color)
 			return boundaryMode.color;
 		i = BoundaryClamp(boundaryMode, i, 0, w);

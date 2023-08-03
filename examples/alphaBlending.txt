@@ -1,0 +1,152 @@
+# demonstrate alpha blending issues
+
+# todo - want to test:
+# - correct blending (in linear space, to sRGB, saved to PNG)
+# - various incorrect blendings:
+#   - sRGB onto sRGB, save as sRGB
+#   - linear onto sRGB save as sRGB
+#   - sRGB onto linear save as linear?
+# - premultiplied alpha on
+#     - linear, then to sRGB, then saved
+#     - 
+#     - sRGB as is, then 
+#
+# put a gray and black white checkerboard to check final is correct gamma for screen
+# 
+
+0 verbosity
+
+256 isize sto # image size square
+
+makeimages subroutine
+
+# make green image, srgb, save
+isize rcl dup 0 1 0 1 image sRGB colorspace green.png write
+
+# transparent image
+# isize rcl dup 1 0 1 0 image sRGB colorspace clear.png write
+# halt
+
+# make red alpha image linear, to srgb, save
+depth dropn
+isize rcl dup 1 0 0 1 image # red image
+
+0 isize rcl 1 - rangeloop
+index_i sto
+0 isize rcl 1 - rangeloop
+index_j sto
+
+# prepare for alpha to be filled in next
+index_i rcl index_j rcl 1 0 0 # stack: img i j r g b 
+
+# get distance from center
+index_i rcl isize rcl 2 / - dup *
+index_j rcl isize rcl 2 / - dup *
++ sqrt 
+
+50 / 1 swap - 0 1 clamp # alpha on stack
+
+setpixel
+
+endloop
+
+# progress
+index_i rcl ->str "/" + isize rcl ->str + print
+
+endloop
+
+# corner test in linear - allows later hand math to be done
+0 0 0.5 0.5 0.5 0.5 setpixel
+
+sRGB colorspace red.png write
+
+
+# premultiplied alpha
+red.png read
+0 isize rcl 1 - rangeloop
+index_i sto
+0 isize rcl 1 - rangeloop
+index_j sto
+
+index_i rcl index_j rcl 
+getpixel # r g b a
+alpha sto ch3 sto ch2 sto ch1 sto
+
+index_i rcl index_j rcl 
+ch1 rcl alpha rcl * 
+ch2 rcl alpha rcl * 
+ch3 rcl alpha rcl * 
+alpha rcl
+
+setpixel
+
+endloop
+# progress
+index_i rcl ->str "/" + isize rcl ->str + print
+endloop
+
+red_premult.png write
+
+"Image done " print
+
+return
+endsub
+
+# make red and green images
+makeimages gosub
+
+#"Done" print
+
+#halt
+
+#2 verbosity
+
+
+depth dropn # clean stack
+
+# now blend as srgb
+green.png read
+red.png read
+blit 
+srgb.png write
+
+# now blend as linear
+green.png read linear colorspace
+red.png read linear colorspace
+blit 
+sRGB colorspace 
+linear.png write
+
+
+# now blend in linear, using premult
+green.png read linear colorspace
+under_img sto
+red_premult.png read linear colorspace
+over_img sto
+
+
+0 isize rcl 1 - rangeloop
+index_i sto
+0 isize rcl 1 - rangeloop
+index_j sto
+
+under_img rcl index_i rcl index_j rcl getpixel
+a1 sto b1 sto g1 sto r1 sto drop
+
+over_img rcl index_i rcl index_j rcl getpixel
+a2 sto b2 sto g2 sto r2 sto drop
+
+under_img rcl index_i rcl index_j rcl
+r1 rcl 1 a2 rcl - * r2 rcl + # red
+g1 rcl 1 a2 rcl - * g2 rcl + # green
+b1 rcl 1 a2 rcl - * b2 rcl + # blue
+1 # alpha
+setpixel drop 
+
+endloop
+endloop
+
+under_img rcl
+
+sRGB colorspace 
+premult.png write

@@ -154,6 +154,7 @@
     <ClInclude Include="Utils.h" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="..\examples\alphaBlending.txt" />
     <Text Include="..\scripts\example.txt" />
     <Text Include="..\scripts\gamma.txt" />
     <Text Include="..\scripts\playground.txt" />

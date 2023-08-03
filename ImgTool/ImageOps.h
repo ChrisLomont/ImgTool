@@ -149,7 +149,7 @@ struct Lanczos : KernelBase<2 * N1> {
 			//1 - (((1 + a^2) \[Pi]^2) x^2)/(6 a ^ 2) + ((3 + 10 a ^ 2 + 3 a ^ 4) \[Pi] ^ 4 x ^ 4) / (360 a ^ 4)
 				// todo - precompute constants, then simply mult here
 			constexpr float a2 = a * a;
-			constexpr float pi2 = numbers::pi * numbers::pi;
+			constexpr float pi2 = (float)(numbers::pi * numbers::pi);
 			constexpr float a4 = a2 * a2;
 			constexpr float pi4 = pi2 * pi2;
 			constexpr float c1 = (1 + a2) * pi2 / (6 * a2);
@@ -206,7 +206,7 @@ ImagePtr ResizeLanczosRadial(ImagePtr src, int w, int h, double a)
 	auto [w1, h1] = src->Size();
 	int ws = w1, hs = h1; // clang error!
 	auto dst = make_shared<Image>(w,h);
-	int min = floor(a), max = ceil(a);
+	int min = (int)floor(a), max = (int)ceil(a);
 	auto r2 = a * a;
 	dst->Apply(
 		[&](int i, int j)
@@ -216,7 +216,7 @@ ImagePtr ResizeLanczosRadial(ImagePtr src, int w, int h, double a)
 			double cy = ((j + 0.5) * hs) / h;
 			double sum = 0;
 			Color c(0,0,0,1);
-			for (int sj = floor(cy-a); sj <= ceil(cy+a); ++sj)
+			for (int sj = (int)floor(cy-a); sj <= (int)ceil(cy+a); ++sj)
 				for (int si = floor(cx - a); si <= ceil(cx + a); ++si)
 				{
 					//	if (!src->Legal(si, sj)) continue; 
@@ -225,7 +225,7 @@ ImagePtr ResizeLanczosRadial(ImagePtr src, int w, int h, double a)
 					auto d2 = dx * dx + dy * dy;
 					if (d2 <= r2)
 					{
-						auto wt = LanczosFunc(sqrt(d2),a);
+						auto wt = LanczosFunc(sqrt(d2),(int)a);
 						sum += wt;
 						c += wt * src->Get(si, sj);						
 					}					
@@ -512,15 +512,14 @@ Color Blend(const Color & over, const Color & under)
 
 void Blit(ImagePtr dst, int dx, int dy, ImagePtr src, int x1, int y1, int w, int h)
 {
-
-for (int j = 0; j < h; ++j)
-	for (int i = 0; i < w; ++i)
-	{
-		auto srcColor = src->Get(i + x1, j + y1);
-		auto dstColor = dst->Get(i + dx, j + dy);
-		auto color = Blend(srcColor, dstColor);
-		dst->Set(i + dx, j + dy, color);
-	}
+	for (int j = 0; j < h; ++j)
+		for (int i = 0; i < w; ++i)
+		{
+			auto srcColor = src->Get(i + x1, j + y1);
+			auto dstColor = dst->Get(i + dx, j + dy);
+			auto color = Blend(srcColor, dstColor);
+			dst->Set(i + dx, j + dy, color);
+		}
 }
 
 /* -------------------- Metrics ------------------------------*/
@@ -679,18 +678,18 @@ void ImageOp(State& s, const string& args)
 		if (args == "blit")
 		{
 			//{"blit", "dst src -> dst', copy pixels from src to dst", ImageOp},
-			auto src = s.Pop<ImagePtr>();
-			auto dst = s.Pop<ImagePtr>();
+			src = s.Pop<ImagePtr>();
+			dst = s.Pop<ImagePtr>();
 			auto [w1, h1] = src->Size();
-			w = w1; h = h1;
+			w = w1; h = h1;			
 		}
 		else if (args == "blitc")
 		{
 			//{ "blitc", "dst dx dy src -> dst' copy src pixels to dst, placing dest corner at dx dy", ImageOp },
-			auto src = s.Pop<ImagePtr>();
+			src = s.Pop<ImagePtr>();
 			dy = s.PopInt();
 			dx = s.PopInt();
-			auto dst = s.Pop<ImagePtr>();
+			dst = s.Pop<ImagePtr>();
 			auto [w1, h1] = src->Size();
 			w = w1; h = h1;
 		}
@@ -702,9 +701,10 @@ void ImageOp(State& s, const string& args)
 			y1 = s.PopInt();
 			x1 = s.PopInt();
 
-			auto src = s.Pop<ImagePtr>();
+			src = s.Pop<ImagePtr>();
 			dy = s.PopInt();
 			dx = s.PopInt();
+			dst = s.Pop<ImagePtr>();
 		}
 
 		Blit(dst, dx, dy, src, x1, y1, w, h);
@@ -751,7 +751,7 @@ void ImageOp(State& s, const string& args)
 typedef std::function<Color(const ImagePtr&, double, double)> InterpFunc;
 
 // loop over dest pixels, backproject, interp
-ImagePtr RotateDest(const ImagePtr& src, float angleInRadians, bool expand, InterpFunc Interp)
+ImagePtr RotateDest(const ImagePtr& src, double angleInRadians, bool expand, InterpFunc Interp)
 {
 	auto [ws, hs] = src->Size();
 

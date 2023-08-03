@@ -71,7 +71,7 @@ public:
 	vector<Item> args;
 
 	// elapsed us time
-	double elapsedUs()
+	int64_t elapsedUs()
 	{
 		auto duration = timer.get_elapsed_time();
 		return std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
@@ -146,7 +146,7 @@ public:
 		}
 		else if (args == "halt")
 		{
-			exitCode = Pop<double>();
+			exitCode = PopInt();
 			programPosition = 1 << 30; // out of bounds - todo - make const?, flag?
 		}
 		else if (args == "sto")
@@ -158,6 +158,10 @@ public:
 		else if (args == "rcl")
 		{
 			auto name = Pop<string>();
+			if (!vars.contains(name))
+			{
+				throw runtime_error(fmt::format("Cannot 'rcl' variable {}", name));
+			}
 			auto item = vars[name];
 			Push(item);
 		}

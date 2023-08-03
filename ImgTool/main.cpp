@@ -210,7 +210,7 @@ void SystemOp(State& s, const string& args)
 		}
 		else if (args == "timeus")
 		{
-			s.Push(s.elapsedUs());
+			s.Push((double)s.elapsedUs());
 		}
 		else if (args == "arg")
 		{
@@ -276,8 +276,8 @@ void GetFiles(State & s, const string & args)
 	{
 		if (entry.is_regular_file())
 		{
-			auto path = entry.path();
-			auto fn = path.filename().string();
+			const auto & path = entry.path();
+			const auto fn = path.filename().string();
 			if (regex_match(fn, reg))
 				files.push_back(path.string());
 		}
@@ -465,6 +465,7 @@ vector<Command> commands = {
 	{"pi"," -> pi",MathOp},
 	{"e","  -> e",MathOp},
 	{"pow","item1 item2 -> pow(item1,item2)",MathOp},
+	{"sqrt","item1 -> sqrt(item)",MathOp},
 	{"exp","item -> e^item ",MathOp},
 	{"log","val base -> log_base(val)",MathOp},
 	{"neg","item -> -item",MathOp},
@@ -599,8 +600,10 @@ bool Process(State & state, bool verbose)
 			if (cIndex >= commands.size())
 			{ // was no item, push it
 				// strip outer string quotes here 
-				auto s = token;
+				auto s = token; // get copy
 				if (s[0] == '"') s = s.substr(1, s.size() - 2); // string keeps quotes, stripped in execution
+				if (state.verbosity == 2)
+					cout << fmt::format("Pushing {}\n",s);
 				state.Push(ToItem(s));
 			}
 

@@ -75,7 +75,8 @@ void DDA2(int x1, int y1, int x2, int y2, function<void(int i,int j)> processCoo
 		)
 	{
 		// reverse e meaning
-		(dx2, dy2) = (-dx2, -dy2);
+		dx2 = -dx2;
+		dy2 = -dy2;
 
 		// shift ec to change "<" to "<="
 		ec += 1;

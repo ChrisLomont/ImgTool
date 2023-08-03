@@ -230,6 +230,10 @@ const vector<OpDef> opDefs = {
 	{"max",{[](double a, double b) { return max(a,b); }}},
 
 	{"pow",{[](double a, double b) { return pow(a,b); }}},
+	{"sqrt",{
+		[](double v) { return sqrt(v); },
+	}},
+
 	{"exp",{[](double x) { return exp(x); }}},
 	{"log",{[](double val, double base) { return log(val) / log(base); }}},
 

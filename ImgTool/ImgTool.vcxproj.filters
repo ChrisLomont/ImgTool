@@ -22,6 +22,9 @@
     <Filter Include="tests">
       <UniqueIdentifier>{76745efb-c851-41bb-8bf3-aa25b8d6cf35}</UniqueIdentifier>
     </Filter>
+    <Filter Include="examples">
+      <UniqueIdentifier>{c6d753b8-f5c8-4a91-b193-bda5692274bd}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -132,6 +135,9 @@
     </Text>
     <Text Include="..\tests\testBoundary.txt">
       <Filter>tests</Filter>
+    </Text>
+    <Text Include="..\examples\alphaBlending.txt">
+      <Filter>examples</Filter>
     </Text>
   </ItemGroup>
   <ItemGroup>
