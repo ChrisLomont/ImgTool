@@ -1,7 +1,7 @@
 #pragma once
 #include <algorithm>
 #include <string>
-#include "State.h"
+#include "Color.h"
 
 using namespace std; // todo - remove
 
@@ -40,23 +40,4 @@ Color RGB(const Color & yCbCr)
 	auto g = 1.0 * y + -0.344136 * cb + -0.714136 * cr;
 	auto b = 1.0 * y + 1.772 * cb + 0 * cr;
 	return Color(r, g, b, yCbCr.a);
-}
-
-void ColorTransform(State& s, const string& args)
-{
-	auto method = s.Pop<string>();
-	auto img1 = s.Pop<ImagePtr>();
-	auto [w, h] = img1->Size(); 
-	auto img2 = make_shared<Image>(w,h); // don't overwrite original!
-	if (method == "linear")
-		img2->Apply([&](int i, int j) {auto c = img1->Get(i, j); c.ApplyRGB(ToLinear); return c; });
-	else if (method == "sRGB")
-		img2->Apply([&](int i, int j) {auto c = img1->Get(i, j); c.ApplyRGB(FromLinear); return c; });
-	else if (method == "RGB")
-		img2->Apply([&](int i, int j) {return RGB(img1->Get(i, j)); });
-	else if (method == "YCbCr")
-		img2->Apply([&](int i, int j) {return YCbCr(img1->Get(i, j)); });
-	else
-		throw runtime_error(fmt::format("Unknown color operation {}", method));
-	s.Push(img2);
 }

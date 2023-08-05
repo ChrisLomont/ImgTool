@@ -5,7 +5,7 @@
 #include <iostream>
 #include "Utils.h"
 
-#include "Image.h"
+#include "ImgLib/ImgLib.h"
 
 using namespace std; // todo - remove
 

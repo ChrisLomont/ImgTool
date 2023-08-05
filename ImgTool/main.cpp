@@ -22,14 +22,10 @@
 #include "fmt/fmt/format.h"
 
 #include "Utils.h"
-#include "Image.h"
+#include "ImgLibInterface.h"
 #include "Command.h"
 #include "Stack.h"
 #include "State.h"
-#include "Timer.h"
-#include "ImageOps.h"
-#include "Draw.h"
-#include "Colorspace.h"
 #include "MathOps.h"
 #include "csv.h"
 
@@ -46,7 +42,7 @@ const int VERSION_MINOR = 3;
     - doc assumptions: read file does no conversion except byte values -> double rgba
  
   
-  TODO
+  TODO  
     - ensure shift works on fractional pixels, do test against papers
 	- do major refactor:
 	   * split out RPN engine

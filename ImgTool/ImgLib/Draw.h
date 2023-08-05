@@ -3,8 +3,8 @@
 #include <string>
 #include <functional>
 #include <cmath>
-#include "State.h"
 #include "Font9x16.h"
+#include "Image.h"
 
 using namespace std;
 
@@ -227,76 +227,3 @@ void DrawCircle(ImagePtr img, int xc, int yc, int radius, const Color& color, bo
 	}
 }
 
-
-
-void DrawOp(State & s, const string & args)
-{
-	if (args == "line")
-	{
-		//	{"line", "img x1 y1 x2 y2 r g b a -> img with line", DrawOp},
-		auto a = s.Pop<double>();
-		auto b = s.Pop<double>();
-		auto g = s.Pop<double>();
-		auto r = s.Pop<double>();
-		auto y2 = s.PopInt();
-		auto x2 = s.PopInt();
-		auto y1 = s.PopInt();
-		auto x1 = s.PopInt();
-		auto img = s.Pop<ImagePtr>();
-		DrawLine(img, x1, y1, x2, y2, Color(r, g, b, a));
-		s.Push(img);
-	}
-	else if (args == "circle" || args == "circlef")
-	{
-		//	{ "circle",  "img x1 y1 radius r g b a -> img with circle",DrawOp },
-		//	{ "circlef", "img x1 y1 radius r g b a -> img with filled circle",DrawOp },
-		auto a = s.Pop<double>();
-		auto b = s.Pop<double>();
-		auto g = s.Pop<double>();
-		auto r = s.Pop<double>();
-		auto radius = s.PopInt();
-		auto y1 = s.PopInt();
-		auto x1 = s.PopInt();
-		auto img = s.Pop<ImagePtr>();
-		DrawCircle(img, x1, y1, radius, Color(r, g, b, a), args=="circlef");
-		s.Push(img);
-
-	}
-	else if (args == "rect" || args == "rectf")
-	{
-		//	{ "rect",    "img x1 y1 x2 y2 r g b a -> img with rectangle",DrawOp },
-		//	{ "rectf",   "img x1 y1 x2 y2 r g b a -> img with filled rectangle",DrawOp },
-		auto a = s.Pop<double>();
-		auto b = s.Pop<double>();
-		auto g = s.Pop<double>();
-		auto r = s.Pop<double>();
-		auto y2 = s.PopInt();
-		auto x2 = s.PopInt();
-		auto y1 = s.PopInt();
-		auto x1 = s.PopInt();
-		auto img = s.Pop<ImagePtr>();
-		DrawRect(img, x1, y1, x2, y2, Color(r, g, b, a),args == "rectf");
-		s.Push(img);
-	}
-	else if (args == "text")
-	{
-		//	{ "text",    "img x1 y1 r g b a text 0 m -> img x2 y2, draws text in font (always 0), pixel size m, returns img and final position",DrawOp },
-		auto m = s.PopInt();
-		auto font = s.PopInt();
-		auto text = s.Pop<string>();
-		auto a = s.Pop<double>();
-		auto b = s.Pop<double>();
-		auto g = s.Pop<double>();
-		auto r = s.Pop<double>();
-		auto y1 = s.PopInt();
-		auto x1 = s.PopInt();
-		auto img = s.Pop<ImagePtr>();
-		int dx, dy;
-		DrawText(img,x1,y1,Color(r,g,b,a),text,m, dx,dy);
-		s.Push(img);
-		s.Push(dx);
-		s.Push(dy);
-	}
-	else throw runtime_error("Unknown draw op");
-
-}

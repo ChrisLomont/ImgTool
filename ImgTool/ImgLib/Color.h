@@ -1,4 +1,7 @@
 #pragma once
+#include <algorithm>
+#include <functional>
+#include <stdexcept>
 
 /*---------------------- Color -----------------------------*/
 struct Color
@@ -17,7 +20,7 @@ struct Color
 		if (index == 1) return g;
 		if (index == 2) return b;
 		if (index == 3) return a;
-		throw runtime_error("Invalid color channel index");
+		throw std::runtime_error("Invalid color channel index");
 	}
 	double& operator[](int index)
 	{
@@ -25,9 +28,9 @@ struct Color
 		if (index == 1) return g;
 		if (index == 2) return b;
 		if (index == 3) return a;
-		throw runtime_error("Invalid color channel index");
+		throw std::runtime_error("Invalid color channel index");
 	}
-	void ApplyRGB(const function<double(double)>& f)
+	void ApplyRGB(const std::function<double(double)>& f)
 	{
 		r = f(r);
 		g = f(g);
@@ -52,10 +55,10 @@ struct Color
 	// clamp all internals to 0,1
 	void Clamp()
 	{
-		r = clamp(r, 0.0, 1.0);
-		g = clamp(g, 0.0, 1.0);
-		b = clamp(b, 0.0, 1.0);
-		a = clamp(a, 0.0, 1.0);
+		r = std::clamp(r, 0.0, 1.0);
+		g = std::clamp(g, 0.0, 1.0);
+		b = std::clamp(b, 0.0, 1.0);
+		a = std::clamp(a, 0.0, 1.0);
 
 	}
 };

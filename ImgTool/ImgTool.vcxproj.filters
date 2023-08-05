@@ -25,6 +25,9 @@
     <Filter Include="examples">
       <UniqueIdentifier>{c6d753b8-f5c8-4a91-b193-bda5692274bd}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\ImgLib">
+      <UniqueIdentifier>{4269c59a-376d-44f5-b277-842d2cc009c1}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -41,14 +44,8 @@
     <ClInclude Include="stb_image.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="filters.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="ImageMetrics.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Image.h">
-      <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Stack.h">
       <Filter>Source Files</Filter>
@@ -62,15 +59,6 @@
     <ClInclude Include="State.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Timer.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ImageOps.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Colorspace.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="MathOps.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -80,17 +68,38 @@
     <ClInclude Include="csv.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Boundary.h">
+    <ClInclude Include="ImgLib\ImgLib.h">
+      <Filter>Source Files\ImgLib</Filter>
+    </ClInclude>
+    <ClInclude Include="ImgLib\Boundary.h">
+      <Filter>Source Files\ImgLib</Filter>
+    </ClInclude>
+    <ClInclude Include="ImgLib\Color.h">
+      <Filter>Source Files\ImgLib</Filter>
+    </ClInclude>
+    <ClInclude Include="ImgLib\Colorspace.h">
+      <Filter>Source Files\ImgLib</Filter>
+    </ClInclude>
+    <ClInclude Include="ImgLib\filters.h">
+      <Filter>Source Files\ImgLib</Filter>
+    </ClInclude>
+    <ClInclude Include="ImgLib\Font9x16.h">
+      <Filter>Source Files\ImgLib</Filter>
+    </ClInclude>
+    <ClInclude Include="ImgLib\Image.h">
+      <Filter>Source Files\ImgLib</Filter>
+    </ClInclude>
+    <ClInclude Include="ImgLib\ImageMetrics.h">
+      <Filter>Source Files\ImgLib</Filter>
+    </ClInclude>
+    <ClInclude Include="ImgLib\ImageOps.h">
+      <Filter>Source Files\ImgLib</Filter>
+    </ClInclude>
+    <ClInclude Include="ImgLibInterface.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Draw.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Font9x16.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Color.h">
-      <Filter>Source Files</Filter>
+    <ClInclude Include="ImgLib\Draw.h">
+      <Filter>Source Files\ImgLib</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

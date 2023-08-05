@@ -133,24 +133,26 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Boundary.h" />
-    <ClInclude Include="Color.h" />
-    <ClInclude Include="Colorspace.h" />
     <ClInclude Include="Command.h" />
     <ClInclude Include="csv.h" />
-    <ClInclude Include="Draw.h" />
-    <ClInclude Include="filters.h" />
-    <ClInclude Include="Font9x16.h" />
-    <ClInclude Include="Image.h" />
     <ClInclude Include="ImageMetrics.h" />
-    <ClInclude Include="ImageOps.h" />
+    <ClInclude Include="ImgLibInterface.h" />
+    <ClInclude Include="ImgLib\Boundary.h" />
+    <ClInclude Include="ImgLib\Color.h" />
+    <ClInclude Include="ImgLib\Colorspace.h" />
+    <ClInclude Include="ImgLib\Draw.h" />
+    <ClInclude Include="ImgLib\filters.h" />
+    <ClInclude Include="ImgLib\Font9x16.h" />
+    <ClInclude Include="ImgLib\Image.h" />
+    <ClInclude Include="ImgLib\ImageMetrics.h" />
+    <ClInclude Include="ImgLib\ImageOps.h" />
+    <ClInclude Include="ImgLib\ImgLib.h" />
     <ClInclude Include="MathOps.h" />
     <ClInclude Include="rand.h" />
     <ClInclude Include="Stack.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="stb_image.h" />
     <ClInclude Include="stb_image_write.h" />
-    <ClInclude Include="Timer.h" />
     <ClInclude Include="Utils.h" />
   </ItemGroup>
   <ItemGroup>

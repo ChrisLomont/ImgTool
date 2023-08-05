@@ -8,6 +8,7 @@
 	//{ "csvstart", " csvname header1 header2 ... headern n -> , start a CSV file with given headers", CsvOp},
 	//{ "csvput"  , " val header csvname -> , stores val under header name in named csv",CsvOp },
 	//{ "csvwrite", " csvname filename -> , ",CsvOp },
+using namespace std;
 
 namespace {
 	class CSV
