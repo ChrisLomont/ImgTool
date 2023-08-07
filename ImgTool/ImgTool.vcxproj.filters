@@ -62,9 +62,6 @@
     <ClInclude Include="MathOps.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="rand.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="csv.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -102,6 +99,9 @@
       <Filter>Source Files\ImgLib</Filter>
     </ClInclude>
     <ClInclude Include="ImgLib\vslice.h">
+      <Filter>Source Files\ImgLib</Filter>
+    </ClInclude>
+    <ClInclude Include="ImgLib\rand.h">
       <Filter>Source Files\ImgLib</Filter>
     </ClInclude>
   </ItemGroup>
