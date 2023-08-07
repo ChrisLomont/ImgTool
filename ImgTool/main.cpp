@@ -40,7 +40,7 @@ const int VERSION_MINOR = 3;
     - doc assumptions: read file does no conversion except byte values -> double rgba
  
   
-  TODO  
+  TODO
     - ensure shift works on fractional pixels, do test against papers
 	- do major refactor:
 	   * split out RPN engine
@@ -52,7 +52,6 @@ const int VERSION_MINOR = 3;
 	   - do gamma tests, show errors under different things
 	- {"apply","img funcname -> img', applies function funcname(i,j,r,g,b,a)->(r,g,b,a) to image pixels.",ImageOp},
 	- todo - trim to pixels not matching some value
-
     - string with func name runs, e.g., "error" triggers error. Make quoted strings allowed as strings and labels and var names...
     - better help - explain images loaded as is, more
   X - point to github

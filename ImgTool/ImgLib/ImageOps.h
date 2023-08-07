@@ -24,7 +24,7 @@ using namespace std; // todo - remove
 // todo - move these, and filters, to doubles
 using Run1D = vector<float>;
 
-Run1D GetRun1D(ImagePtr img, int i0, int j0, int di, int dj, int channel)
+inline Run1D GetRun1D(ImagePtr img, int i0, int j0, int di, int dj, int channel)
 {
 	auto [w, h] = img->Size();
 	Run1D run;

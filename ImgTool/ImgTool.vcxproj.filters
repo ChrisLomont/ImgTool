@@ -154,5 +154,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />
+    <None Include="ImgLib\README.md">
+      <Filter>Source Files\ImgLib</Filter>
+    </None>
   </ItemGroup>
 </Project>
