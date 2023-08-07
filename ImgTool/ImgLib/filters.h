@@ -15,14 +15,14 @@ using namespace std;
 // a pre-factored LU decomposition\label{lst:inverse-convolution-begin}
 template<size_t M>
 void linear_solve(const array<float, M>& L, vector<float>& f) {
-    const int m = M, n = int(f.size());
+    const int m = M, n = static_cast<int>(f.size());
     const float p_inv = 1.f; // Optimized for prescaled kernel where $p=1$
     // Pre-factored decomposition only works when n>m.  Grow sequence f if needed.
     while (f.size() <= m) {
         f.reserve(2 * f.size()); // Prevent reallocation during insertions
         f.insert(f.end(), f.rbegin(), f.rend()); // Append a reflection
     }
-    int nn = int(f.size()); // New size
+    const int nn = static_cast<int>(f.size()); // New size
     const float L_inf = L[m - 1], v_inv = L_inf / (1.f + L_inf);
     // Forward pass: solve $L c'= f$ in-place
     for (int i = 1; i < m; i++)      f[i] -= L[i - 1] * f[i - 1];
@@ -36,8 +36,8 @@ void linear_solve(const array<float, M>& L, vector<float>& f) {
 
 // Given sequence f, access f[i] using reflection at boundaries\label{lst:reflect-begin}
 static inline float get(const vector<float>& f, int i) {
-    return i < 0 ? get(f, -i - 1) : i >= int(f.size()) ?
-        get(f, 2 * int(f.size()) - i - 1) : f[i];
+    return i < 0 ? get(f, -i - 1) : i >= static_cast<int>(f.size()) ?
+        get(f, 2 * static_cast<int>(f.size()) - i - 1) : f[i];
 }/*\label{lst:reflect-end}*/
 
 // Kernel interface\label{lst:base-kernel-begin}
@@ -208,16 +208,16 @@ upsample(vector<float> f, int m, Kernel& k) {
     assert(m >= int(f.size())); // Ensure we are upsampling
     vector<float> g(m); // New sequence of desired size m>f.size()
     k.digital_filter(f); // Apply kernel's associated digital filter
-    const float kr = .5f * float(k.support());
+    const float kr = .5f * static_cast<float>(k.support());
     for (int j = 0; j < m; j++) { // Index of sample in g
-        float x = (j + .5f) / m; // Position in domain [0,1] of both f and g
-        float xi = x * f.size() - .5f; // Position in input sequence f
-        int il = int(ceil(xi - kr)); // Leftmost sample under kernel support
-        int ir = int(floor(xi + kr)); // Rightmost sample under kernel support
+	    const float x = (j + .5f) / m; // Position in domain [0,1] of both f and g
+	    const float xi = x * f.size() - .5f; // Position in input sequence f
+	    const int il = static_cast<int>(ceil(xi - kr)); // Leftmost sample under kernel support
+	    const int ir = static_cast<int>(floor(xi + kr)); // Rightmost sample under kernel support
         double sum = 0.;
         for (int i = il; i <= ir; i++)
             sum += get(f, i) * k(xi - i);
-        g[j] = float(sum);
+        g[j] = static_cast<float>(sum);
     }
     return g;
 }/*\label{lst:intuitive-upsample-end}*/
@@ -226,22 +226,22 @@ upsample(vector<float> f, int m, Kernel& k) {
 template<typename Kernel> static vector<float>
 downsample(const vector<float>& f, int m, Kernel& k) {
     assert(m <= int(f.size()));  // Ensure we are downsampling
-    float s = float(m) / f.size(); // Scale factor
-    const int n = int(f.size());
-    const float kr = .5f * float(k.support());
+    const float s = static_cast<float>(m) / f.size(); // Scale factor
+    const int n = static_cast<int>(f.size());
+    const float kr = .5f * static_cast<float>(k.support());
     const bool should_normalize = (f.size() % m != 0);
     vector<float> g(m); // New sequence of desired size m<f.size()
     for (int j = 0; j < m; j++) { // Index of sample in g
-        float x = (j + .5f) / m; // Position in domain [0,1] of both f and g
-        int il = int(ceil((x - kr / m) * n - .5f)); // Leftmost sample under kernel
-        int ir = int(floor((x + kr / m) * n - .5f)); // Rightmost sample under kernel
+	    const float x = (j + .5f) / m; // Position in domain [0,1] of both f and g
+	    const int il = static_cast<int>(ceil((x - kr / m) * n - .5f)); // Leftmost sample under kernel
+	    const int ir = static_cast<int>(floor((x + kr / m) * n - .5f)); // Rightmost sample under kernel
         if (should_normalize) { // Should normalize?
             double sum = 0., sumw = 0.;  // Sums of values and weights
             for (int i = il; i <= ir; i++) { // Loop over input samples
-                float w = k((x - (i + .5f) / n) * m); // Weight for sample
+	            const float w = k((x - (i + .5f) / n) * m); // Weight for sample
                 sum += w * get(f, i); sumw += w; // Accumulate values and weights
             }
-            g[j] = k.integral() * float(sum / sumw); // Normalize by summed weights
+            g[j] = k.integral() * static_cast<float>(sum / sumw); // Normalize by summed weights
         }
         else {
             for (int i = il; i <= ir; i++) {
@@ -265,7 +265,7 @@ inline bool advance(int& i, int& j, double& u, double inv_s) {
 template<typename Kernel> vector<float>
 upsample2(vector<float> f, int m, Kernel& k) {
     k.digital_filter(f);
-    double inv_s = double(f.size()) / m; // Inverse scale factor
+    double inv_s = static_cast<double>(f.size()) / m; // Inverse scale factor
     // Output sample position between input samples
     double u = .5 * (inv_s + (k.support() + 1) % 2);
     int fi = -k.support() / 2 - 1;
@@ -285,9 +285,9 @@ upsample2(vector<float> f, int m, Kernel& k) {
 template<typename Kernel> vector<float>
 downsample2(const vector<float>& f, int m, Kernel& k) {
     const int n = f.size();
-    double s = double(m) / n; // Scale factor
-    double kr = .5 * k.support();
-    int fi = int(ceil(((.5 - kr) / m) * n - .5));
+    double s = static_cast<double>(m) / n; // Scale factor
+    const double kr = .5 * k.support();
+    int fi = static_cast<int>(ceil(((.5 - kr) / m) * n - .5));
     // Input sample position between output samples
     double u = ((fi + .5) / n) * m - (.5 - kr);
     assert(f.size() >= m); // Ensure we are downsampling

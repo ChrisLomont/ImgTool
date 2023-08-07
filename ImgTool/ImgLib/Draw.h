@@ -35,7 +35,7 @@ void DDA2(int x1, int y1, int x2, int y2, function<void(int i,int j)> processCoo
 	auto dx = x2 - x1, dy = y2 - y1;
 
 	// swap x,y to make slope in [-1,1]
-	auto swap2 = abs(dy) > abs(dx);
+	const auto swap2 = abs(dy) > abs(dx);
 	if (swap2)
 	{
 		swap(dx, dy);
@@ -43,8 +43,8 @@ void DDA2(int x1, int y1, int x2, int y2, function<void(int i,int j)> processCoo
 		swap(x2, y2);
 	}
 
-	auto sx = sign(dx), sy = sign(dy);
-	auto n = max(abs(dx), abs(dy)) + 1;
+	const auto sx = sign(dx), sy = sign(dy);
+	const auto n = max(abs(dx), abs(dy)) + 1;
 
 	auto x = x1, y = y1;
 
@@ -155,9 +155,9 @@ void DrawGlyph(ImagePtr img, char c, int x1, int y1, int mult, int & x2, int & y
 	for (int j = 0; j < 16; ++j)
 		for (int i = 0; i < 9; ++i)
 		{
-			int index = 2 * i + (j / 8);
-			uint8_t b = p[index];
-			int pixel = (b >> (j & 7)) & 1;
+			const int index = 2 * i + (j / 8);
+			const uint8_t b = p[index];
+			const int pixel = (b >> (j & 7)) & 1;
 			if (pixel == 0) continue;
 
 			for (int sy = 0; sy < mult; ++sy)
@@ -173,7 +173,7 @@ void DrawGlyph(ImagePtr img, char c, int x1, int y1, int mult, int & x2, int & y
 void DrawText(ImagePtr img, int x0, int y0, const Color& color, const string& text, int multiplier, int& x2, int& y2)
 {
 	auto x = x0, y = y0;
-	for (auto c : text)
+	for (const auto c : text)
 	{
 		DrawGlyph(img, c, x, y, multiplier, x2, y2,color);
 		x = x2 + multiplier; // spacing
@@ -218,7 +218,7 @@ void DrawCircle(ImagePtr img, int xc, int yc, int radius, const Color& color, bo
 		Draw8(img, color, xc, yc, x, y, filled);
 		y = y + 1;
 		t1 = t1 + y;
-		auto t2 = t1 - x;
+		const auto t2 = t1 - x;
 		if (t2 >= 0)
 		{
 			t1 = t2;

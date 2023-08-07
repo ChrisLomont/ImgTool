@@ -31,7 +31,7 @@ class State : public Stack
 		auto& loop = loops[nextLoopIndex - 1];
 
 		// how many to do total
-		int numItems = abs(loop.min - loop.max) + 1;
+		const int numItems = abs(loop.min - loop.max) + 1;
 
 		// see if done, if not, push items, else remove loop
 		if (loop.index < numItems)
@@ -41,8 +41,8 @@ class State : public Stack
 				Push(loop.items[loop.items.size()-1-loop.index]);
 
 			// push index
-			int di = loop.max > loop.min ? 1 : -1;
-			int index = loop.min + loop.index * (di);
+			const int di = loop.max > loop.min ? 1 : -1;
+			const int index = loop.min + loop.index * (di);
 			Push(index);
 
 			loop.index++;
@@ -72,7 +72,7 @@ public:
 	// elapsed us time
 	int64_t elapsedUs()
 	{
-		auto duration = timer.get_elapsed_time();
+		const auto duration = timer.get_elapsed_time();
 		return std::chrono::duration_cast<std::chrono::microseconds>(duration).count();
 	}
 

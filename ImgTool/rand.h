@@ -20,7 +20,7 @@ uint64_t rand64(uint64_t& state)
 {
 	const uint64_t PcgDefaultMultiplier64 = 6364136223846793005ULL;
 	const uint64_t PcgDefaultIncrement64 = 1442695040888963407ULL;
-	auto temp = ((state >> ((int)(state >> 59) + 5)) ^ state) * 12605985483714917081ULL;
+	const auto temp = ((state >> (static_cast<int>(state >> 59) + 5)) ^ state) * 12605985483714917081ULL;
 	state = state * PcgDefaultMultiplier64 + PcgDefaultIncrement64;
 	return (temp >> 43) ^ temp;
 }
@@ -39,7 +39,7 @@ uint64_t randSeed(uint64_t seed = 42)
 // uniformly distributed 32 bit random
 uint32_t rand32(uint64_t& state)
 {
-	return (uint32_t)(rand64(state) >> 20);
+	return static_cast<uint32_t>(rand64(state) >> 20);
 }
 
 
@@ -52,15 +52,15 @@ int32_t randUniform(uint64_t& state, int32_t min, int32_t max)
 {
 	if (max <= min) return min;
 
-	int delta = max - min;
+	const int delta = max - min;
 
 	if (delta <= 0) return 0;
-	auto threshold = (uint32_t)((1ULL << 32) - (uint64_t)delta) % delta;
+	const auto threshold = static_cast<uint32_t>((1ULL << 32) - (uint64_t)delta) % delta;
 
 	while (true)
 	{
-		auto r = rand32(state);
+		const auto r = rand32(state);
 		if (r >= threshold)
-			return (int32_t)(r % delta) + min;
+			return static_cast<int32_t>(r % delta) + min;
 	}
 }

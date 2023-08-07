@@ -1,3 +1,4 @@
+#pragma once
 #include <string>
 #include "State.h"
 #include "ImgLib/ImgLib.h"
@@ -17,41 +18,41 @@ void ResizeImage(State& s, const string& args)
 
 		img = s.Pop<ImagePtr>();
 		auto [wi, hi] = img->Size();
-		int w = wi, h = hi; // clang has issue with auto vars...
+		const int w = wi, h = hi; // clang has issue with auto vars...
 
 		if (w2 == 0)
 		{
 			// w2/h2 = w/h
-			w2 = (int)round((double)h2 * w / h);
+			w2 = static_cast<int>(round((double)h2 * w / h));
 		}
 		else if (h2 == 0)
 		{
 			// w2/h2 = w/h
-			h2 = (int)round((double)w2 * h / w);
+			h2 = static_cast<int>(round((double)w2 * h / w));
 		}
 	}
 	else if (args == "resize%")
 	{
-		auto pct = s.Pop<double>();
+		const auto pct = s.Pop<double>();
 		img = s.Pop<ImagePtr>();
 		auto [w, h] = img->Size();
-		w2 = (int)(round(w * pct / 100.0));
-		h2 = (int)(round(h * pct / 100.0));
+		w2 = static_cast<int>(round(w * pct / 100.0));
+		h2 = static_cast<int>(round(h * pct / 100.0));
 	}
 	else if (args == "resize*")
 	{
-		auto m = s.Pop<double>();
+		const auto m = s.Pop<double>();
 		img = s.Pop<ImagePtr>();
 		auto [w, h] = img->Size();
-		w2 = (int)(round(w * m));
-		h2 = (int)(round(h * m));
+		w2 = static_cast<int>(round(w * m));
+		h2 = static_cast<int>(round(h * m));
 	}
 	else
 		throw runtime_error(fmt::format("Unknown resize arg {}", method));
 	auto [w, h] = img->Size();
 	if (s.verbosity >= 1)
 		cout << fmt::format("Resizing {}, {}x{} -> {}x{}, ", method, w, h, w2, h2);
-	Timer timer;
+	const Timer timer;
 	if (method == "nn")
 		img = ResizeNN(img, w2, h2);
 	else if (method == "bilinear")
@@ -81,7 +82,7 @@ void ResizeImage(State& s, const string& args)
 		img = ResizeLanczosRadial(img, w2, h2, 4.0);
 	else
 		throw runtime_error(fmt::format("Unknown resize method {}", method));
-	auto elapsed = timer.get_elapsed_time();
+	const auto elapsed = timer.get_elapsed_time();
 	if (s.verbosity >= 1)
 		cout << Timer::format_us(elapsed) << endl;
 	s.Push(img);
@@ -91,11 +92,11 @@ void ResizeImage(State& s, const string& args)
 
 void GaussianBlur(State& s, const string& args)
 { // todo - use separable, make classes to abstract out kernels as templates
-	auto radius = s.Pop<double>();
-	auto src = s.Pop<ImagePtr>();
+	const auto radius = s.Pop<double>();
+	const auto src = s.Pop<ImagePtr>();
 	auto [w1, h1] = src->Size();
-	int w = w1, h = h1; // clang glitch
-	auto dst = Image::Make(w, h);
+	const int w = w1, h = h1; // clang glitch
+	const auto dst = Image::Make(w, h);
 
 	const double sigma = 1.0; // todo - base on kernel length?
 	const double eConst = 2 * sigma * sigma;
@@ -104,12 +105,12 @@ void GaussianBlur(State& s, const string& args)
 	dst->Apply([=](int i, int j) {
 		Color color(0, 0, 0, 0);
 		double sum = 0;
-		for (int dj = -(int)floor(radius); dj <= (int)ceil(radius); ++dj)
-			for (int di = -(int)floor(radius); di <= (int)ceil(radius); ++di)
+		for (int dj = -static_cast<int>(floor(radius)); dj <= static_cast<int>(ceil(radius)); ++dj)
+			for (int di = -static_cast<int>(floor(radius)); di <= static_cast<int>(ceil(radius)); ++di)
 			{
-				auto d2 = di * di + dj * dj;
+				const auto d2 = di * di + dj * dj;
 				if (d2 >= radius) continue;
-				auto weight = gConst * exp(d2 * eConst);
+				const auto weight = gConst * exp(d2 * eConst);
 				sum += weight;
 				color += weight * dst->Get(i + di, j + dj);
 			}
@@ -124,15 +125,15 @@ void GaussianBlur(State& s, const string& args)
 
 void PadImage(State& s, const string& args)
 {
-	auto a = s.PopInt();
-	auto b = s.PopInt();
-	auto g = s.PopInt();
-	auto r = s.PopInt();
+	const auto a = s.PopInt();
+	const auto b = s.PopInt();
+	const auto g = s.PopInt();
+	const auto r = s.PopInt();
 	auto right = s.PopInt();
 	auto left = s.PopInt();
 	auto bottom = s.PopInt();
 	auto top = s.PopInt();
-	auto img = s.Pop<ImagePtr>();
+	const auto img = s.Pop<ImagePtr>();
 	Color c(
 		clamp(r, 0, 255) / 255.0,
 		clamp(g, 0, 255) / 255.0,
@@ -146,7 +147,7 @@ void PadImage(State& s, const string& args)
 	bottom = max(bottom, 0);
 
 	auto [w, h] = img->Size();
-	auto dst = make_shared<Image>(left + w + right, top + h + bottom);
+	const auto dst = make_shared<Image>(left + w + right, top + h + bottom);
 	dst->Apply([&](int i, int j) {
 		if (i < left || j < top)
 		{
@@ -159,10 +160,10 @@ void PadImage(State& s, const string& args)
 
 void FlipImage(State& s, const string& args)
 {
-	auto img = s.Pop<ImagePtr>();
+	const auto img = s.Pop<ImagePtr>();
 	auto [w1, h1] = img->Size();
 	int w = w1, h = h1; // todo - needed for clang issues on using w1,h1 in lambdas
-	auto dst = make_shared<Image>(w, h);
+	const auto dst = make_shared<Image>(w, h);
 	if (args == "flipx")
 	{
 		// todo - does double work, clean
@@ -193,10 +194,10 @@ void CropImage(State& s, const string& args)
 	auto x1 = s.PopInt();
 	if (x2 < x1) swap(x1, x2);
 	if (y2 < y1) swap(y1, y2);
-	auto src = s.Pop<ImagePtr>();
+	const auto src = s.Pop<ImagePtr>();
 	auto [w, h] = src->Size();
 	int w2 = x2 - x1 + 1, h2 = y2 - y1 + 1;
-	auto dst = make_shared<Image>(w2, h2);
+	const auto dst = make_shared<Image>(w2, h2);
 	for (int j = 0; j < h2; ++j)
 		for (int i = 0; i < w2; ++i)
 			dst->Set(i, j, src->Get(i + x1, j + y1));
@@ -211,10 +212,10 @@ void ImageError(State& s, const string& args)
 	string msg{ "" };
 	if (args == "maxc")
 	{
-		auto img = s.Pop<ImagePtr>();
+		const auto img = s.Pop<ImagePtr>();
 		double maxc = 0;
 		img->Apply([&](int i, int j) {
-			auto c = img->Get(i, j);
+			const auto c = img->Get(i, j);
 			maxc = max(c.r, maxc);
 			maxc = max(c.g, maxc);
 			maxc = max(c.b, maxc);
@@ -227,8 +228,8 @@ void ImageError(State& s, const string& args)
 	{
 
 		auto method = s.Pop<string>();
-		auto img2 = s.Pop<ImagePtr>();
-		auto img1 = s.Pop<ImagePtr>();
+		const auto img2 = s.Pop<ImagePtr>();
+		const auto img1 = s.Pop<ImagePtr>();
 		auto [w1, h1] = img1->Size();
 		auto [w2, h2] = img2->Size();
 		if (w1 != w2 || h1 != h2)
@@ -402,11 +403,11 @@ void ImageOp(State& s, const string& args)
 void RotateImage(State& s, const string& args)
 {
 	// {"rotate", "img angle filter -> img', rotate image by angle degrees using filter (see resize)", RotateImage},
-	auto filter = s.Pop<string>();
-	auto degrees = s.Pop<double>();
+	const auto filter = s.Pop<string>();
+	const auto degrees = s.Pop<double>();
 	auto img = s.Pop<ImagePtr>();
 
-	auto radians = degrees * numbers::pi / 180.0;
+	const auto radians = degrees * numbers::pi / 180.0;
 
 	if (filter == "nn")
 	{
@@ -429,9 +430,9 @@ void RotateImage(State& s, const string& args)
 
 void ShiftImage(State& s, const string& args)
 {
-	auto filter = s.Pop<string>();
-	auto dy = s.Pop<double>();
-	auto dx = s.Pop<double>();
+	const auto filter = s.Pop<string>();
+	const auto dy = s.Pop<double>();
+	const auto dx = s.Pop<double>();
 	auto img = s.Pop<ImagePtr>();
 	if (filter == "nn")
 	{
@@ -457,9 +458,9 @@ void ShiftImage(State& s, const string& args)
 void ColorTransform(State& s, const string& args)
 {
 	auto method = s.Pop<string>();
-	auto img1 = s.Pop<ImagePtr>();
+	const auto img1 = s.Pop<ImagePtr>();
 	auto [w, h] = img1->Size();
-	auto img2 = make_shared<Image>(w, h); // don't overwrite original!
+	const auto img2 = make_shared<Image>(w, h); // don't overwrite original!
 	if (method == "linear")
 		img2->Apply([&](int i, int j) {auto c = img1->Get(i, j); c.ApplyRGB(ToLinear); return c; });
 	else if (method == "sRGB")
@@ -480,15 +481,15 @@ void DrawOp(State& s, const string& args)
 	if (args == "line")
 	{
 		//	{"line", "img x1 y1 x2 y2 r g b a -> img with line", DrawOp},
-		auto a = s.Pop<double>();
-		auto b = s.Pop<double>();
-		auto g = s.Pop<double>();
-		auto r = s.Pop<double>();
-		auto y2 = s.PopInt();
-		auto x2 = s.PopInt();
-		auto y1 = s.PopInt();
-		auto x1 = s.PopInt();
-		auto img = s.Pop<ImagePtr>();
+		const auto a = s.Pop<double>();
+		const auto b = s.Pop<double>();
+		const auto g = s.Pop<double>();
+		const auto r = s.Pop<double>();
+		const auto y2 = s.PopInt();
+		const auto x2 = s.PopInt();
+		const auto y1 = s.PopInt();
+		const auto x1 = s.PopInt();
+		const auto img = s.Pop<ImagePtr>();
 		DrawLine(img, x1, y1, x2, y2, Color(r, g, b, a));
 		s.Push(img);
 	}
@@ -496,14 +497,14 @@ void DrawOp(State& s, const string& args)
 	{
 		//	{ "circle",  "img x1 y1 radius r g b a -> img with circle",DrawOp },
 		//	{ "circlef", "img x1 y1 radius r g b a -> img with filled circle",DrawOp },
-		auto a = s.Pop<double>();
-		auto b = s.Pop<double>();
-		auto g = s.Pop<double>();
-		auto r = s.Pop<double>();
-		auto radius = s.PopInt();
-		auto y1 = s.PopInt();
-		auto x1 = s.PopInt();
-		auto img = s.Pop<ImagePtr>();
+		const auto a = s.Pop<double>();
+		const auto b = s.Pop<double>();
+		const auto g = s.Pop<double>();
+		const auto r = s.Pop<double>();
+		const auto radius = s.PopInt();
+		const auto y1 = s.PopInt();
+		const auto x1 = s.PopInt();
+		const auto img = s.Pop<ImagePtr>();
 		DrawCircle(img, x1, y1, radius, Color(r, g, b, a), args == "circlef");
 		s.Push(img);
 
@@ -512,31 +513,31 @@ void DrawOp(State& s, const string& args)
 	{
 		//	{ "rect",    "img x1 y1 x2 y2 r g b a -> img with rectangle",DrawOp },
 		//	{ "rectf",   "img x1 y1 x2 y2 r g b a -> img with filled rectangle",DrawOp },
-		auto a = s.Pop<double>();
-		auto b = s.Pop<double>();
-		auto g = s.Pop<double>();
-		auto r = s.Pop<double>();
-		auto y2 = s.PopInt();
-		auto x2 = s.PopInt();
-		auto y1 = s.PopInt();
-		auto x1 = s.PopInt();
-		auto img = s.Pop<ImagePtr>();
+		const auto a = s.Pop<double>();
+		const auto b = s.Pop<double>();
+		const auto g = s.Pop<double>();
+		const auto r = s.Pop<double>();
+		const auto y2 = s.PopInt();
+		const auto x2 = s.PopInt();
+		const auto y1 = s.PopInt();
+		const auto x1 = s.PopInt();
+		const auto img = s.Pop<ImagePtr>();
 		DrawRect(img, x1, y1, x2, y2, Color(r, g, b, a), args == "rectf");
 		s.Push(img);
 	}
 	else if (args == "text")
 	{
 		//	{ "text",    "img x1 y1 r g b a text 0 m -> img x2 y2, draws text in font (always 0), pixel size m, returns img and final position",DrawOp },
-		auto m = s.PopInt();
+		const auto m = s.PopInt();
 		auto font = s.PopInt();
-		auto text = s.Pop<string>();
-		auto a = s.Pop<double>();
-		auto b = s.Pop<double>();
-		auto g = s.Pop<double>();
-		auto r = s.Pop<double>();
-		auto y1 = s.PopInt();
-		auto x1 = s.PopInt();
-		auto img = s.Pop<ImagePtr>();
+		const auto text = s.Pop<string>();
+		const auto a = s.Pop<double>();
+		const auto b = s.Pop<double>();
+		const auto g = s.Pop<double>();
+		const auto r = s.Pop<double>();
+		const auto y1 = s.PopInt();
+		const auto x1 = s.PopInt();
+		const auto img = s.Pop<ImagePtr>();
 		int dx, dy;
 		DrawText(img, x1, y1, Color(r, g, b, a), text, m, dx, dy);
 		s.Push(img);

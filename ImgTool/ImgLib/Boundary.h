@@ -18,7 +18,7 @@ struct BoundaryMode {
 };
 
 // compute positive part of v%m for any v,m
-int PositiveMod(int v, int m)
+inline int PositiveMod(int v, int m)
 {
 	return ((v % m) + m) % m;
 }
@@ -27,7 +27,7 @@ int PositiveMod(int v, int m)
 // usually used on integer coords [0,w) for an image
 // min inclusive, max exclusive
 // do not pass Color mode into here, check outside?
-int BoundaryClamp(const BoundaryMode & mode, int val, int min, int max)
+inline int BoundaryClamp(const BoundaryMode & mode, int val, int min, int max)
 {
 	if (mode.mode == BoundaryMode::Mode::Clamped)
 		return std::clamp(val,min,max-1);

@@ -1,6 +1,5 @@
 #pragma once
 #include <algorithm>
-#include <string>
 #include "Color.h"
 
 using namespace std; // todo - remove
@@ -23,9 +22,9 @@ Color YCbCr(const Color& rgb)
 	const auto delta = 0.5; // recenter to 0-1
 	const auto& c = rgb;
 
-	auto y = 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
-	auto cb = -0.168736 * c.r + -0.331264 * c.g + 0.500 * c.b + delta;
-	auto cr = 0.500 * c.r + -0.418688 * c.g + -0.081312 * c.b + delta;
+	const auto y = 0.299 * c.r + 0.587 * c.g + 0.114 * c.b;
+	const auto cb = -0.168736 * c.r + -0.331264 * c.g + 0.500 * c.b + delta;
+	const auto cr = 0.500 * c.r + -0.418688 * c.g + -0.081312 * c.b + delta;
 	return Color(y, cb, cr, c.a);
 }
 Color RGB(const Color & yCbCr)
@@ -36,8 +35,8 @@ Color RGB(const Color & yCbCr)
 	const auto cb = yCbCr.g - delta;
 	const auto cr = yCbCr.b - delta;
 
-	auto r = 1.0 * y + 0 * cb + 1.402 * cr;
-	auto g = 1.0 * y + -0.344136 * cb + -0.714136 * cr;
-	auto b = 1.0 * y + 1.772 * cb + 0 * cr;
+	const auto r = 1.0 * y + 0 * cb + 1.402 * cr;
+	const auto g = 1.0 * y + -0.344136 * cb + -0.714136 * cr;
+	const auto b = 1.0 * y + 1.772 * cb + 0 * cr;
 	return Color(r, g, b, yCbCr.a);
 }

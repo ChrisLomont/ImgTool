@@ -101,6 +101,9 @@
     <ClInclude Include="ImgLib\Draw.h">
       <Filter>Source Files\ImgLib</Filter>
     </ClInclude>
+    <ClInclude Include="ImgLib\vslice.h">
+      <Filter>Source Files\ImgLib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\tests\testcsv.txt">

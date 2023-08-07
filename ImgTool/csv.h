@@ -24,13 +24,13 @@ namespace {
 
 	string ReadText(State & s)
 	{ // do this way to allow numerical headers, filenames, etc
-		Item header = s.Pop();
+		const Item header = s.Pop();
 		return FormatItem(header, false);
 	}
 
 }
 
-void CsvOp(State& s, const string args)
+inline void CsvOp(State& s, const string args)
 	{
 		if (args == "csvstart")
 		{
@@ -87,7 +87,7 @@ void CsvOp(State& s, const string args)
 			for (auto h : csv->headers)
 			{
 				const auto& v = csv->items[h];
-				const int size = (int)v.size();
+				const int size = static_cast<int>(v.size());
 				maxrow = max(maxrow, size);
 			}
 
@@ -97,8 +97,7 @@ void CsvOp(State& s, const string args)
 			{
 				for (auto h : csv->headers)
 				{
-					const auto& v = csv->items[h];
-					const int size = (int)v.size();
+					const auto& v = csv->items[h];					
 					if (v.size() <= row)
 					{
 						outfile << "<null>, ";

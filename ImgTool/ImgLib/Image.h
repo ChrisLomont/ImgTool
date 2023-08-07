@@ -3,9 +3,9 @@
 #include <functional>
 #include <algorithm>
 #include <memory>
-#include <stdexcept>
 #include "Boundary.h"
 #include "Color.h"
+#include "vslice.h"
 
 using namespace std; // todo - remove this
 
@@ -17,8 +17,10 @@ class Image {
 
 
 public:
+	// todo - link lomont blog onn the reasoning
+	// // todo - see Lomont article on quantization
 	static double iToF64(int v) { return v / 255.0; }
-	static int f64ToI(double v) { return (int)(clamp(floor(v * 256.0), 0.0, 255.0)); }
+	static int f64ToI(double v) { return static_cast<int>(clamp(floor(v * 256.0), 0.0, 255.0)); }
 
 	static shared_ptr<Image> Make(int w, int h)
 	{
@@ -40,10 +42,10 @@ public:
 				for (auto i = 0; i < w; ++i)
 				{
 					int index = (i + j * w) * channels;
-					double r = iToF64(data[index++]);
-					double g = iToF64(data[index++]);
-					double b = iToF64(data[index++]);
-					double a = iToF64(data[index++]);
+					const double r = iToF64(data[index++]);
+					const double g = iToF64(data[index++]);
+					const double b = iToF64(data[index++]);
+					const double a = iToF64(data[index++]);
 					Set(i, j, Color(r, g, b, a));
 				}
 		}
@@ -91,8 +93,7 @@ public:
 		for (auto j = 0; j < h; ++j)
 			for (auto i = 0; i < w; ++i)
 			{
-
-				auto c = Get(i, j);
+				const auto c = Get(i, j);
 
 				int index = (i + j * w) * channels;
 
@@ -103,5 +104,18 @@ public:
 
 			}
 	}
+
+	// get column, modifiable
+	vslice<Color> Col(int col)
+	{
+		const auto colors = (Color*)data_.data();
+		return vslice<Color>(colors, col, w, h);
+	}
+	vslice<Color> Row(int row)
+	{
+		const auto colors = (Color*)data_.data();
+		return vslice<Color>(colors, row * w, 1, w);
+	}
+
 };
 using ImagePtr = shared_ptr<Image>;

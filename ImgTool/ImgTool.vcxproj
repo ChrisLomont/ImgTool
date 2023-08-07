@@ -147,6 +147,7 @@
     <ClInclude Include="ImgLib\ImageMetrics.h" />
     <ClInclude Include="ImgLib\ImageOps.h" />
     <ClInclude Include="ImgLib\ImgLib.h" />
+    <ClInclude Include="ImgLib\vslice.h" />
     <ClInclude Include="MathOps.h" />
     <ClInclude Include="rand.h" />
     <ClInclude Include="Stack.h" />

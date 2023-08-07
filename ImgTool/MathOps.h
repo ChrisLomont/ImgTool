@@ -25,14 +25,14 @@ using FuncSSS = BinaryFunc<string, string, string>;
 
 void Do1(State& s, const FuncDD& f)
 {
-	auto v = s.Pop();
+	const auto v = s.Pop();
 	if (holds_alternative<double>(v))
 	{
 		s.Push(f(get<double>(v)));
 	}
 	else if (holds_alternative<ImagePtr>(v))
 	{
-		auto img = get<ImagePtr>(v);
+		const auto img = get<ImagePtr>(v);
 		img->Apply([&](Color& c) {
 			c.ApplyRGB(f);
 			}
@@ -44,22 +44,22 @@ void Do1(State& s, const FuncDD& f)
 }
 void Do2(State& s, const FuncDDD& f)
 {
-	auto item2 = s.Pop(); // NOTE 1 and 2 swap here!
-	auto item1 = s.Pop();
+	const auto item2 = s.Pop(); // NOTE 1 and 2 swap here!
+	const auto item1 = s.Pop();
 
 	if (holds_alternative<double>(item1) && holds_alternative<double>(item2))
 	{
-		auto v1 = get<double>(item1);
-		auto v2 = get<double>(item2);
-		auto ans = f(v1, v2);
+		const auto v1 = get<double>(item1);
+		const auto v2 = get<double>(item2);
+		const auto ans = f(v1, v2);
 		s.Push(ans);
 	}
 	else if (holds_alternative<double>(item1) && holds_alternative<ImagePtr>(item2))
 	{
-		auto v = get<double>(item1);
-		auto src = get<ImagePtr>(item2);
+		const auto v = get<double>(item1);
+		const auto src = get<ImagePtr>(item2);
 		auto [w, h] = src->Size();
-		ImagePtr dst = make_shared<Image>(w, h);
+		const ImagePtr dst = make_shared<Image>(w, h);
 		dst->Apply([&](int i, int j) {
 			auto c = src->Get(i, j);
 			c.r = f(v, c.r);
@@ -73,10 +73,10 @@ void Do2(State& s, const FuncDDD& f)
 	}
 	else if (holds_alternative<ImagePtr>(item1) && holds_alternative<double>(item2))
 	{
-		auto src = get<ImagePtr>(item1);
-		auto v = get<double>(item2);
+		const auto src = get<ImagePtr>(item1);
+		const auto v = get<double>(item2);
 		auto [w, h] = src->Size();
-		ImagePtr dst = make_shared<Image>(w, h);
+		const ImagePtr dst = make_shared<Image>(w, h);
 		dst->Apply([&](int i, int j) {
 			auto c = src->Get(i, j);
 			c.r = f(c.r, v);
@@ -90,13 +90,13 @@ void Do2(State& s, const FuncDDD& f)
 	}
 	else if (holds_alternative<ImagePtr>(item1) && holds_alternative<ImagePtr>(item2))
 	{
-		auto img1 = get<ImagePtr>(item1);
-		auto img2 = get<ImagePtr>(item2);
+		const auto img1 = get<ImagePtr>(item1);
+		const auto img2 = get<ImagePtr>(item2);
 		auto [w, h] = img1->Size();
-		ImagePtr img = make_shared<Image>(w, h);
+		const ImagePtr img = make_shared<Image>(w, h);
 		img->Apply([&](int i, int j) {
-			auto c1 = img1->Get(i, j);
-			auto c2 = img2->Get(i, j);
+				const auto c1 = img1->Get(i, j);
+				const auto c2 = img2->Get(i, j);
 			Color c;
 			c.r = f(c1.r, c2.r);
 			c.g = f(c1.g, c2.g);
@@ -112,18 +112,18 @@ void Do2(State& s, const FuncDDD& f)
 }
 void Do3(State& s, const FuncDDDD& f)
 {
-	auto c = s.Pop<double>();
-	auto b = s.Pop<double>();
-	auto item = s.Pop();
+	const auto c = s.Pop<double>();
+	const auto b = s.Pop<double>();
+	const auto item = s.Pop();
 	if (holds_alternative<double>(item))
 	{
-		auto a = get<double>(item);
-		auto v = f(a, b, c);
+		const auto a = get<double>(item);
+		const auto v = f(a, b, c);
 		s.Push(v);
 	}
 	else if (holds_alternative<ImagePtr>(item))
 	{
-		auto img = get<ImagePtr>(item);
+		const auto img = get<ImagePtr>(item);
 		img->Apply([&](Color& co) {co.ApplyRGB([&](double v) {return f(v, b, c); }); });
 		s.Push(img);
 	}
@@ -179,28 +179,28 @@ const vector<OpDef> opDefs = {
 		[](double v) { return cos(v); },
 	}},
 	{"==", {
-		[](double a, double b) { return (double)(a == b); },
-		[](string a, string b) { return (double)(a == b); },
+		[](double a, double b) { return static_cast<double>(a == b); },
+		[](string a, string b) { return static_cast<double>(a == b); },
 	}},
 	{"!=", {
-		[](double a, double b) { return (double)(a != b); },
-		[](string a, string b) { return (double)(a != b); },
+		[](double a, double b) { return static_cast<double>(a != b); },
+		[](string a, string b) { return static_cast<double>(a != b); },
 	}},
 	{"<=", {
-		[](double a, double b) { return (double)(a <= b); },
-		[](string a, string b) { return (double)(a <= b); },
+		[](double a, double b) { return static_cast<double>(a <= b); },
+		[](string a, string b) { return static_cast<double>(a <= b); },
 	}},
 	{">=", {
-		[](double a, double b) { return (double)(a >= b); },
-		[](string a, string b) { return (double)(a >= b); },
+		[](double a, double b) { return static_cast<double>(a >= b); },
+		[](string a, string b) { return static_cast<double>(a >= b); },
 	}},
 	{"<", {
-		[](double a, double b) { return (double)(a < b); },
-		[](string a, string b) { return (double)(a < b); },
+		[](double a, double b) { return static_cast<double>(a < b); },
+		[](string a, string b) { return static_cast<double>(a < b); },
 	}},
 	{">", {
-		[](double a, double b) { return (double)(a > b); },
-		[](string a, string b) { return (double)(a > b); },
+		[](double a, double b) { return static_cast<double>(a > b); },
+		[](string a, string b) { return static_cast<double>(a > b); },
 	}},
 
 	{"+", {
@@ -240,8 +240,8 @@ const vector<OpDef> opDefs = {
 	{"neg",{[](double v) { return -v; }}},
 	{"sign",{[](double v) { return sgn(v); }}},
 
-	{"pi",{[]() { return (double)std::numbers::pi; }}},
-	{"e",{[]() { return  (double)std::numbers::e;  }}},
+	{"pi",{[]() { return static_cast<double>(std::numbers::pi); }}},
+	{"e",{[]() { return  static_cast<double>(std::numbers::e);  }}},
 };
 
 void MathOp(State& s, const string& args)
@@ -254,7 +254,7 @@ void MathOp(State& s, const string& args)
 			{
 				if (holds_alternative<FuncD>(vf))
 				{
-					auto f = get<FuncD>(vf);
+					const auto f = get<FuncD>(vf);
 					s.Push(f());
 					return;
 				}
@@ -275,17 +275,17 @@ void MathOp(State& s, const string& args)
 				}
 				else if (holds_alternative<FuncSSS>(vf) && s.NextTypes("SS"))
 				{
-					auto f = get<FuncSSS>(vf);
-					auto v1 = s.Pop<string>();
-					auto v2 = s.Pop<string>();
+					const auto f = get<FuncSSS>(vf);
+					const auto v1 = s.Pop<string>();
+					const auto v2 = s.Pop<string>();
 					s.Push(f(v1, v2));
 					return;
 				}
 				else if (holds_alternative<FuncDSS>(vf) && s.NextTypes("SS"))
 				{
-					auto f = get<FuncDSS>(vf);
-					auto v1 = s.Pop<string>();
-					auto v2 = s.Pop<string>();
+					const auto f = get<FuncDSS>(vf);
+					const auto v1 = s.Pop<string>();
+					const auto v2 = s.Pop<string>();
 					s.Push(f(v1, v2));
 					return;
 				}

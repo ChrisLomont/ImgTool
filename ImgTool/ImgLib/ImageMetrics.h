@@ -89,10 +89,9 @@ TODO:
 #include <cmath>      // sqrt, round, exp
 #include <algorithm>  // max, min
 #include <vector>     // vector<>
-#include <memory>     // shared_ptr<> C++11
 
 
-  // Compute Structural Similarity Index (SSIM) image quality metrics
+// Compute Structural Similarity Index (SSIM) image quality metrics
   // See http://www.ece.uwaterloo.ca/~z70wang/research/ssim/
   // MIT Licensed 2021
 
@@ -160,9 +159,9 @@ namespace Lomont::Graphics {
             for (int j = 0; j < height; ++j)
                 for (int i = 0; i < width; ++i)
                 {
-                    auto v1 = getPixel1(i, j);
-                    auto v2 = getPixel2(i, j);
-                    auto del = v1 - v2;
+	                const auto v1 = getPixel1(i, j);
+	                const auto v2 = getPixel2(i, j);
+	                const auto del = v1 - v2;
                     sum += del * del;
                     if (isnan(sum))
                         return sum; // early fails
@@ -186,7 +185,7 @@ namespace Lomont::Graphics {
             Array2D img2(width, height, getPixel2);
 
             // automatic downsampling
-            int f = (int)std::max(1.0, std::round(std::min(width, height) / 256.0));
+            int f = static_cast<int>(std::max(1.0, std::round(std::min(width, height) / 256.0)));
             if (f > 1)
             {
                 // simple low-pass filter, subsamples by f
@@ -222,16 +221,16 @@ namespace Lomont::Graphics {
             Array2D(size_t w, size_t h)
             {
                 this->resize(w * h);
-                width = (int)w;
-                height = (int)h;
+                width = static_cast<int>(w);
+                height = static_cast<int>(h);
             }
 
             // create array2d from pixel source
             Array2D(size_t w, size_t h, const GetPixel& pixels)
             {
                 this->resize(w * h);
-                width = (int)w;
-                height = (int)h;
+                width = static_cast<int>(w);
+                height = static_cast<int>(h);
                 for (auto j = 0; j < height; ++j)
                     for (auto i = 0; i < width; ++i)
                     {
@@ -253,14 +252,14 @@ namespace Lomont::Graphics {
             // componentwise addition of array2d
             Array2D operator+(const Array2D& b) const
             {
-                Array2D g(width, height);
+	            const Array2D g(width, height);
                 return Op([&](int i, int j) {return Get(i, j) + b.Get(i, j); }, g);
             }
 
             // componentwise subtraction of array2d
             Array2D operator-(const Array2D& b) const
             {
-                Array2D g(width, height);
+	            const Array2D g(width, height);
                 return Op([&](int i, int j) {return Get(i, j) - b.Get(i, j); }, g);
             }
 
@@ -280,21 +279,21 @@ namespace Lomont::Graphics {
             // componentwise multiplication of array2d
             Array2D operator*(const Array2D& b) const
             {
-                Array2D g(width, height);
+	            const Array2D g(width, height);
                 return Op([&](int i, int j) {return Get(i, j) * b.Get(i, j); }, g);
             }
 
             // componentwise division of array2d
             Array2D operator/(const Array2D& b)
             {
-                Array2D g(width, height);
+	            const Array2D g(width, height);
                 return Op([&](int i, int j) {return Get(i, j) / b.Get(i, j); }, g);
             }
 
             // Generic function maps (i,j) onto the given array2d
             static Array2D Op(std::function<double(int, int)> f, Array2D g1)
             {
-                int w = g1.width, h = g1.height;
+	            const int w = g1.width, h = g1.height;
                 Array2D g2(w, h);
                 for (int i = 0; i < w; ++i)
                     for (int j = 0; j < h; ++j)
@@ -309,11 +308,11 @@ namespace Lomont::Graphics {
         // filter should be odd sized
         static Array2D Filter(const Array2D& signal, const Array2D& filter)
         {
-            int signalW = signal.width, signalH = signal.height;
-            int filterW = filter.width, filterH = filter.height;
+	        const int signalW = signal.width, signalH = signal.height;
+	        const int filterW = filter.width, filterH = filter.height;
 
             // dest item size:
-            int resultW = signalW - filterW + 1, resultH = signalH - filterH + 1;
+	        const int resultW = signalW - filterW + 1, resultH = signalH - filterH + 1;
             Array2D c(resultW, resultH);
 
             // loop over dest samples
@@ -327,8 +326,8 @@ namespace Lomont::Graphics {
                         for (auto fi = 0; fi < filterW; ++fi)
                         {
                             // signal coords:
-                            int si = i + fi;
-                            int sj = j + fj;
+                            const int si = i + fi;
+                            const int sj = j + fj;
 
                             // convolve
                             sum += signal.Get(si, sj) * filter.Get(fi, fj);
@@ -345,13 +344,13 @@ namespace Lomont::Graphics {
         static Array2D Gaussian(int size, double sigma)
         {
             Array2D filter(size, size);
-            double s2 = 2 * sigma * sigma;
-            int c = size / 2;
+            const double s2 = 2 * sigma * sigma;
+            const int c = size / 2;
             filter = Array2D::Op(
                 [&](int i, int j)
                 {
-                    double dx = i - c;
-                    double dy = j - c;
+	                const double dx = i - c;
+	                const double dy = j - c;
                     return std::exp(-(dx * dx + dy * dy) / s2);
                 }, filter);
             return (1.0 / filter.Total()) * filter;
@@ -369,12 +368,12 @@ namespace Lomont::Graphics {
         // subsample a grid by step size, averaging each box into the result value
         static Array2D SubSample(const Array2D& img, int size)
         {
-            int ow = img.width;
-            int oh = img.height;
+	        const int ow = img.width;
+	        const int oh = img.height;
 
-            int w = img.width / size;
-            int h = img.height / size;
-            double scale = 1.0 / (size * size);
+	        const int w = img.width / size;
+	        const int h = img.height / size;
+	        const double scale = 1.0 / (size * size);
             Array2D ans(w, h);
 
             // filter range
@@ -392,8 +391,8 @@ namespace Lomont::Graphics {
                         for (int x = fa; x <= fb; ++x)
                         {
                             // symmetric across border, the edge pixel is repeated
-                            int ii = Reflect(x + i * size, ow);
-                            int jj = Reflect(y + j * size, oh);
+                            const int ii = Reflect(x + i * size, ow);
+                            const int jj = Reflect(y + j * size, oh);
                             sum += img.Get(ii, jj);
                         }
                     ans.Set(i, j, sum * scale);

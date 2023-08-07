@@ -13,7 +13,6 @@
 #endif
 #include "stb_image_write.h"
 
-#include "Timer.h"
 #include "filters.h"
 #include "ImageMetrics.h"
 #include "Image.h"
@@ -56,7 +55,7 @@ void SetRun1D(ImagePtr img, int i0, int j0, int di, int dj, int channel, const R
 template<typename Kernel>
 vector<float> Filter1D(const vector<float>& src, int w)
 {
-	auto a = (int)src.size();
+	const auto a = static_cast<int>(src.size());
 	Kernel k;
 	if (a < w)
 		return upsample(src, w, k);
@@ -71,7 +70,7 @@ ImagePtr ApplyFilter(ImagePtr src, int w, int h)
 	const auto [w1, h1] = src->Size();
 	const int w2 = w, h2 = h;
 	// stretch width:
-	ImagePtr temp = make_shared<Image>(w2, h1);
+	const ImagePtr temp = make_shared<Image>(w2, h1);
 	for (int j = 0; j < h1; ++j) // each original row
 	{
 		for (int channel = 0; channel < 3; ++channel) // rgb
@@ -109,7 +108,7 @@ ImagePtr ResizeNN(ImagePtr src, int w, int h)
 		jp *= h1;
 		jp /= h; // now in src coords
 		// src coord
-		int sj = (int)clamp(round(jp - 0.5), 0.0, h1 - 1.0);
+		const int sj = static_cast<int>(clamp(round(jp - 0.5), 0.0, h1 - 1.0));
 
 		for (int i = 0; i < w; ++i)
 		{
@@ -117,7 +116,7 @@ ImagePtr ResizeNN(ImagePtr src, int w, int h)
 			ip *= w1;
 			ip /= w; // now in src coords
 			// src coord
-			int si = (int)clamp(round(ip - 0.5), 0.0, w1 - 1.0);
+			const int si = static_cast<int>(clamp(round(ip - 0.5), 0.0, w1 - 1.0));
 			dst->Set(i, j, src->Get(si, sj));
 		}
 	}
@@ -148,16 +147,16 @@ struct Lanczos : KernelBase<2 * N1> {
 			//1 - (((1 + a^2) \[Pi]^2) x^2)/(6 a ^ 2) + ((3 + 10 a ^ 2 + 3 a ^ 4) \[Pi] ^ 4 x ^ 4) / (360 a ^ 4)
 				// todo - precompute constants, then simply mult here
 			constexpr float a2 = a * a;
-			constexpr float pi2 = (float)(numbers::pi * numbers::pi);
+			constexpr float pi2 = static_cast<float>(numbers::pi * numbers::pi);
 			constexpr float a4 = a2 * a2;
 			constexpr float pi4 = pi2 * pi2;
 			constexpr float c1 = (1 + a2) * pi2 / (6 * a2);
 			constexpr float c2 = (3 + 10 * a2 + 3 * a4) * pi4 / (360 * a4);
-			float x2 = x * x;
-			float x4 = x2 * x2;
+			const float x2 = x * x;
+			const float x4 = x2 * x2;
 			return 1 - c1 * x2 + c2 * x4;
 		}
-		auto px = numbers::pi * x;
+		const auto px = numbers::pi * x;
 		return a * sin(px) * sin(px / a) / (px * px);
 	}
 	void accumulate_buffer(float fu, float u) override {
@@ -195,7 +194,7 @@ double LanczosFunc(double v, int a)
 	v = abs(v);
 	if (v >= a) return 0;
 	if (v == 0.0) return 1;
-	double px = numbers::pi * v;
+	const double px = numbers::pi * v;
 	// todo - for near 0, use taylor series, compute a few and put here
 	return a * sin(px) * sin(px / a) / (px * px);
 }
@@ -203,28 +202,28 @@ double LanczosFunc(double v, int a)
 ImagePtr ResizeLanczosRadial(ImagePtr src, int w, int h, double a)
 { // radial lanczos
 	auto [w1, h1] = src->Size();
-	int ws = w1, hs = h1; // clang error!
+	const int ws = w1, hs = h1; // clang error!
 	auto dst = make_shared<Image>(w,h);
-	int min = (int)floor(a), max = (int)ceil(a);
-	auto r2 = a * a;
+	int min = static_cast<int>(floor(a)), max = static_cast<int>(ceil(a));
+	const auto r2 = a * a;
 	dst->Apply(
 		[&](int i, int j)
 		{
 			// center pixel into src location
-			double cx = ((i + 0.5) * ws) / w;
-			double cy = ((j + 0.5) * hs) / h;
+			const double cx = ((i + 0.5) * ws) / w;
+			const double cy = ((j + 0.5) * hs) / h;
 			double sum = 0;
 			Color c(0,0,0,1);
-			for (int sj = (int)floor(cy-a); sj <= (int)ceil(cy+a); ++sj)
+			for (int sj = static_cast<int>(floor(cy - a)); sj <= static_cast<int>(ceil(cy + a)); ++sj)
 				for (int si = floor(cx - a); si <= ceil(cx + a); ++si)
 				{
 					//	if (!src->Legal(si, sj)) continue; 
-					auto dx = cx - (si + 0.5);
-					auto dy = cy - (sj + 0.5);
-					auto d2 = dx * dx + dy * dy;
+					const auto dx = cx - (si + 0.5);
+					const auto dy = cy - (sj + 0.5);
+					const auto d2 = dx * dx + dy * dy;
 					if (d2 <= r2)
 					{
-						auto wt = LanczosFunc(sqrt(d2),(int)a);
+						const auto wt = LanczosFunc(sqrt(d2),static_cast<int>(a));
 						sum += wt;
 						c += wt * src->Get(si, sj);						
 					}					
@@ -247,20 +246,20 @@ ImagePtr ResizeLanczos(ImagePtr src, int w, int h, double a)
 	const auto [w1, h1] = src->Size();
 	const int w2 = w, h2 = h;
 	// stretch width:
-	ImagePtr temp = make_shared<Image>(w2, h1);
+	const ImagePtr temp = make_shared<Image>(w2, h1);
 	for (int j = 0; j < h1; ++j) // each temp row
 		for (int i = 0; i < w2; ++i) // each temp column
 		{
 			// compute source index of pixel center:
-			double px = (i + 0.5) * w1 / w2;
-			int i0 = (int)(floor(px - a - 1));
-			int i1 = i0 + 2 * a;
+			const double px = (i + 0.5) * w1 / w2;
+			const int i0 = static_cast<int>(floor(px - a - 1));
+			const int i1 = i0 + 2 * a;
 			Color c(0, 0, 0, 0);
 			double total = 0.0;
 			for (int ii = i0; ii <= i1; ++ii)
 			{
-				double dx = (ii + 0.5) - px; // dist in source space
-				double weight = LanczosFunc(dx, a);
+				const double dx = (ii + 0.5) - px; // dist in source space
+				const double weight = LanczosFunc(dx, a);
 				total += weight;
 				c += weight * src->Get(ii, j);
 			}
@@ -276,15 +275,15 @@ ImagePtr ResizeLanczos(ImagePtr src, int w, int h, double a)
 		for (int i = 0; i < w2; ++i) // each dest column
 		{
 			// compute source index of pixel center:
-			double py = (j + 0.5) * h1 / h2;
-			int j0 = (int)(floor(py - a - 1));
-			int j1 = j0 + 2 * a;
+			const double py = (j + 0.5) * h1 / h2;
+			const int j0 = static_cast<int>(floor(py - a - 1));
+			const int j1 = j0 + 2 * a;
 			Color c(0, 0, 0, 0);
 			double total = 0.0;
 			for (int jj = j0; jj <= j1; ++jj)
 			{
-				double dy = (jj + 0.5) - py; // dist in source space
-				double weight = LanczosFunc(dy, a);
+				const double dy = (jj + 0.5) - py; // dist in source space
+				const double weight = LanczosFunc(dy, a);
 				total += weight;
 				c += weight * temp->Get(i, jj);
 			}
@@ -298,9 +297,9 @@ ImagePtr ResizeLanczos(ImagePtr src, int w, int h, double a)
 // alpha blend
 Color Blend(const Color & over, const Color & under)
 {
-	auto alphaOver = over.a;
-	auto alphaUnder = under.a;
-	auto alpha = alphaOver + alphaUnder * (1 - alphaOver);
+	const auto alphaOver = over.a;
+	const auto alphaUnder = under.a;
+	const auto alpha = alphaOver + alphaUnder * (1 - alphaOver);
 	//c = (cOver*aOver + cUnder*bUnder*(1-aover))/alpha;
 	auto c = (alphaOver * over + alphaUnder * (1 - alphaOver) * under);
 	if (alpha != 0)
@@ -366,8 +365,8 @@ ImagePtr RotateDest(const ImagePtr& src, double angleInRadians, bool expand, Int
 	// treat pixel centers as 0.5, 1.5, 2.5, ... w-0.5
 
 	// get center of src image
-	double csx = ws / 2.0;
-	double csy = hs / 2.0;
+	const double csx = ws / 2.0;
+	const double csy = hs / 2.0;
 
 	int radius, sideLen;
 	double cdx, cdy;
@@ -391,24 +390,24 @@ ImagePtr RotateDest(const ImagePtr& src, double angleInRadians, bool expand, Int
 	auto dst = Image::Make(sideLen, sideLen);
 
 	// angle backwards to invert projection
-	double cc = cos(angleInRadians);
-	double ss = sin(angleInRadians);
+	const double cc = cos(angleInRadians);
+	const double ss = sin(angleInRadians);
 
 	// iterate over dest pixels
 	for (int i = 0; i < sideLen; ++i)
 		for (int j = 0; j < sideLen; ++j)
 		{
 			// distance from dest pixel center to center of dest image
-			double dx = (i + 0.5) - cdx;
-			double dy = (j + 0.5) - cdy;
+			const double dx = (i + 0.5) - cdx;
+			const double dy = (j + 0.5) - cdy;
 
 			//if (i2*i2 + j2*j2 >= r * r)
 			//	continue; // not in frame
 
 
 			// position in source image (rotate dx,dy)
-			double sx = cc * dx - ss * dy + csx;
-			double sy = ss * dx + cc * dy + csy;
+			const double sx = cc * dx - ss * dy + csx;
+			const double sy = ss * dx + cc * dy + csy;
 
 			// now do interpolation:
 			Color c = Interp(src, sx, sy);
@@ -426,24 +425,24 @@ Color Interp(const Color& c1, const Color& c2, double interp)
 // interpolate the pixel location
 Color InterpNN(const ImagePtr& src, double x, double y)
 {
-	int si = round(x);
-	int sj = round(y);
+	const int si = round(x);
+	const int sj = round(y);
 	return src->Get( si, sj);
 }
 // interpolate the pixel location
 Color InterpBilinear(const ImagePtr& src, double x, double y)
 {
 	// todo - this not quite bilin? check carefully
-	int si = floor(x);
-	int sj = floor(y);
-	double fi = x - si;
-	double fj = y - sj;
+	const int si = floor(x);
+	const int sj = floor(y);
+	const double fi = x - si;
+	const double fj = y - sj;
 
-	auto c00 = src->Get(si, sj);
-	auto c10 = src->Get( si + 1, sj);
+	const auto c00 = src->Get(si, sj);
+	const auto c10 = src->Get( si + 1, sj);
 
-	auto c01 = src->Get(si, sj + 1);
-	auto c11 = src->Get(si + 1, sj + 1);
+	const auto c01 = src->Get(si, sj + 1);
+	const auto c11 = src->Get(si + 1, sj + 1);
 
 	auto color = Interp(
 		Interp(c00, c10, fi),
@@ -463,10 +462,10 @@ Color InterpBicubic(const ImagePtr& src, double x, double y)
 	// https://en.wikipedia.org/wiki/Bicubic_interpolation
 
 	// todo - this not quite bicub? check carefully
-	int si = floor(x);
-	int sj = floor(y);
-	double tx = x - si; // in 0-1
-	double ty = y - sj;
+	const int si = floor(x);
+	const int sj = floor(y);
+	const double tx = x - si; // in 0-1
+	const double ty = y - sj;
 
 	// interp
 	auto p = [](double t, Color c0, Color c1, Color c2, Color c3) {
@@ -482,8 +481,8 @@ Color InterpBicubic(const ImagePtr& src, double x, double y)
 		// mathematica, without the /2 part
 		// c2(t + 4 t ^ 2 - 3 t ^ 3) + c0(-t + 2 t ^ 2 - t ^ 3) + c3(-t ^ 2 + t ^ 3) + c1(2 - 5 t ^ 2 + 3 t ^ 3)
 		assert(0 <= t && t < 1);
-		auto t2 = t * t;
-		auto t3 = t * t2;
+		const auto t2 = t * t;
+		const auto t3 = t * t2;
 		auto c =
 			c0 * (-t + 2 * t2 - t3) +
 			c1 * (2 - 5 * t2 + 3 * t3) +
@@ -500,10 +499,10 @@ Color InterpBicubic(const ImagePtr& src, double x, double y)
 	};
 
 	// bn = b_{-1}
-	auto bn = p(tx, f(-1, -1), f(+0, -1), f(+1, -1), f(2, -1));
-	auto b0 = p(tx, f(-1, +0), f(+0, +0), f(+1, +0), f(2, +0));
-	auto b1 = p(tx, f(-1, +1), f(+0, +1), f(+1, +1), f(2, +1));
-	auto b2 = p(tx, f(-1, +2), f(+0, +2), f(+1, +2), f(2, +2));
+	const auto bn = p(tx, f(-1, -1), f(+0, -1), f(+1, -1), f(2, -1));
+	const auto b0 = p(tx, f(-1, +0), f(+0, +0), f(+1, +0), f(2, +0));
+	const auto b1 = p(tx, f(-1, +1), f(+0, +1), f(+1, +1), f(2, +1));
+	const auto b2 = p(tx, f(-1, +2), f(+0, +2), f(+1, +2), f(2, +2));
 	return p(ty, bn, b0, b1, b2);
 }
 

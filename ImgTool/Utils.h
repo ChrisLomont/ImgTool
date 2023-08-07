@@ -2,15 +2,13 @@
 #include <string>
 #include <algorithm>
 #include <regex>
-#include <cstdint>
 #include <unordered_map>
-#include "rand.h"
 
 using namespace std; // todo - remove
 
 /*----------------- Utils -------------------------------*/
 //namespace {
-	string ToUpper(const string& text)
+inline string ToUpper(const string& text)
 	{
 		string s(text);
 		transform(s.begin(), s.end(), s.begin(), ::toupper);
@@ -38,13 +36,13 @@ using namespace std; // todo - remove
 
 	std::string ltrim(const std::string& s)
 	{
-		size_t start = s.find_first_not_of(WHITESPACE);
+		const size_t start = s.find_first_not_of(WHITESPACE);
 		return (start == std::string::npos) ? "" : s.substr(start);
 	}
 
 	std::string rtrim(const std::string& s)
 	{
-		size_t end = s.find_last_not_of(WHITESPACE);
+		const size_t end = s.find_last_not_of(WHITESPACE);
 		return (end == std::string::npos) ? "" : s.substr(0, end + 1);
 	}
 

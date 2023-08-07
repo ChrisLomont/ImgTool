@@ -2,8 +2,6 @@
 #include <variant>
 #include <vector>
 #include <string>
-#include <iostream>
-#include "Utils.h"
 
 #include "ImgLib/ImgLib.h"
 
@@ -15,7 +13,7 @@ string FormatItem(const Item & item, bool prefixType)
 {
 	if (holds_alternative<ImagePtr>(item))
 	{
-		auto img = get<ImagePtr>(item);
+		const auto img = get<ImagePtr>(item);
 		auto [w, h] = img->Size();
 		return prefixType
 			? fmt::format("Image {} x {}", w, h)
@@ -135,7 +133,7 @@ public:
 		}
 		else if (arg == "depth")
 		{
-			Push((double)nextopen);
+			Push(static_cast<double>(nextopen));
 		}
 		else if (arg == "roll")
 		{
@@ -167,8 +165,8 @@ public:
 
 	int PopInt()
 	{
-		auto d = Pop<double>();
-		return (int)d;
+		const auto d = Pop<double>();
+		return static_cast<int>(d);
 	}
 
 	template<typename T>
@@ -181,7 +179,7 @@ public:
 	void Push(int item)
 	{
 		Resize();
-		stack[nextopen++] = (double)item;
+		stack[nextopen++] = static_cast<double>(item);
 	}
 	template<typename T>
 	T Pop()
@@ -208,7 +206,7 @@ public:
 	}
 	Item Peek(int n) const
 	{
-		auto index = nextopen - 1 - n;
+		const auto index = nextopen - 1 - n;
 		if (nextopen < 0) throw runtime_error("stack out of bounds");
 		return stack[index];
 	}
@@ -220,7 +218,7 @@ public:
 		for (auto i = 0; i < types.size(); ++i)
 		{
 			auto v = Peek(i);
-			auto c = types[i];
+			const auto c = types[i];
 			if (c == 'D' && !holds_alternative<double>(v))
 				return false;
 			else if (c == 'X' && !(holds_alternative<double>(v)|| holds_alternative<ImagePtr>(v)))

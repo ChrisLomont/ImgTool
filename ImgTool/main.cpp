@@ -9,9 +9,7 @@
 
 #include <iostream>
 #include <string>
-#include <cstring>
 #include <filesystem>
-#include <numbers>
 #include <fstream>
 #include <regex>
 #include <typeinfo>
@@ -47,7 +45,7 @@ const int VERSION_MINOR = 3;
 	- do major refactor:
 	   * split out RPN engine
 	   * make commands infra cleaner
-	   * split out all graphics into standalone lib
+	 X * split out all graphics into standalone lib
 	   * move many files to cpp, integrate lots of my old code
     - add virtual slice, make filters use them, unify filter stuff, template them all? :)
     -  check blending works for all drawing functions
@@ -84,6 +82,10 @@ const int VERSION_MINOR = 3;
 	- abstract out Do0 - Do3, abstract handlers nicer
   X - string ==, != > < >= <= 
     - array of items (incl other arrays)
+       - call a list, like in HP RPN, { starts array, } closes,
+       - add sort, length, append, insert, read nth
+       - add items, n ->list makes a list
+       - add list-> pops items out, n on top
   X	- get and line args as "n getarg" to get nth arg, or maybe use rcl and special name
 	- check string construction
   X - make CSV, would be good for running image tests
@@ -206,16 +208,16 @@ void SystemOp(State& s, const string& args)
 		}
 		else if (args == "timeus")
 		{
-			s.Push((double)s.elapsedUs());
+			s.Push(static_cast<double>(s.elapsedUs()));
 		}
 		else if (args == "arg")
 		{
-			auto n = s.PopInt();
+			const auto n = s.PopInt();
 			s.Push(s.args[n]);
 		}
 		else if (args == "argcount")
 		{
-			s.Push((int)s.args.size());
+			s.Push(static_cast<int>(s.args.size()));
 		}
 		else throw runtime_error("Unknown system op");
 }
@@ -232,27 +234,27 @@ void LogicOp(State& s, const string& args)
 	}
 	else if (args == "and")
 	{
-		auto b = s.PopInt();
-		auto a = s.PopInt();
+		const auto b = s.PopInt();
+		const auto a = s.PopInt();
 		s.Push(a & b);
 	}
 	else if (args == "or")
 	{
-		auto b = s.PopInt();
-		auto a = s.PopInt();
+		const auto b = s.PopInt();
+		const auto a = s.PopInt();
 		s.Push(a | b);
 
 	}
 	else if (args == "xor")
 	{
-		auto b = s.PopInt();
-		auto a = s.PopInt();
+		const auto b = s.PopInt();
+		const auto a = s.PopInt();
 		s.Push(a ^ b);
 
 	}
 	else if (args == "not")
 	{
-		auto a = s.PopInt() == 0;
+		const auto a = s.PopInt() == 0;
 		s.Push(a ? 1 : 0);
 	}
 	else 
@@ -263,37 +265,37 @@ void LogicOp(State& s, const string& args)
 
 void GetFiles(State & s, const string & args)
 {
-	auto regtext = s.Pop<string>();
-	auto path    = s.Pop<string>();
+	const auto regtext = s.Pop<string>();
+	const auto path    = s.Pop<string>();
 	vector<string> files;
-	regex reg(regtext);
+	const regex reg(regtext);
 
 	for (const auto& entry : fs::directory_iterator(path))
 	{
 		if (entry.is_regular_file())
 		{
-			const auto & path = entry.path();
-			const auto fn = path.filename().string();
+			const auto & path1 = entry.path();
+			const auto fn = path1.filename().string();
 			if (regex_match(fn, reg))
-				files.push_back(path.string());
+				files.push_back(path1.string());
 		}
 	}
 	sort(files.begin(), files.end());
-	for (auto& f : files)
+	for (const auto& f : files)
 	{
 		s.Push(f);
 	}
-	s.Push((int)files.size());
+	s.Push(static_cast<int>(files.size()));
 }
 
 void PixelOp(State & s, const string & args)
 {
 	if (args == "getpixel")
 	{
-		auto j   = s.PopInt();
-		auto i   = s.PopInt();
-		auto img = s.Pop<ImagePtr>();
-		auto c = img->Get(i,j);
+		const auto j   = s.PopInt();
+		const auto i   = s.PopInt();
+		const auto img = s.Pop<ImagePtr>();
+		const auto c = img->Get(i,j);
 		s.Push(img);
 		s.Push(c.r);
 		s.Push(c.g);
@@ -303,14 +305,14 @@ void PixelOp(State & s, const string & args)
 	else if (args == "setpixel")
 	{
 		// { "setpixel", "img i j r g b a -> img, writes pixel", PixelOp },
-		auto a = s.Pop<double>();
-		auto b = s.Pop<double>();
-		auto g = s.Pop<double>();
-		auto r = s.Pop<double>();
-		auto j = s.PopInt();
-		auto i = s.PopInt();
-		auto img = s.Pop<ImagePtr>();
-		Color c(r,g,b,a);
+		const auto a = s.Pop<double>();
+		const auto b = s.Pop<double>();
+		const auto g = s.Pop<double>();
+		const auto r = s.Pop<double>();
+		const auto j = s.PopInt();
+		const auto i = s.PopInt();
+		const auto img = s.Pop<ImagePtr>();
+		const Color c(r,g,b,a);
 		img->Set(i, j, c);
 		s.Push(img);
 	}
@@ -372,7 +374,7 @@ void IncludeFile(State & s, const string & args)
 //	{"include", " filename -> , include file as text, each file included at most once", IncludeFile},
 	if (args == "include")
 	{
-		auto filename = s.Pop<string>();
+		const auto filename = s.Pop<string>();
 		
 		vector<string> tokens;
 		GetScriptTokens(tokens, filename);
@@ -660,8 +662,8 @@ int main(int argc, char ** argv)
 	for (int i = argpos; i < argc; ++i)
 		s.tokens.push_back(argv[i]);
 
-	cout << "Current path is " << fs::current_path() << '\n'; 
-	auto retval = Process(s, verbose) ? 1 : 0;
+	cout << "Current path is " << fs::current_path() << '\n';
+	const auto retval = Process(s, verbose) ? 1 : 0;
 	cout << "Done\n";
 	return retval;
 }
