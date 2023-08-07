@@ -36,6 +36,15 @@
     <ClCompile Include="fmt\format.cc">
       <Filter>Source Files\fmt</Filter>
     </ClCompile>
+    <ClCompile Include="ImgLib\Rotate.cpp">
+      <Filter>Source Files\ImgLib</Filter>
+    </ClCompile>
+    <ClCompile Include="ImgLib\Translate.cpp">
+      <Filter>Source Files\ImgLib</Filter>
+    </ClCompile>
+    <ClCompile Include="ImgLib\Image.cpp">
+      <Filter>Source Files\ImgLib</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image_write.h">
@@ -102,6 +111,15 @@
       <Filter>Source Files\ImgLib</Filter>
     </ClInclude>
     <ClInclude Include="ImgLib\rand.h">
+      <Filter>Source Files\ImgLib</Filter>
+    </ClInclude>
+    <ClInclude Include="ImgLib\image_exception.h">
+      <Filter>Source Files\ImgLib</Filter>
+    </ClInclude>
+    <ClInclude Include="ImgLib\Rotate.h">
+      <Filter>Source Files\ImgLib</Filter>
+    </ClInclude>
+    <ClInclude Include="ImgLib\Translate.h">
       <Filter>Source Files\ImgLib</Filter>
     </ClInclude>
   </ItemGroup>

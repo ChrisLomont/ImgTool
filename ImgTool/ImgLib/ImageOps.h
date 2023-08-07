@@ -5,13 +5,7 @@
 #include <numbers>
 
 
-#define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
-#define STB_IMAGE_WRITE_IMPLEMENTATION
-#ifdef _MSC_VER  // needed for visual c++
-#define __STDC_LIB_EXT1__ // sprintf -> sprintf_s
-#endif
-#include "stb_image_write.h"
+
 
 #include "filters.h"
 #include "ImageMetrics.h"

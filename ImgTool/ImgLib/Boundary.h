@@ -1,5 +1,6 @@
 #pragma once
 #include <algorithm>
+#include <stdexcept>
 #include "Color.h"
 
 struct BoundaryMode {
@@ -54,5 +55,5 @@ inline int BoundaryClamp(const BoundaryMode & mode, int val, int min, int max)
 			v1 = 2 * w - v1;
 		return v1;
 	}
-	throw runtime_error("Invalid boundary mode");
+	throw std::runtime_error("Invalid boundary mode");
 }

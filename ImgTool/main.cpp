@@ -41,6 +41,13 @@ const int VERSION_MINOR = 3;
  
   
   TODO
+  - replace all std::make_shared<Image> with Image::Make items
+    - all ImgLib to namespace Lomont::ImgLib
+    - all ImgLib to image_exception
+    - pixel zoom: each pixel becomes NxN for showing images
+    - gif or other animated form would be nice
+    - thick lines on draw?
+    - crop to bounds on image
     - ensure shift works on fractional pixels, do test against papers
 	- do major refactor:
 	   * split out RPN engine

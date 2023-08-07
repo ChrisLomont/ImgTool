@@ -43,7 +43,7 @@ struct vslice
 	void Check(std::size_t index) const
 	{
 		if (index < 0 || num <= index)
-			throw std::exception("out of bounds vslice");
+			throw std::runtime_error("out of bounds vslice");
 	}
 
 };

@@ -255,32 +255,19 @@ void ImageOp(State& s, const string& args)
 {
 	if (args == "read")
 	{
-		int w, h, n;
-		int channels = 4; // request RGBA
 		string filename = s.Pop<string>();
 		if (s.verbosity >= 1)
 			cout << "Reading " << filename << endl;
-		unsigned char* data = stbi_load(filename.c_str(), &w, &h, &n, channels);
-		if (data == nullptr)
-		{
-			throw runtime_error(fmt::format("Cannot load file {}\n", filename));
-		}
-		//cout << "Data " << data << endl;
-		auto img = make_shared<Image>(w, h, channels, data);
-		stbi_image_free(data);
-		s.Push(img);
+		auto image = Image::Make(filename);
+		s.Push(image);
 	}
 	else if (args == "write")
 	{
 		vector<uint8_t> data;
 		auto filename = s.Pop<string>();
 		auto img = s.Pop<ImagePtr>();
-		img->GetData(data);
-		auto [w, h] = img->Size();
 		cout << "Writing " << filename << endl;
-
-		int error = stbi_write_png(filename.c_str(),
-			w, h, img->channels, data.data(), w * img->channels);
+		img->Save(filename);
 		s.Push(img);
 	}
 	else if (args == "size")
