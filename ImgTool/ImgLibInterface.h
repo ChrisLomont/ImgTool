@@ -205,52 +205,6 @@ void CropImage(State& s, const string& args)
 }
 
 
-// should convert to gray first
-// be careful about gamma or linear!
-void ImageError(State& s, const string& args)
-{
-	string msg{ "" };
-	if (args == "maxc")
-	{
-		const auto img = s.Pop<ImagePtr>();
-		double maxc = 0;
-		img->Apply([&](int i, int j) {
-			const auto c = img->Get(i, j);
-			maxc = max(c.r, maxc);
-			maxc = max(c.g, maxc);
-			maxc = max(c.b, maxc);
-			return c;
-			});
-		msg = fmt::format("maxc {:0.3f}\n", maxc);
-		s.Push(maxc);
-	}
-	else
-	{
-
-		auto method = s.Pop<string>();
-		const auto img2 = s.Pop<ImagePtr>();
-		const auto img1 = s.Pop<ImagePtr>();
-		auto [w1, h1] = img1->Size();
-		auto [w2, h2] = img2->Size();
-		if (w1 != w2 || h1 != h2)
-			throw runtime_error(fmt::format("Error size mismatch {}x{} vs {}x{}", w1, h1, w2, h2));
-		double err = 0;
-		if (method == "mse")
-			err = MetricMSE(img1, img2);
-		else if (method == "psnr")
-			err = MetricPSNR(img1, img2);
-		else if (method == "ssim")
-			err = MetricSSIM(img1, img2);
-		else
-			cout << fmt::format("Error - unknown metric {} {}", method, err) << endl;
-		msg = fmt::format("{}: {:0.3f}\n", method, err);
-		s.Push(img1);
-		s.Push(img2);
-		s.Push(err);
-	}
-	if (s.verbosity >= 1)
-		cout << msg;
-}
 void ImageOp(State& s, const string& args)
 {
 	if (args == "read")
@@ -352,6 +306,33 @@ void ImageOp(State& s, const string& args)
 
 		s.Push(dst);
 	}
+	else if (args == "getpixel")
+	{
+		const auto j = s.PopInt();
+		const auto i = s.PopInt();
+		const auto img = s.Pop<ImagePtr>();
+		const auto c = img->Get(i, j);
+		s.Push(img);
+		s.Push(c.r);
+		s.Push(c.g);
+		s.Push(c.b);
+		s.Push(c.a);
+	}
+	else if (args == "setpixel")
+	{
+		// { "setpixel", "img i j r g b a -> img, writes pixel", PixelOp },
+		const auto a = s.Pop<double>();
+		const auto b = s.Pop<double>();
+		const auto g = s.Pop<double>();
+		const auto r = s.Pop<double>();
+		const auto j = s.PopInt();
+		const auto i = s.PopInt();
+		const auto img = s.Pop<ImagePtr>();
+		const Color c(r, g, b, a);
+		img->Set(i, j, c);
+		s.Push(img);
+	}
+
 	else if (args == "boundary")
 	{
 		// {"boundary", "img mode -> img', set sample boundary mode to clamp, reflect, reverse, tile", ImageOp },
@@ -381,6 +362,65 @@ void ImageOp(State& s, const string& args)
 		img->boundaryMode = bmode;
 
 		s.Push(img);
+	}
+	else if (args == "maxc")
+	{
+		const auto img = s.Pop<ImagePtr>();
+		double maxc = 0;
+		img->Apply([&](int i, int j) {
+			const auto c = img->Get(i, j);
+			maxc = max(c.r, maxc);
+			maxc = max(c.g, maxc);
+			maxc = max(c.b, maxc);
+			return c;
+			});
+		if (s.verbosity >= 1)
+			cout << fmt::format("maxc {:0.3f}\n", maxc);
+		s.Push(maxc);
+	}
+	else if (args == "error")
+	{
+
+		auto method = s.Pop<string>();
+		const auto img2 = s.Pop<ImagePtr>();
+		const auto img1 = s.Pop<ImagePtr>();
+		auto [w1, h1] = img1->Size();
+		auto [w2, h2] = img2->Size();
+		if (w1 != w2 || h1 != h2)
+			throw runtime_error(fmt::format("Error size mismatch {}x{} vs {}x{}", w1, h1, w2, h2));
+		double err = 0;
+		if (method == "mse")
+			err = MetricMSE(img1, img2);
+		else if (method == "psnr")
+			err = MetricPSNR(img1, img2);
+		else if (method == "ssim")
+			err = MetricSSIM(img1, img2);
+		else
+			cout << fmt::format("Error - unknown metric {} {}", method, err) << endl;
+		if (s.verbosity >= 1)
+			cout << fmt::format("{}: {:0.3f}\n", method, err);
+		s.Push(img1);
+		s.Push(img2);
+		s.Push(err);
+	}
+	else if (args == "colorspace")
+	{
+		auto method = s.Pop<string>();
+		const auto img1 = s.Pop<ImagePtr>();
+		auto [w, h] = img1->Size();
+		const auto img2 = make_shared<Image>(w, h); // don't overwrite original!
+		if (method == "linear")
+			img2->Apply([&](int i, int j) {auto c = img1->Get(i, j); c.ApplyRGB(ToLinear); return c; });
+		else if (method == "sRGB")
+			img2->Apply([&](int i, int j) {auto c = img1->Get(i, j); c.ApplyRGB(FromLinear); return c; });
+		else if (method == "RGB")
+			img2->Apply([&](int i, int j) {return RGB(img1->Get(i, j)); });
+		else if (method == "YCbCr")
+			img2->Apply([&](int i, int j) {return YCbCr(img1->Get(i, j)); });
+		else
+			throw runtime_error(fmt::format("Unknown color operation {}", method));
+		s.Push(img2);
+
 	}
 
 	else throw runtime_error("Unknown image op");
@@ -439,28 +479,6 @@ void ShiftImage(State& s, const string& args)
 	s.Push(img);
 
 }
-
-
-
-void ColorTransform(State& s, const string& args)
-{
-	auto method = s.Pop<string>();
-	const auto img1 = s.Pop<ImagePtr>();
-	auto [w, h] = img1->Size();
-	const auto img2 = make_shared<Image>(w, h); // don't overwrite original!
-	if (method == "linear")
-		img2->Apply([&](int i, int j) {auto c = img1->Get(i, j); c.ApplyRGB(ToLinear); return c; });
-	else if (method == "sRGB")
-		img2->Apply([&](int i, int j) {auto c = img1->Get(i, j); c.ApplyRGB(FromLinear); return c; });
-	else if (method == "RGB")
-		img2->Apply([&](int i, int j) {return RGB(img1->Get(i, j)); });
-	else if (method == "YCbCr")
-		img2->Apply([&](int i, int j) {return YCbCr(img1->Get(i, j)); });
-	else
-		throw runtime_error(fmt::format("Unknown color operation {}", method));
-	s.Push(img2);
-}
-
 
 
 void DrawOp(State& s, const string& args)
@@ -530,6 +548,29 @@ void DrawOp(State& s, const string& args)
 		s.Push(img);
 		s.Push(dx);
 		s.Push(dy);
+	}
+	else if (args == "resize" || args == "resize%" || args == "resize*")
+	{
+		ResizeImage(s, args);
+	}
+	else if (args == "gaussian")
+	{
+		GaussianBlur(s, args);
+	}
+	else if (args == "rotate") {
+		RotateImage(s, args);
+	}
+	else if (args == "shift") {
+		ShiftImage(s, args);
+	}
+	else if (args == "crop") {
+		CropImage(s, args);
+	}
+	else if (args == "pad") {
+		PadImage(s, args);
+	}
+	else if (args == "flipx" || args == "flipy") {
+		FlipImage(s, args);
 	}
 	else throw runtime_error("Unknown draw op");
 

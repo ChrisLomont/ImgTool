@@ -204,72 +204,11 @@ void Print(State& s, const string& args)
 	}
 	cout << endl;
 }
-void SystemOp(State& s, const string& args)
-{
-		if (args == "version") 
-		{
-			// version
-			s.Push(VERSION_MAJOR);
-			s.Push(VERSION_MINOR);
-		}
-		else if (args == "timeus")
-		{
-			s.Push(static_cast<double>(s.elapsedUs()));
-		}
-		else if (args == "arg")
-		{
-			const auto n = s.PopInt();
-			s.Push(s.args[n]);
-		}
-		else if (args == "argcount")
-		{
-			s.Push(static_cast<int>(s.args.size()));
-		}
-		else throw runtime_error("Unknown system op");
-}
-
-void LogicOp(State& s, const string& args)
-{
-	//{"and", "a b -> (a and b), bitwise 'and' on integers", LogicOp},
-	//{ "or","a b -> (a or b), bitwise 'or' on integers",LogicOp },
-	//{ "xor","a b -> (a xor b), bitwise 'xor' on integers",LogicOp },
-	//{ "not","a b -> (a not b), treating 0 as false, != 0 as true, boolean not",LogicOp },
-	if (args == "and")
-	{
-
-	}
-	else if (args == "and")
-	{
-		const auto b = s.PopInt();
-		const auto a = s.PopInt();
-		s.Push(a & b);
-	}
-	else if (args == "or")
-	{
-		const auto b = s.PopInt();
-		const auto a = s.PopInt();
-		s.Push(a | b);
-
-	}
-	else if (args == "xor")
-	{
-		const auto b = s.PopInt();
-		const auto a = s.PopInt();
-		s.Push(a ^ b);
-
-	}
-	else if (args == "not")
-	{
-		const auto a = s.PopInt() == 0;
-		s.Push(a ? 1 : 0);
-	}
-	else 
-		throw runtime_error("Unknown op");
-
-}
 
 
-void GetFiles(State & s, const string & args)
+
+
+void GetFiles(State & s)
 {
 	const auto regtext = s.Pop<string>();
 	const auto path    = s.Pop<string>();
@@ -292,39 +231,6 @@ void GetFiles(State & s, const string & args)
 		s.Push(f);
 	}
 	s.Push(static_cast<int>(files.size()));
-}
-
-void PixelOp(State & s, const string & args)
-{
-	if (args == "getpixel")
-	{
-		const auto j   = s.PopInt();
-		const auto i   = s.PopInt();
-		const auto img = s.Pop<ImagePtr>();
-		const auto c = img->Get(i,j);
-		s.Push(img);
-		s.Push(c.r);
-		s.Push(c.g);
-		s.Push(c.b);
-		s.Push(c.a);
-	}
-	else if (args == "setpixel")
-	{
-		// { "setpixel", "img i j r g b a -> img, writes pixel", PixelOp },
-		const auto a = s.Pop<double>();
-		const auto b = s.Pop<double>();
-		const auto g = s.Pop<double>();
-		const auto r = s.Pop<double>();
-		const auto j = s.PopInt();
-		const auto i = s.PopInt();
-		const auto img = s.Pop<ImagePtr>();
-		const Color c(r,g,b,a);
-		img->Set(i, j, c);
-		s.Push(img);
-	}
-	else
-		throw runtime_error(fmt::format("Unknown pixel op {}",args));
-
 }
 
 set<string> filesRead;
@@ -375,56 +281,99 @@ void GetScriptTokens(vector<string>& tokens, const string& filename)
 	}
 }
 
-void IncludeFile(State & s, const string & args)
+void SystemOp(State& s, const string& args)
 {
-//	{"include", " filename -> , include file as text, each file included at most once", IncludeFile},
-	if (args == "include")
+	if (args == "getfiles")
 	{
+		GetFiles(s);
+	}
+	else if (args == "include")
+	{
+		//	{"include", " filename -> , include file as text, each file included at most once", IncludeFile},
+
 		const auto filename = s.Pop<string>();
-		
+
 		vector<string> tokens;
 		GetScriptTokens(tokens, filename);
-		s.tokens.insert(next(s.tokens.begin(),s.programPosition), tokens.begin(), tokens.end());
+		s.tokens.insert(next(s.tokens.begin(), s.programPosition), tokens.begin(), tokens.end());
 	}
-	else
-		throw runtime_error("unknown Include option");
+	else if (args == "version")
+	{
+		// version
+		s.Push(VERSION_MAJOR);
+		s.Push(VERSION_MINOR);
+	}
+	else if (args == "timeus")
+	{
+		s.Push(static_cast<double>(s.elapsedUs()));
+	}
+	else if (args == "arg")
+	{
+		const auto n = s.PopInt();
+		s.Push(s.args[n]);
+	}
+	else if (args == "argcount")
+	{
+		s.Push(static_cast<int>(s.args.size()));
+	}
+	else throw runtime_error("Unknown system op");
 }
 
-vector<Command> commands = {
+// command map for quick lookup
+unordered_map<string, Command> commandMap;
+
+// where all commands are aggregated, ordered for usage messages
+vector<Command> commandList = {
+	// >>,<<	
+	// type - object type
+
+	// store items in array
+	// str-> (execute string), 
+	// ->str (object to string?), 
+	// vars - dump stored items (vars, labels)
+	// switch?
+};
+
+// todo - move command defs elsewhere, into respective locations
+vector<Command> imageCommands = {
 	// image stuff
-	{"read","filename -> image, loads image",ImageOp},
-	{"write","image filename -> ,  outputs saved image",ImageOp},
-	{"image","w h r g b a -> image, makes image size w x h, color rgba in 0-1",ImageOp},
-	{"getpixel","img i j -> img r g b a, reads pixel 0-1",PixelOp},
-	{"setpixel","img i j r g b a -> img, writes pixel 0-1",PixelOp},
+{"read","filename -> image, loads image",ImageOp},
+{"write","image filename -> ,  outputs saved image",ImageOp},
+{"image","w h r g b a -> image, makes image size w x h, color rgba in 0-1",ImageOp},
+{"getpixel","img i j -> img r g b a, reads pixel 0-1",ImageOp},
+{"setpixel","img i j r g b a -> img, writes pixel 0-1",ImageOp},
 
-	{"colorspace","image space -> image', where space=[linear|sRGB|YCbCr|RGB], does conversion",ColorTransform},
+{"colorspace","image space -> image', where space=[linear|sRGB|YCbCr|RGB], does conversion",ImageOp},
 
-	{"error","im1 im2 errtype -> im1 im2 errval, prints error, errtype mse, psnr, ssim",ImageError},
-	{"maxc","img -> max, max value of all r,g,b values in image",ImageError},
-	{"size","img -> w h, where w,h is size in pixels",ImageOp},
+{"error","im1 im2 errtype -> im1 im2 errval, prints error, errtype mse, psnr, ssim",ImageOp},
+{"maxc","img -> max, max value of all r,g,b values in image",ImageOp},
+{"size","img -> w h, where w,h is size in pixels",ImageOp},
 
-	// image ops
-	{"resize","img w h style -> img', resize to w h by style nn,bilinear,bicubic,lanczos2,lanczos3,lanczos4,lanczos2r,lanczos3r,lanczos4r",ResizeImage},
-	{"resize%","img v style -> img', resize by v%, style as above",ResizeImage},
-	{"resize*","img m style -> img', resize by multiplier m, style as above",ResizeImage},
+// image ops
+{"resize","img w h style -> img', resize to w h by style nn,bilinear,bicubic,lanczos2,lanczos3,lanczos4,lanczos2r,lanczos3r,lanczos4r",ImageOp},
+{"resize%","img v style -> img', resize by v%, style as above",ImageOp},
+{"resize*","img m style -> img', resize by multiplier m, style as above",ImageOp},
 
-	{"gaussian","img radius -> img' , gaussian blur with given radius",GaussianBlur},
+{"gaussian","img radius -> img' , gaussian blur with given radius",ImageOp},
 
-	{"rotate","img angle filter -> img', rotate image by angle degrees using filter nn,bilinear,bicubic",RotateImage},
-	{"shift","img dx dy filter -> img', shift image by dx dy using filter (todo all nn for now)",ShiftImage},
+{"rotate","img angle filter -> img', rotate image by angle degrees using filter nn,bilinear,bicubic",ImageOp},
+{"shift","img dx dy filter -> img', shift image by dx dy using filter (todo all nn for now)",ImageOp},
 
-	{"crop","img x1 y1 x2 y2 -> img', crop image to rectangle (x1,y1)-(x2,y2) inclusive", CropImage},
-	{"pad", "img top bottom left right r g b a -> img2, pad image with given color, given pixel margins", PadImage},
-	{"flipx", "img -> img2, flip image", FlipImage},
-	{"flipy", "img -> img2, flip image", FlipImage},
+{"crop","img x1 y1 x2 y2 -> img', crop image to rectangle (x1,y1)-(x2,y2) inclusive", ImageOp},
+{"pad", "img top bottom left right r g b a -> img2, pad image with given color, given pixel margins", ImageOp},
+{"flipx", "img -> img2, flip image", ImageOp},
+{"flipy", "img -> img2, flip image", ImageOp},
 
-	{"blit", "dst src -> dst', copy pixels from src to dst", ImageOp},
-	{"blitc", "dst dx dy src -> dst' copy src pixels to dst, placing dest corner at dx dy", ImageOp },
-	{"blitr", "dst dx dy src x1 y1 w h  -> dst', copy rect from src x1 y1 w h to dst at dx dy", ImageOp },
+{"blit", "dst src -> dst', copy pixels from src to dst", ImageOp},
+{"blitc", "dst dx dy src -> dst' copy src pixels to dst, placing dest corner at dx dy", ImageOp },
+{"blitr", "dst dx dy src x1 y1 w h  -> dst', copy rect from src x1 y1 w h to dst at dx dy", ImageOp },
 
-	{"boundary", "img [r g b a] mode -> img', set sample boundary mode to color (with rgba), clamp, reflect, reverse, tile", ImageOp },
+{"boundary", "img [r g b a] mode -> img', set sample boundary mode to color (with rgba), clamp, reflect, reverse, tile", ImageOp },
 
+{"f->i","f1 f2 .. fn n -> i1 i2 .. in, converts n values in 0-1 to n values in 0-255, useful for colors",ImageOp},
+{"i->f","i1 i2 .. in n -> f1 f2 .. fn, converts n values in 0-255 to n values in 0-1, useful for colors",ImageOp},
+};
+vector<Command> drawCommands = {
 	{"line",    "img x1 y1 x2 y2 r g b a -> img with line",DrawOp},
 	{"circle",  "img x1 y1 radius r g b a -> img with circle",DrawOp},
 	{"circlef", "img x1 y1 radius r g b a -> img with filled circle",DrawOp},
@@ -432,64 +381,71 @@ vector<Command> commands = {
 	{"rectf",   "img x1 y1 x2 y2 r g b a -> img with filled rectangle",DrawOp},
 	{"text",    "img x1 y1 r g b a text 0 m -> img x2 y2, draws text in font (always 0), pixel size m, returns img and final position",DrawOp },
 
+};
 
 
-	{"f->i","f1 f2 .. fn n -> i1 i2 .. in, converts n values in 0-1 to n values in 0-255, useful for colors",ImageOp},
-	{"i->f","i1 i2 .. in n -> f1 f2 .. fn, converts n values in 0-255 to n values in 0-1, useful for colors",ImageOp},
-
+vector<Command> systemCommands = {
 	// system
-	{"files","path regex -> f1 f2 ... fn n, reads files matching regex, pushes on stack with count",GetFiles},
+	{"files","path regex -> f1 f2 ... fn n, reads files matching regex, pushes on stack with count",SystemOp},
 	{"version"," -> major minor, get version", SystemOp},
 	{"timeus"," -> time_us, get elapsed time in us", SystemOp},
 	{"rand","a b -> rand32(a,b), uniform random integer in [a,b)",RandOp},
 	{"srand","seed -> , set random seed to integer seed",RandOp},
 	{"arg", " n -> arg, get command line arg n, passed via -a item, n = 1,2,...",SystemOp},
 	{"argcount", "  -> argcount, count of command line args passed via via -a",SystemOp},
-	
-	{"include", " filename -> , include file as text, each file included at most once",IncludeFile},
 
-	// >>,<<	
-	// type - object type
+	{"include", " filename -> , include file as text, each file included at most once",SystemOp},
+};
 
+vector<Command> csvCommands = {
 	// CSV 
 	{"csvstart", " csvname header1 header2 ... n -> , start a CSV file with given headers",CsvOp},
 	{"csvput"  , " val header csvname -> , stores val under header name in named csv",CsvOp},
 	{"csvwrite", " csvname filename -> , ",CsvOp},
+};
 
+
+vector<Command> mathCommands = {
 	// math
-	{"abs","item -> abs(img)",MathOp},
-	{"ceil","item -> ceil(item)",MathOp},
-	{"floor","item -> floor(img)",MathOp},
-	{"round","item -> round(item)",MathOp},
-	{"min","a b -> min(a,b)",MathOp},
-	{"max","a b -> max(a,b)",MathOp},
-	{"clamp","item a b -> clamp(item,a,b)",MathOp},
-	{"sin","item -> sin(item), values in radians",MathOp},
-	{"cos","item -> cos(item), values in radians",MathOp},
-	{"pi"," -> pi",MathOp},
-	{"e","  -> e",MathOp},
-	{"pow","item1 item2 -> pow(item1,item2)",MathOp},
-	{"sqrt","item1 -> sqrt(item)",MathOp},
-	{"exp","item -> e^item ",MathOp},
-	{"log","val base -> log_base(val)",MathOp},
-	{"neg","item -> -item",MathOp},
-	{"sign","item -> sign(item), is -1,0,1",MathOp},
-	{"+","item1 item2 -> item1 + item2",MathOp},
-	{"-","item1 item2 -> item1 - item2",MathOp},
-	{"*","item1 item2 -> item1 * item2",MathOp},
-	{"/","item1 item2 -> item1 / item2",MathOp},
-	{"mod","item1 item2 -> item1 mod item2",MathOp},
-	{"==","item1 item2 -> item1 == item2, 0 if false, else 1",MathOp},
-	{"!=","item1 item2 -> item1 != item2, 0 if false, else 1",MathOp},
-	{">=","item1 item2 -> item1 >= item2, 0 if false, else 1",MathOp},
-	{"<=","item1 item2 -> item1 <= item2, 0 if false, else 1",MathOp},
-	{">","item1 item2 -> item1 > item2, 0 if false, else 1",MathOp},
-	{"<","item1 item2 -> item1 < item2, 0 if false, else 1",MathOp},
+{"abs","item -> abs(img)",MathOp},
+{"ceil","item -> ceil(item)",MathOp},
+{"floor","item -> floor(img)",MathOp},
+{"round","item -> round(item)",MathOp},
+{"min","a b -> min(a,b)",MathOp},
+{"max","a b -> max(a,b)",MathOp},
+{"clamp","item a b -> clamp(item,a,b)",MathOp},
+{"sin","item -> sin(item), values in radians",MathOp},
+{"cos","item -> cos(item), values in radians",MathOp},
+{"pi"," -> pi",MathOp},
+{"e","  -> e",MathOp},
+{"pow","item1 item2 -> pow(item1,item2)",MathOp},
+{"sqrt","item1 -> sqrt(item)",MathOp},
+{"exp","item -> e^item ",MathOp},
+{"log","val base -> log_base(val)",MathOp},
+{"neg","item -> -item",MathOp},
+{"sign","item -> sign(item), is -1,0,1",MathOp},
+{"+","item1 item2 -> item1 + item2",MathOp},
+{"-","item1 item2 -> item1 - item2",MathOp},
+{"*","item1 item2 -> item1 * item2",MathOp},
+{"/","item1 item2 -> item1 / item2",MathOp},
+{"mod","item1 item2 -> item1 mod item2",MathOp},
+{"==","item1 item2 -> item1 == item2, 0 if false, else 1",MathOp},
+{"!=","item1 item2 -> item1 != item2, 0 if false, else 1",MathOp},
+{">=","item1 item2 -> item1 >= item2, 0 if false, else 1",MathOp},
+{"<=","item1 item2 -> item1 <= item2, 0 if false, else 1",MathOp},
+{">","item1 item2 -> item1 > item2, 0 if false, else 1",MathOp},
+{"<","item1 item2 -> item1 < item2, 0 if false, else 1",MathOp},
+};
+
+
+vector<Command> logicCommands = {
 	{"and","a b -> (a and b), bitwise 'and' on integers",LogicOp},
 	{"or","a b -> (a or b), bitwise 'or' on integers",LogicOp},
 	{"xor","a b -> (a xor b), bitwise 'xor' on integers",LogicOp},
 	{"not","a -> (not a), treating 0 as false, != 0 as true, boolean not",LogicOp},
+};
 
+vector<Command> stackCommands = {
 	// stack commands
 	{"dup","a -> a a, duplicates top item",StackOp},
 	{"dup2","a b -> a b a b, duplicates top item",StackOp},
@@ -504,14 +460,18 @@ vector<Command> commands = {
 	{"roll","x1 x2.. xn n -> x2 x3 ... xn x1  , like rot, but n items ",StackOp},
 	{"rolld","x1 x2 .. xn n -> xn x1 x2 x3 ... xn-1 , reverse of roll",StackOp},
 	{"pick","xn ... x1 n -> xn ... x1 xn , copies item xn to top",StackOp},
-// todo - ??	{"unpick","X -> , NOT opposite of unpick. removes item level 1",StackOp},
+	// todo - ??	{"unpick","X -> , NOT opposite of unpick. removes item level 1",StackOp},
 	{"depth","... -> n , pushes depth to top of stack",StackOp},
+};
 
+vector<Command> printCommands = {
 	// printing
 	{"print","item -> , prints top item",Print},
 	{"printn","x1 x2 ... xn  n -> , prints top N items",Print},
 	{"endl", "-> endline, pushes an endline string", Print},
+};
 
+vector<Command> stateCommands = {
 	// flow & state
 	{"label", "name -> , create named label for next item index",StateOp},
 	{"ja", "label -> , JumpAlways: goto label",StateOp},
@@ -542,18 +502,7 @@ vector<Command> commands = {
 	{ "endsub"," name -> , ends subroutine", StateOp },
 	{ "gosub"," name -> , jumps to subroutine ", StateOp },
 	{ "return"," -> , returns from subroutine", StateOp },
-
-
-
-	// store items in array
-	
-
-	// str-> (execute string), 
-	// ->str (object to string?), 
-	// vars - dump stored items (vars, labels)
-	// switch?
 };
-
 
 void ShowUsage()
 {
@@ -561,7 +510,7 @@ void ShowUsage()
 	cout << "       Commands either on command line or run as -s filename\n";
 	cout << "       --verbose to print more, 0=none, 1=info, 2=all\n";
 	cout << "       Each command shows what it does to the stack.\n";
-	for (auto& c : commands)
+	for (auto& c : commandList)
 	{
 		cout << fmt::format("{:12}: {}\n", c.name, c.description);
 	}
@@ -588,21 +537,15 @@ bool Process(State & state, bool verbose)
 			if (state.inSubroutineDefinition && token != "endsub")
 				continue; // do nothing
 
-			int cIndex = 0;
-			while (cIndex < commands.size())
-			{
-				auto& c = commands[cIndex];
-				if (c.name == token)
-				{
-					if (state.verbosity >= 2)
-						cout << fmt::format("Executing {}\n",c.name);
-					c.op(state, token);
-					break;
-				}
-				++cIndex;
-			}
-			if (cIndex >= commands.size())
-			{ // was no item, push it
+			auto it = commandMap.find(token);
+			if (it != commandMap.end())
+			{ // execute operation
+				const auto& c = it->second;
+				if (state.verbosity >= 2)
+					cout << fmt::format("Executing {}\n", c.name);
+				c.op(state, token);
+			} else {
+				// was no item, push it
 				// strip outer string quotes here 
 				auto s = token; // get copy
 				if (s[0] == '"') s = s.substr(1, s.size() - 2); // string keeps quotes, stripped in execution
@@ -630,6 +573,23 @@ bool Process(State & state, bool verbose)
 int main(int argc, char ** argv)
 {
 	cout << fmt::format("Chris Lomont's RPN image tool v{}.{}, https://github.com/ChrisLomont/ImgTool\n", VERSION_MAJOR, VERSION_MINOR);
+
+	// prepare commands	
+	commandList.insert(commandList.end(), imageCommands.begin(), imageCommands.end());
+	commandList.insert(commandList.end(), drawCommands.begin(), drawCommands.end());
+	commandList.insert(commandList.end(), systemCommands.begin(), systemCommands.end());
+	commandList.insert(commandList.end(), csvCommands.begin(), csvCommands.end());
+	commandList.insert(commandList.end(), mathCommands.begin(), mathCommands.end());
+	commandList.insert(commandList.end(), logicCommands.begin(), logicCommands.end());
+	commandList.insert(commandList.end(), stackCommands.begin(), stackCommands.end());
+	commandList.insert(commandList.end(), printCommands.begin(), printCommands.end());
+	commandList.insert(commandList.end(), stateCommands.begin(), stateCommands.end());
+	for (auto & c : commandList)
+	{
+		commandMap[c.name] = c;
+	}
+
+
 	if (argc <= 1)
 	{
 		ShowUsage();

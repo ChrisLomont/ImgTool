@@ -307,3 +307,40 @@ void MathOp(State& s, const string& args)
 
 	throw runtime_error(fmt::format("Unknown math op {}", args));
 }
+
+
+void LogicOp(State& s, const string& args)
+{
+	//{"and", "a b -> (a and b), bitwise 'and' on integers", LogicOp},
+	//{ "or","a b -> (a or b), bitwise 'or' on integers",LogicOp },
+	//{ "xor","a b -> (a xor b), bitwise 'xor' on integers",LogicOp },
+	//{ "not","a b -> (a not b), treating 0 as false, != 0 as true, boolean not",LogicOp },
+	if (args == "and")
+	{
+		const auto b = s.PopInt();
+		const auto a = s.PopInt();
+		s.Push(a & b);
+	}
+	else if (args == "or")
+	{
+		const auto b = s.PopInt();
+		const auto a = s.PopInt();
+		s.Push(a | b);
+
+	}
+	else if (args == "xor")
+	{
+		const auto b = s.PopInt();
+		const auto a = s.PopInt();
+		s.Push(a ^ b);
+
+	}
+	else if (args == "not")
+	{
+		const auto a = s.PopInt() == 0;
+		s.Push(a ? 1 : 0);
+	}
+	else
+		throw runtime_error("Unknown op");
+
+}
