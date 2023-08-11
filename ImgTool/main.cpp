@@ -15,7 +15,7 @@
 #include <typeinfo>
 #include <set>
 
-// some compilers puke, even with c++ 20, so...
+// some compilers puke (clang!), even with c++ 20, so replace <format> with older one
 //#include <format>
 #include "fmt/fmt/format.h"
 
@@ -41,20 +41,22 @@ const int VERSION_MINOR = 3;
  
   
   TODO
-  - replace all std::make_shared<Image> with Image::Make items
+    - add more ifs? if_gosub, ife_gosub (if = if {}, ife = if/else), maybe ifn, switch, etc?
+    - replace all std::make_shared<Image> with Image::Make items
     - all ImgLib to namespace Lomont::ImgLib
     - all ImgLib to image_exception
     - pixel zoom: each pixel becomes NxN for showing images
     - gif or other animated form would be nice
     - thick lines on draw?
     - crop to bounds on image
-    - ensure shift works on fractional pixels, do test against papers
+    - ensure shift works on fractional pixels, do test against results in papers
 	- do major refactor:
 	   * split out RPN engine
 	   * make commands infra cleaner
 	 X * split out all graphics into standalone lib
 	   * move many files to cpp, integrate lots of my old code
     - add virtual slice, make filters use them, unify filter stuff, template them all? :)
+    - add pixel tests: idea is to make some test values, roundtrip all the things (alpha, belnding, ??)
     -  check blending works for all drawing functions
 	   - do gamma tests, show errors under different things
 	- {"apply","img funcname -> img', applies function funcname(i,j,r,g,b,a)->(r,g,b,a) to image pixels.",ImageOp},
@@ -205,9 +207,6 @@ void Print(State& s, const string& args)
 	cout << endl;
 }
 
-
-
-
 void GetFiles(State & s)
 {
 	const auto regtext = s.Pop<string>();
@@ -337,42 +336,43 @@ vector<Command> commandList = {
 // todo - move command defs elsewhere, into respective locations
 vector<Command> imageCommands = {
 	// image stuff
-{"read","filename -> image, loads image",ImageOp},
-{"write","image filename -> ,  outputs saved image",ImageOp},
-{"image","w h r g b a -> image, makes image size w x h, color rgba in 0-1",ImageOp},
-{"getpixel","img i j -> img r g b a, reads pixel 0-1",ImageOp},
-{"setpixel","img i j r g b a -> img, writes pixel 0-1",ImageOp},
+	{"read","filename -> image, loads image",ImageOp},
+	{"write","image filename -> ,  outputs saved image",ImageOp},
+	{"image","w h r g b a -> image, makes image size w x h, color rgba in 0-1",ImageOp},
+	{"getpixel","img i j -> img r g b a, reads pixel 0-1",ImageOp},
+	{"setpixel","img i j r g b a -> img, writes pixel 0-1",ImageOp},
 
-{"colorspace","image space -> image', where space=[linear|sRGB|YCbCr|RGB], does conversion",ImageOp},
+	{"colorspace","image space -> image', where space=[linear|sRGB|YCbCr|RGB], does conversion",ImageOp},
 
-{"error","im1 im2 errtype -> im1 im2 errval, prints error, errtype mse, psnr, ssim",ImageOp},
-{"maxc","img -> max, max value of all r,g,b values in image",ImageOp},
-{"size","img -> w h, where w,h is size in pixels",ImageOp},
+	{"error","im1 im2 errtype -> im1 im2 errval, prints error, errtype mse, psnr, ssim",ImageOp},
+	{"maxc","img -> max, max value of all r,g,b values in image",ImageOp},
+	{"size","img -> w h, where w,h is size in pixels",ImageOp},
 
-// image ops
-{"resize","img w h style -> img', resize to w h by style nn,bilinear,bicubic,lanczos2,lanczos3,lanczos4,lanczos2r,lanczos3r,lanczos4r",ImageOp},
-{"resize%","img v style -> img', resize by v%, style as above",ImageOp},
-{"resize*","img m style -> img', resize by multiplier m, style as above",ImageOp},
+	// image ops
+	{"resize","img w h style -> img', resize to w h by style nn,bilinear,bicubic,lanczos2,lanczos3,lanczos4,lanczos2r,lanczos3r,lanczos4r",ImageOp},
+	{"resize%","img v style -> img', resize by v%, style as above",ImageOp},
+	{"resize*","img m style -> img', resize by multiplier m, style as above",ImageOp},
 
-{"gaussian","img radius -> img' , gaussian blur with given radius",ImageOp},
+	{"gaussian","img radius -> img' , gaussian blur with given radius",ImageOp},
 
-{"rotate","img angle filter -> img', rotate image by angle degrees using filter nn,bilinear,bicubic",ImageOp},
-{"shift","img dx dy filter -> img', shift image by dx dy using filter (todo all nn for now)",ImageOp},
+	{"rotate","img angle filter -> img', rotate image by angle degrees using filter nn,bilinear,bicubic",ImageOp},
+	{"shift","img dx dy filter -> img', shift image by dx dy using filter (todo all nn for now)",ImageOp},
 
-{"crop","img x1 y1 x2 y2 -> img', crop image to rectangle (x1,y1)-(x2,y2) inclusive", ImageOp},
-{"pad", "img top bottom left right r g b a -> img2, pad image with given color, given pixel margins", ImageOp},
-{"flipx", "img -> img2, flip image", ImageOp},
-{"flipy", "img -> img2, flip image", ImageOp},
+	{"crop","img x1 y1 x2 y2 -> img', crop image to rectangle (x1,y1)-(x2,y2) inclusive", ImageOp},
+	{"pad", "img top bottom left right r g b a -> img2, pad image with given color, given pixel margins", ImageOp},
+	{"flipx", "img -> img2, flip image", ImageOp},
+	{"flipy", "img -> img2, flip image", ImageOp},
 
-{"blit", "dst src -> dst', copy pixels from src to dst", ImageOp},
-{"blitc", "dst dx dy src -> dst' copy src pixels to dst, placing dest corner at dx dy", ImageOp },
-{"blitr", "dst dx dy src x1 y1 w h  -> dst', copy rect from src x1 y1 w h to dst at dx dy", ImageOp },
+	{"blit", "dst src -> dst', copy pixels from src to dst", ImageOp},
+	{"blitc", "dst dx dy src -> dst' copy src pixels to dst, placing dest corner at dx dy", ImageOp },
+	{"blitr", "dst dx dy src x1 y1 w h  -> dst', copy rect from src x1 y1 w h to dst at dx dy", ImageOp },
 
-{"boundary", "img [r g b a] mode -> img', set sample boundary mode to color (with rgba), clamp, reflect, reverse, tile", ImageOp },
+	{"boundary", "img [r g b a] mode -> img', set sample boundary mode to color (with rgba), clamp, reflect, reverse, tile", ImageOp },
 
-{"f->i","f1 f2 .. fn n -> i1 i2 .. in, converts n values in 0-1 to n values in 0-255, useful for colors",ImageOp},
-{"i->f","i1 i2 .. in n -> f1 f2 .. fn, converts n values in 0-255 to n values in 0-1, useful for colors",ImageOp},
+	{"f->i","f1 f2 .. fn n -> i1 i2 .. in, converts n values in 0-1 to n values in 0-255, useful for colors",ImageOp},
+	{"i->f","i1 i2 .. in n -> f1 f2 .. fn, converts n values in 0-255 to n values in 0-1, useful for colors",ImageOp},
 };
+
 vector<Command> drawCommands = {
 	{"line",    "img x1 y1 x2 y2 r g b a -> img with line",DrawOp},
 	{"circle",  "img x1 y1 radius r g b a -> img with circle",DrawOp},
@@ -380,7 +380,6 @@ vector<Command> drawCommands = {
 	{"rect",    "img x1 y1 x2 y2 r g b a -> img with rectangle",DrawOp},
 	{"rectf",   "img x1 y1 x2 y2 r g b a -> img with filled rectangle",DrawOp},
 	{"text",    "img x1 y1 r g b a text 0 m -> img x2 y2, draws text in font (always 0), pixel size m, returns img and final position",DrawOp },
-
 };
 
 
@@ -407,36 +406,35 @@ vector<Command> csvCommands = {
 
 vector<Command> mathCommands = {
 	// math
-{"abs","item -> abs(img)",MathOp},
-{"ceil","item -> ceil(item)",MathOp},
-{"floor","item -> floor(img)",MathOp},
-{"round","item -> round(item)",MathOp},
-{"min","a b -> min(a,b)",MathOp},
-{"max","a b -> max(a,b)",MathOp},
-{"clamp","item a b -> clamp(item,a,b)",MathOp},
-{"sin","item -> sin(item), values in radians",MathOp},
-{"cos","item -> cos(item), values in radians",MathOp},
-{"pi"," -> pi",MathOp},
-{"e","  -> e",MathOp},
-{"pow","item1 item2 -> pow(item1,item2)",MathOp},
-{"sqrt","item1 -> sqrt(item)",MathOp},
-{"exp","item -> e^item ",MathOp},
-{"log","val base -> log_base(val)",MathOp},
-{"neg","item -> -item",MathOp},
-{"sign","item -> sign(item), is -1,0,1",MathOp},
-{"+","item1 item2 -> item1 + item2",MathOp},
-{"-","item1 item2 -> item1 - item2",MathOp},
-{"*","item1 item2 -> item1 * item2",MathOp},
-{"/","item1 item2 -> item1 / item2",MathOp},
-{"mod","item1 item2 -> item1 mod item2",MathOp},
-{"==","item1 item2 -> item1 == item2, 0 if false, else 1",MathOp},
-{"!=","item1 item2 -> item1 != item2, 0 if false, else 1",MathOp},
-{">=","item1 item2 -> item1 >= item2, 0 if false, else 1",MathOp},
-{"<=","item1 item2 -> item1 <= item2, 0 if false, else 1",MathOp},
-{">","item1 item2 -> item1 > item2, 0 if false, else 1",MathOp},
-{"<","item1 item2 -> item1 < item2, 0 if false, else 1",MathOp},
+	{"abs","item -> abs(img)",MathOp},
+	{"ceil","item -> ceil(item)",MathOp},
+	{"floor","item -> floor(img)",MathOp},
+	{"round","item -> round(item)",MathOp},
+	{"min","a b -> min(a,b)",MathOp},
+	{"max","a b -> max(a,b)",MathOp},
+	{"clamp","item a b -> clamp(item,a,b)",MathOp},
+	{"sin","item -> sin(item), values in radians",MathOp},
+	{"cos","item -> cos(item), values in radians",MathOp},
+	{"pi"," -> pi",MathOp},
+	{"e","  -> e",MathOp},
+	{"pow","item1 item2 -> pow(item1,item2)",MathOp},
+	{"sqrt","item1 -> sqrt(item)",MathOp},
+	{"exp","item -> e^item ",MathOp},
+	{"log","val base -> log_base(val)",MathOp},
+	{"neg","item -> -item",MathOp},
+	{"sign","item -> sign(item), is -1,0,1",MathOp},
+	{"+","item1 item2 -> item1 + item2",MathOp},
+	{"-","item1 item2 -> item1 - item2",MathOp},
+	{"*","item1 item2 -> item1 * item2",MathOp},
+	{"/","item1 item2 -> item1 / item2",MathOp},
+	{"mod","item1 item2 -> item1 mod item2",MathOp},
+	{"==","item1 item2 -> item1 == item2, 0 if false, else 1",MathOp},
+	{"!=","item1 item2 -> item1 != item2, 0 if false, else 1",MathOp},
+	{">=","item1 item2 -> item1 >= item2, 0 if false, else 1",MathOp},
+	{"<=","item1 item2 -> item1 <= item2, 0 if false, else 1",MathOp},
+	{">","item1 item2 -> item1 > item2, 0 if false, else 1",MathOp},
+	{"<","item1 item2 -> item1 < item2, 0 if false, else 1",MathOp},
 };
-
 
 vector<Command> logicCommands = {
 	{"and","a b -> (a and b), bitwise 'and' on integers",LogicOp},
@@ -570,7 +568,7 @@ bool Process(State & state, bool verbose)
 	return true;
 }
 
-int main(int argc, char ** argv)
+int main(int argc, char** argv)
 {
 	cout << fmt::format("Chris Lomont's RPN image tool v{}.{}, https://github.com/ChrisLomont/ImgTool\n", VERSION_MAJOR, VERSION_MINOR);
 
@@ -584,7 +582,7 @@ int main(int argc, char ** argv)
 	commandList.insert(commandList.end(), stackCommands.begin(), stackCommands.end());
 	commandList.insert(commandList.end(), printCommands.begin(), printCommands.end());
 	commandList.insert(commandList.end(), stateCommands.begin(), stateCommands.end());
-	for (auto & c : commandList)
+	for (auto& c : commandList)
 	{
 		commandMap[c.name] = c;
 	}
@@ -596,11 +594,11 @@ int main(int argc, char ** argv)
 		return -1;
 	}
 	bool verbose = false;
-	
+
 	State s;
 
 	int argpos = 1; // skip initial exe
-	while (argpos < argc&& argv[argpos][0]=='-')
+	while (argpos < argc && argv[argpos][0] == '-')
 	{ // parse options
 		string opt(argv[argpos]);
 		argpos++;
@@ -620,13 +618,13 @@ int main(int argc, char ** argv)
 			s.args.push_back(ToItem(t));
 		}
 		else {
-			cerr << fmt::format("Unknown option {}\n",opt);
+			cerr << fmt::format("Unknown option {}\n", opt);
 			return -1;
 		}
 	}
 	// tokenize any other command line options
 	for (int i = argpos; i < argc; ++i)
-		s.tokens.push_back(argv[i]);
+		s.tokens.emplace_back(argv[i]);
 
 	cout << "Current path is " << fs::current_path() << '\n';
 	const auto retval = Process(s, verbose) ? 1 : 0;
