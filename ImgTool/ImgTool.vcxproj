@@ -134,6 +134,7 @@
     <ClCompile Include="ImgLib\Rotate.cpp" />
     <ClCompile Include="ImgLib\Translate.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="RPNLang.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Command.h" />
@@ -156,6 +157,7 @@
     <ClInclude Include="ImgLib\Translate.h" />
     <ClInclude Include="ImgLib\vslice.h" />
     <ClInclude Include="MathOps.h" />
+    <ClInclude Include="RPNLang.h" />
     <ClInclude Include="Stack.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="stb_image.h" />

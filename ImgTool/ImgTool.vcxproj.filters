@@ -45,6 +45,9 @@
     <ClCompile Include="ImgLib\Image.cpp">
       <Filter>Source Files\ImgLib</Filter>
     </ClCompile>
+    <ClCompile Include="RPNLang.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image_write.h">
@@ -121,6 +124,9 @@
     </ClInclude>
     <ClInclude Include="ImgLib\Translate.h">
       <Filter>Source Files\ImgLib</Filter>
+    </ClInclude>
+    <ClInclude Include="RPNLang.h">
+      <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
