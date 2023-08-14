@@ -147,7 +147,7 @@ void PadImage(State& s, const string& args)
 	bottom = max(bottom, 0);
 
 	auto [w, h] = img->Size();
-	const auto dst = make_shared<Image>(left + w + right, top + h + bottom);
+	const auto dst = Image::Make(left + w + right, top + h + bottom);
 	dst->Apply([&](int i, int j) {
 		if (i < left || j < top)
 		{
@@ -163,7 +163,7 @@ void FlipImage(State& s, const string& args)
 	const auto img = s.Pop<ImagePtr>();
 	auto [w1, h1] = img->Size();
 	int w = w1, h = h1; // todo - needed for clang issues on using w1,h1 in lambdas
-	const auto dst = make_shared<Image>(w, h);
+	const auto dst = Image::Make(w, h);
 	if (args == "flipx")
 	{
 		// todo - does double work, clean
@@ -197,7 +197,7 @@ void CropImage(State& s, const string& args)
 	const auto src = s.Pop<ImagePtr>();
 	auto [w, h] = src->Size();
 	int w2 = x2 - x1 + 1, h2 = y2 - y1 + 1;
-	const auto dst = make_shared<Image>(w2, h2);
+	const auto dst = Image::Make(w2, h2);
 	for (int j = 0; j < h2; ++j)
 		for (int i = 0; i < w2; ++i)
 			dst->Set(i, j, src->Get(i + x1, j + y1));
@@ -242,7 +242,7 @@ void ImageOp(State& s, const string& args)
 		int h = s.PopInt();
 		int w = s.PopInt();
 		Color color(r, g, b, a);
-		auto img = make_shared<Image>(w, h);
+		auto img = Image::Make(w, h);
 		img->Apply([=](int i, int j) { return color; });
 		s.Push(img);
 	}
@@ -408,7 +408,7 @@ void ImageOp(State& s, const string& args)
 		auto method = s.Pop<string>();
 		const auto img1 = s.Pop<ImagePtr>();
 		auto [w, h] = img1->Size();
-		const auto img2 = make_shared<Image>(w, h); // don't overwrite original!
+		const auto img2 = Image::Make(w, h); // don't overwrite original!
 		if (method == "linear")
 			img2->Apply([&](int i, int j) {auto c = img1->Get(i, j); c.ApplyRGB(ToLinear); return c; });
 		else if (method == "sRGB")

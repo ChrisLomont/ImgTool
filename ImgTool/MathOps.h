@@ -59,7 +59,7 @@ void Do2(State& s, const FuncDDD& f)
 		const auto v = get<double>(item1);
 		const auto src = get<ImagePtr>(item2);
 		auto [w, h] = src->Size();
-		const ImagePtr dst = make_shared<Image>(w, h);
+		const ImagePtr dst = Image::Make(w, h);
 		dst->Apply([&](int i, int j) {
 			auto c = src->Get(i, j);
 			c.r = f(v, c.r);
@@ -76,7 +76,7 @@ void Do2(State& s, const FuncDDD& f)
 		const auto src = get<ImagePtr>(item1);
 		const auto v = get<double>(item2);
 		auto [w, h] = src->Size();
-		const ImagePtr dst = make_shared<Image>(w, h);
+		const ImagePtr dst = Image::Make(w, h);
 		dst->Apply([&](int i, int j) {
 			auto c = src->Get(i, j);
 			c.r = f(c.r, v);
@@ -93,7 +93,7 @@ void Do2(State& s, const FuncDDD& f)
 		const auto img1 = get<ImagePtr>(item1);
 		const auto img2 = get<ImagePtr>(item2);
 		auto [w, h] = img1->Size();
-		const ImagePtr img = make_shared<Image>(w, h);
+		const ImagePtr img = Image::Make(w, h);
 		img->Apply([&](int i, int j) {
 				const auto c1 = img1->Get(i, j);
 				const auto c2 = img2->Get(i, j);

@@ -64,7 +64,7 @@ ImagePtr ApplyFilter(ImagePtr src, int w, int h)
 	const auto [w1, h1] = src->Size();
 	const int w2 = w, h2 = h;
 	// stretch width:
-	const ImagePtr temp = make_shared<Image>(w2, h1);
+	const ImagePtr temp = Image::Make(w2, h1);
 	for (int j = 0; j < h1; ++j) // each original row
 	{
 		for (int channel = 0; channel < 3; ++channel) // rgb
@@ -76,7 +76,7 @@ ImagePtr ApplyFilter(ImagePtr src, int w, int h)
 	}
 	//return temp;
 	// stretch height
-	ImagePtr dst = make_shared<Image>(w2, h2);
+	ImagePtr dst = Image::Make(w2, h2);
 	for (int i = 0; i < w2; ++i) // each stretched column
 	{
 		for (int channel = 0; channel < 3; ++channel) // rgb
@@ -94,7 +94,7 @@ ImagePtr ApplyFilter(ImagePtr src, int w, int h)
 ImagePtr ResizeNN(ImagePtr src, int w, int h)
 {
 	auto [w1, h1] = src->Size();
-	ImagePtr dst = make_shared<Image>(w, h, 4);
+	ImagePtr dst = Image::Make(w, h);
 	// iterate over dst
 	for (int j = 0; j < h; ++j)
 	{
@@ -197,7 +197,7 @@ ImagePtr ResizeLanczosRadial(ImagePtr src, int w, int h, double a)
 { // radial lanczos
 	auto [w1, h1] = src->Size();
 	const int ws = w1, hs = h1; // clang error!
-	auto dst = make_shared<Image>(w,h);
+	auto dst = Image::Make(w,h);
 	int min = static_cast<int>(floor(a)), max = static_cast<int>(ceil(a));
 	const auto r2 = a * a;
 	dst->Apply(
@@ -240,7 +240,7 @@ ImagePtr ResizeLanczos(ImagePtr src, int w, int h, double a)
 	const auto [w1, h1] = src->Size();
 	const int w2 = w, h2 = h;
 	// stretch width:
-	const ImagePtr temp = make_shared<Image>(w2, h1);
+	const ImagePtr temp = Image::Make(w2, h1);
 	for (int j = 0; j < h1; ++j) // each temp row
 		for (int i = 0; i < w2; ++i) // each temp column
 		{
@@ -263,7 +263,7 @@ ImagePtr ResizeLanczos(ImagePtr src, int w, int h, double a)
 		}
 
 	// stretch height
-	ImagePtr dst = make_shared<Image>(w2, h2);
+	ImagePtr dst = Image::Make(w2, h2);
 
 	for (int j = 0; j < h2; ++j) // each dest row
 		for (int i = 0; i < w2; ++i) // each dest column
@@ -507,7 +507,7 @@ Color InterpBicubic(const ImagePtr& src, double x, double y)
 ImagePtr ShiftImage2(ImagePtr img, double dx, double dy, InterpFunc Interp)
 {
 	auto [w, h] = img->Size();
-	auto dst = make_shared<Image>(w,h);
+	auto dst = Image::Make(w,h);
 	int w1 = w, h1 = h; // avoid clang error
 
 	dst->Apply([&](int i, int j) {

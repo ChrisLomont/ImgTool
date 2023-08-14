@@ -42,7 +42,7 @@ const int VERSION_MINOR = 3;
   
   TODO
     - add more ifs? if_gosub, ife_gosub (if = if {}, ife = if/else), maybe ifn, switch, etc?
-    - replace all std::make_shared<Image> with Image::Make items
+  X - replace all std::Image::Make with Image::Make items
     - all ImgLib to namespace Lomont::ImgLib
     - all ImgLib to image_exception
     - pixel zoom: each pixel becomes NxN for showing images
