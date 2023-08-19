@@ -1,8 +1,22 @@
 #pragma once
 #include <algorithm>
+#include <memory>
+
 #include "Color.h"
 
 using namespace std; // todo - remove
+
+struct ColorspaceDef;
+using ColorspaceDefPtr = std::shared_ptr<ColorspaceDef>;
+struct ColorspaceDef
+{
+//	todo; // name
+	static ColorspaceDefPtr Get(const std::string & name)
+	{
+		todo;
+	}
+};
+
 
 double ToLinear(double v)
 {

@@ -8,6 +8,5 @@
 #include "Image.h"
 #include "Timer.h"
 #include "ImageOps.h"
-#include "Colorspace.h"
 #include "Draw.h"
 #include "rand.h"

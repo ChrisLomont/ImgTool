@@ -33,8 +33,10 @@ void Do1(State& s, const FuncDD& f)
 	else if (holds_alternative<ImagePtr>(v))
 	{
 		const auto img = get<ImagePtr>(v);
-		img->Apply([&](Color& c) {
-			c.ApplyRGB(f);
+		img->Apply([&](const Color& c) {
+			Color c1(c);
+			c1.ApplyRGB(f);
+			return c1;
 			}
 		);
 		s.Push(img);
@@ -124,7 +126,7 @@ void Do3(State& s, const FuncDDDD& f)
 	else if (holds_alternative<ImagePtr>(item))
 	{
 		const auto img = get<ImagePtr>(item);
-		img->Apply([&](Color& co) {co.ApplyRGB([&](double v) {return f(v, b, c); }); });
+		img->Apply([&](const Color& co) {Color c1(co);  c1.ApplyRGB([&](double v) {return f(v, b, c); }); return c1; });
 		s.Push(img);
 	}
 	else

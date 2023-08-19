@@ -269,23 +269,23 @@ void ImageOp(State& s, const string& args)
 	else if (args == "blit" || args == "blitc" || args == "blitr")
 	{
 		int dx = 0, dy = 0, x1 = 0, y1 = 0, w = 0, h = 0;
-		ImagePtr src{ nullptr }, dst{ nullptr };
+		ImagePtr overImage{ nullptr }, underImage{ nullptr };
 		if (args == "blit")
 		{
 			//{"blit", "dst src -> dst', copy pixels from src to dst", ImageOp},
-			src = s.Pop<ImagePtr>();
-			dst = s.Pop<ImagePtr>();
-			auto [w1, h1] = src->Size();
+			overImage = s.Pop<ImagePtr>();
+			underImage = s.Pop<ImagePtr>();
+			auto [w1, h1] = overImage->Size();
 			w = w1; h = h1;
 		}
 		else if (args == "blitc")
 		{
 			//{ "blitc", "dst dx dy src -> dst' copy src pixels to dst, placing dest corner at dx dy", ImageOp },
-			src = s.Pop<ImagePtr>();
+			overImage = s.Pop<ImagePtr>();
 			dy = s.PopInt();
 			dx = s.PopInt();
-			dst = s.Pop<ImagePtr>();
-			auto [w1, h1] = src->Size();
+			underImage = s.Pop<ImagePtr>();
+			auto [w1, h1] = overImage->Size();
 			w = w1; h = h1;
 		}
 		else if (args == "blitr")
@@ -296,15 +296,30 @@ void ImageOp(State& s, const string& args)
 			y1 = s.PopInt();
 			x1 = s.PopInt();
 
-			src = s.Pop<ImagePtr>();
+			overImage = s.Pop<ImagePtr>();
 			dy = s.PopInt();
 			dx = s.PopInt();
-			dst = s.Pop<ImagePtr>();
+			underImage = s.Pop<ImagePtr>();
 		}
 
-		Blit(dst, dx, dy, src, x1, y1, w, h);
+		Blit(underImage, dx, dy, overImage, x1, y1, w, h);
 
-		s.Push(dst);
+		s.Push(underImage);
+	}
+	else if (args == "alpha*" || args == "alpha/")
+	{
+		auto src = s.Pop<ImagePtr>();
+		// clone
+		auto img = Image::Make(src); // clones
+		if (args == "alpha*")
+		{
+			AlphaCorrect(img, true);
+		}
+		else 
+		{
+			AlphaCorrect(img, false);
+		}
+		s.Push(img);
 	}
 	else if (args == "getpixel")
 	{

@@ -37,10 +37,15 @@ const int VERSION_MINOR = 3;
 /*syntax:
 * works on stack machine - can put images on stack, do ops
 
-    - doc assumptions: read file does no conversion except byte values -> double rgba
+    - document assumptions:
+      - read file does no conversion except byte values -> double rgba
+      - user must do gamma<->linear, etc.
+    
  
   
   TODO
+    - add features to set image format stuff: color space, alpha, gamma, etc. RGB, YUV? YCbCr?    
+    - pre-multiplied alpha and correct compositing and tests
     - on exception, publish stack, token neighborhood in program, prog line/file?
     - add more ifs? if_gosub, ife_gosub (if = if {}, ife = if/else), maybe ifn, switch, etc?
   X - replace all std::Image::Make with Image::Make items
@@ -53,6 +58,8 @@ const int VERSION_MINOR = 3;
     - ensure shift works on fractional pixels, do test against results in papers
 	- do major refactor:
 	 X * split out RPN engine
+	     * make nicer interface for +,-, etc between RPN lang and Image interop
+	     * make item type extensible between RPN and Image addition
 	   * make commands infra cleaner
 	 X * split out all graphics into standalone lib
 	   * move many files to cpp, integrate lots of my old code
@@ -133,6 +140,18 @@ const int VERSION_MINOR = 3;
   X - spawn command using std::system() calls
 	- bilateral filter, noise, median filter, edge stuff?
 
+
+// some more commands?
+	// >>,<<
+	// type - object type
+
+	// store items in array
+	// str-> (execute string),
+	// ->str (object to string?),
+	// vars - dump stored items (vars, labels)
+	// switch?
+
+
 * And now we recreated Image Magic :)
 */
 
@@ -157,14 +176,6 @@ x save/dump total psnr, results, etc....
 
 
 
-	// >>,<<	
-	// type - object type
-
-	// store items in array
-	// str-> (execute string), 
-	// ->str (object to string?), 
-	// vars - dump stored items (vars, labels)
-	// switch?
 
 // todo - move command defs elsewhere, into respective locations
 vector<Command> imageCommands = {
@@ -176,6 +187,8 @@ vector<Command> imageCommands = {
 	{"setpixel","img i j r g b a -> img, writes pixel 0-1",ImageOp},
 
 	{"colorspace","image space -> image', where space=[linear|sRGB|YCbCr|RGB], does conversion",ImageOp},
+	{"alpha*","image -> image', applies alpha pre-multiplication",ImageOp},
+	{"alpha/","image -> image', reverses alpha pre-multiplication (0 alpha -> 0,0,0,0 color)",ImageOp},
 
 	{"error","im1 im2 errtype -> im1 im2 errval, prints error, errtype mse, psnr, ssim",ImageOp},
 	{"maxc","img -> max, max value of all r,g,b values in image",ImageOp},
@@ -196,7 +209,7 @@ vector<Command> imageCommands = {
 	{"flipx", "img -> img2, flip image", ImageOp},
 	{"flipy", "img -> img2, flip image", ImageOp},
 
-	{"blit", "dst src -> dst', copy pixels from src to dst", ImageOp},
+	{"blit", "dst src -> dst', copy pixels from src to dst, using Porter-Duff OVER operator", ImageOp},
 	{"blitc", "dst dx dy src -> dst' copy src pixels to dst, placing dest corner at dx dy", ImageOp },
 	{"blitr", "dst dx dy src x1 y1 w h  -> dst', copy rect from src x1 y1 w h to dst at dx dy", ImageOp },
 

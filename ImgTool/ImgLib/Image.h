@@ -6,6 +6,7 @@
 #include "Boundary.h"
 #include "Color.h"
 #include "vslice.h"
+#include "ImageFormat.h"
 
 using namespace std; // todo - remove this
 
@@ -27,6 +28,8 @@ public:
 	static double iToF64(int v) { return v / 255.0; }
 	static int f64ToI(double v) { return static_cast<int>(clamp(floor(v * 256.0), 0.0, 255.0)); }
 
+	// todo - implement and leverage
+	ImageFormat imageFormat;
 
 	[[nodiscard]] bool Legal(int i, int j) const { return 0 <= i && 0 <= j && i < w && j < h; }
 
@@ -108,14 +111,14 @@ public:
 	// modify in place by pixel and index
 	//void Apply(std::function<void(int i, int j, float& r, float& g, float& b, float& a)> func);
 
-	void Apply(const function<void(Color& c)>& colorMap)
+	void Apply(const function<Color (const Color& c)>& colorMap)
 	{
 		for (auto j = 0; j < h; ++j)
 			for (auto i = 0; i < w; ++i)
 			{
-				auto c = Get(i, j);
-				colorMap(c);
-				Set(i, j, c);
+				auto c1 = Get(i, j);
+				auto c2 = colorMap(c1);
+				Set(i, j, c2);
 			}
 	}
 	void Apply(const function<Color(int i, int j)>& colorFunc)

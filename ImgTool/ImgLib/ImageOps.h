@@ -289,30 +289,34 @@ ImagePtr ResizeLanczos(ImagePtr src, int w, int h, double a)
 }
 
 // alpha blend
-Color Blend(const Color & over, const Color & under)
+// assumes pre-multiplied alpha
+// does Porter-Duff 1984 OVER operation
+Color Blend(const Color& under, const Color & over)
 {
-	const auto alphaOver = over.a;
-	const auto alphaUnder = under.a;
-	const auto alpha = alphaOver + alphaUnder * (1 - alphaOver);
-	//c = (cOver*aOver + cUnder*bUnder*(1-aover))/alpha;
-	auto c = (alphaOver * over + alphaUnder * (1 - alphaOver) * under);
-	if (alpha != 0)
-		c = (1.0 / alpha) * c;
-	else
-		c.r = c.g = c.b = c.a = 0;
-	c.a = alpha;
-	return c;
+	// in pre-multiplied alpha, OVER is a 4-vector operation:
+	// https://en.wikipedia.org/wiki/Alpha_compositing
+	return over + under * (1 - over.a);
 }
 
-void Blit(ImagePtr dst, int dx, int dy, ImagePtr src, int x1, int y1, int w, int h)
+// pre-multiply alpha or reverse it
+inline void AlphaCorrect(ImagePtr img, bool premultiplyAlpha)
+{
+	if (premultiplyAlpha)
+		img->Apply([](const Color& color) { return color.ToPremultipliedAlpha(); });
+	else
+		img->Apply([](const Color& color) { return color.FromPremultipliedAlpha(); });
+}
+
+
+inline void Blit(ImagePtr underImage, int dx, int dy, ImagePtr overImage, int x1, int y1, int w, int h)
 {
 	for (int j = 0; j < h; ++j)
 		for (int i = 0; i < w; ++i)
 		{
-			auto srcColor = src->Get(i + x1, j + y1);
-			auto dstColor = dst->Get(i + dx, j + dy);
-			auto color = Blend(srcColor, dstColor);
-			dst->Set(i + dx, j + dy, color);
+			auto overColor = overImage->Get(i + x1, j + y1);
+			auto underColor = underImage->Get(i + dx, j + dy);
+			auto color = Blend(underColor, overColor);
+			underImage->Set(i + dx, j + dy, color);
 		}
 }
 

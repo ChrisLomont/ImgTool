@@ -1,0 +1,7 @@
+# test alpha blending and compositing
+
+# things to test:
+# 1. result of linear alpha blending
+# 2. result of save/load alpha stuff, linear, sRGB
+# 3. resizing
+# 4. some tests from blogs, papers?

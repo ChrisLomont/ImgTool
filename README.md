@@ -18,6 +18,16 @@ Good luck!
 
 [Github](https://github.com/ChrisLomont/ImgTool)
 
+## Image notes
+
+No operations are performed on images without explicit direction. When images are loaded, they are in whatever the bytes in the image format meant, which is usually a non-linear, [sRGB](https://en.wikipedia.org/wiki/SRGB) color format. To do various operations correctly, you must explicitly do them. For many image processing tasks (filtering, resizing, rotation, [alpha compositing](https://en.wikipedia.org/wiki/Alpha_compositing)) you want to be a in a linear, pre-multiplied (also called associative) alpha format. To convert from sRGB, you must convert to a linear space first, **then** to a pre-multiplied alpha , then do your work. To write back out, you must reverse these in the correct manner: reverse the pre-multipled alpha, then convert to sRGB, then save. PNG is an excellent format for all of this.
+
+Note that alpha in files is treated as linear, even if color components are not, which is standard. PNG requires that RGBA alpha is linear, and colors are **not** pre-multiplied alpha.
+
+Currently the PNG loader is [stb_image](https://github.com/nothings/stb/blob/master/stb_image.h), which does not support other color spaces. This may be changed in the future. You can always write your own converters.
+
+## Commands
+
 Here's the current commands, obtained by running the tool without arguments.
 
 ```

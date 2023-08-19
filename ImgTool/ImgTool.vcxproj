@@ -148,6 +148,7 @@
     <ClInclude Include="ImgLib\filters.h" />
     <ClInclude Include="ImgLib\Font9x16.h" />
     <ClInclude Include="ImgLib\Image.h" />
+    <ClInclude Include="ImgLib\ImageFormat.h" />
     <ClInclude Include="ImgLib\ImageMetrics.h" />
     <ClInclude Include="ImgLib\ImageOps.h" />
     <ClInclude Include="ImgLib\image_exception.h" />
@@ -175,6 +176,8 @@
     <Text Include="..\tests\include4.txt" />
     <Text Include="..\tests\include5.txt" />
     <Text Include="..\tests\include6.txt" />
+    <Text Include="..\tests\testBase.txt" />
+    <Text Include="..\tests\testBlend.txt" />
     <Text Include="..\tests\testBoundary.txt" />
     <Text Include="..\tests\testcsv.txt" />
     <Text Include="..\tests\testImages.txt" />

@@ -128,6 +128,9 @@
     <ClInclude Include="RPNLang.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="ImgLib\ImageFormat.h">
+      <Filter>Source Files\ImgLib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\tests\testcsv.txt">
@@ -174,6 +177,12 @@
     </Text>
     <Text Include="..\examples\alphaBlending.txt">
       <Filter>examples</Filter>
+    </Text>
+    <Text Include="..\tests\testBase.txt">
+      <Filter>tests</Filter>
+    </Text>
+    <Text Include="..\tests\testBlend.txt">
+      <Filter>tests</Filter>
     </Text>
   </ItemGroup>
   <ItemGroup>
