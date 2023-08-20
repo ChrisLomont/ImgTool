@@ -16,7 +16,7 @@
 
 //#include <typeinfo>
 //#include "Utils.h"
-//#include "Stack.h"
+#include "Stack.h"
 //#include "Command.h"
 //#include "State.h"
 
@@ -102,6 +102,7 @@ const int VERSION_MINOR = 3;
        - add sort, length, append, insert, read nth
        - add items, n ->list makes a list
        - add list-> pops items out, n on top
+	   - make loop work over list
   X	- get and line args as "n getarg" to get nth arg, or maybe use rcl and special name
 	- check string construction
   X - make CSV, would be good for running image tests

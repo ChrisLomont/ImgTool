@@ -228,6 +228,73 @@ public:
 			auto v = Pop();
 			Push(FormatItem(v, false));
 		}
+		else if (args == "->list")
+		{
+			// { "->list"," item1 item2 ... itemn n  -> list of items, convert n items into a list", StateOp },
+		
+			auto n = PopInt();
+			Item it;
+			for (auto i = 0; i < n; ++i)
+				it.arr.push_back(Pop());
+			it.type = ItemType::List;
+			Push(it);
+		}
+		else if (args == "list->")
+		{
+			//{ "list->"," list -> item1 item2 ... itemn n, list of n items out", StateOp },
+			auto lst = PopList();
+			auto n = (int)lst.size();
+			for (auto& it : lst)
+				Push(it);
+			Push(n);
+
+		}
+		else if (args == "listlen")
+		{
+			//{ "listlen"," list -> list list_length, get length of list", StateOp },
+			auto it = Pop();
+			if (!holds_alternative<std::vector<Item>>(it))
+				throw runtime_error("Expected list");
+			auto n = (int)it.arr.size();
+			Push(it);
+			Push(n);
+		}
+		else if (args == "listget")
+		{
+			// { "listget", " list k -> list item_k, get kth item from list, 0 indexed", StateOp },
+			throw runtime_error("listget not implemented");
+
+		}
+		else if (args == "listset")
+		{
+			// { "listset"," list item k -> list, set kth item from list, 0 indexed", StateOp },
+			throw runtime_error("listset not implemented");
+		}
+		else if (args == "sublist")
+		{
+			// { "sublist"," list a b -> sublist, get sublist of items a (inclusive) to b (exclusive) 0 indexed", StateOp },
+			throw runtime_error("sublist not implemented");
+		}
+		else if (args == "listins")
+		{
+			// { "listins"," list item k -> list, insert item at index k, 0 indexed", StateOp },
+			throw runtime_error("listins not implemented");
+			}
+		else if (args == "listdel")
+		{
+			// { "listdel"," list k -> list, delete the k item, 0 indexed", StateOp },
+			throw runtime_error("listdel not implemented");
+		}
+		else if (args == "listappend")
+		{
+			// { "listappend"," list item -> append item to list", StateOp },
+			throw runtime_error("listappend not implemented");
+		}
+		else if (args == "listjoin")
+		{
+			// { "listjoin"," list1 list2 -> list, join lists 1 and 2", StateOp },
+			throw runtime_error("listjoin not implemented");
+		}
 		else 
 			throw runtime_error(fmt::format("unknown state op {}",args));
 	}

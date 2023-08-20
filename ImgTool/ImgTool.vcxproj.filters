@@ -48,6 +48,9 @@
     <ClCompile Include="RPNLang.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="ImgLib\Colorspace.cpp">
+      <Filter>Source Files\ImgLib</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stb_image_write.h">

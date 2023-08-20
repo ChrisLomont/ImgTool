@@ -300,6 +300,18 @@ public:
 			{ "endsub"," name -> , ends subroutine", StateOp },
 			{ "gosub"," name -> , jumps to subroutine ", StateOp },
 			{ "return"," -> , returns from subroutine", StateOp },
+
+			// list
+			{ "->list"," item1 item2 ... itemn n  -> list of items, convert n items into a list", StateOp },
+			{ "list->"," list -> item1 item2 ... itemn n, list of n items out", StateOp },
+			{ "listlen"," list -> list list_length, get length of list", StateOp },
+			{ "listget"," list k -> list item_k, get kth item from list, 0 indexed", StateOp },
+			{ "listset"," list item k -> list, set kth item from list, 0 indexed", StateOp },
+			{ "sublist"," list a b -> sublist, get sublist of items a (inclusive) to b (exclusive) 0 indexed", StateOp },
+			{ "listins"," list item k -> list, insert item at index k, 0 indexed", StateOp },
+			{ "listdel"," list k -> list, delete the k item, 0 indexed", StateOp },
+			{ "listappend"," list item -> append item to list", StateOp },
+			{ "listjoin"," list1 list2 -> list, join lists 1 and 2", StateOp },
 		};
 
 		commandList.insert(commandList.end(), systemCommands.begin(), systemCommands.end());

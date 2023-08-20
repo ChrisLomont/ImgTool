@@ -7,7 +7,47 @@
 
 using namespace std; // todo - remove
 
-using Item = variant<string, ImagePtr, double>;
+enum class ItemType
+{
+	Double,
+	Image,
+	String,
+	List
+};
+	
+//	using Item = variant<string, ImagePtr, double>;
+struct Item;
+using ItemPtr = shared_ptr<Item>;
+struct Item
+{
+	Item() {}
+	Item(const string& s) : s{ s }, type{ ItemType::String } {}
+	Item(const char *  s) : s{ s }, type{ ItemType::String } {}
+	Item(double d) : d{ d }, type{ ItemType::Double} {}
+	Item(const ImagePtr & img) : img{ img }, type{ ItemType::Image} {}
+
+
+	double d{ 0 };
+	string s;
+	ImagePtr img;
+	vector<Item> arr;
+	ItemType type{ ItemType::Double };
+};
+
+// variant behavior
+template<typename T> bool holds_alternative(const Item& item) { throw runtime_error("unknown type alternative"); }
+template<> bool holds_alternative<ImagePtr>(const Item& item) { return item.type == ItemType::Image; }
+template<> bool holds_alternative<double>(const Item& item) { return item.type == ItemType::Double; }
+template<> bool holds_alternative<std::string>(const Item& item) { return item.type == ItemType::String; }
+template<> bool holds_alternative<std::vector<Item>>(const Item& item) { return item.type == ItemType::List; }
+
+
+template<typename T> T get(const Item& item) { throw runtime_error("unknown type get"); }
+template<> ImagePtr get<ImagePtr>(const Item& item) { return item.img; }
+template<> double get<double>(const Item& item) { return item.d; }
+template<> std::string get<std::string>(const Item& item) { return item.s; }
+// todo - make these more memory friendly - pass array around as pointers?
+template<> std::vector<Item> get<std::vector<Item>>(const Item& item) { return item.arr; }
 
 static inline string FormatItem(const Item & item, bool prefixType)
 {
@@ -162,7 +202,13 @@ public:
 		else
 			throw runtime_error(fmt::format("unknown stack op {}", arg));
 	}
-
+	vector<Item> PopList()
+	{
+		Item it = Pop();
+		if (!holds_alternative<std::vector<Item>>(it))
+			throw runtime_error("Expected list");
+		return it.arr;
+	}
 	int PopInt()
 	{
 		const auto d = Pop<double>();

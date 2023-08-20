@@ -130,6 +130,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="fmt\format.cc" />
+    <ClCompile Include="ImgLib\Colorspace.cpp" />
     <ClCompile Include="ImgLib\Image.cpp" />
     <ClCompile Include="ImgLib\Rotate.cpp" />
     <ClCompile Include="ImgLib\Translate.cpp" />
