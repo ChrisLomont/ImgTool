@@ -178,6 +178,7 @@
     <Text Include="..\tests\include5.txt" />
     <Text Include="..\tests\include6.txt" />
     <Text Include="..\tests\testBase.txt" />
+    <Text Include="..\tests\testBasic.txt" />
     <Text Include="..\tests\testBlend.txt" />
     <Text Include="..\tests\testBoundary.txt" />
     <Text Include="..\tests\testcsv.txt" />

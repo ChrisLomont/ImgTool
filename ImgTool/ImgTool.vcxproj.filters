@@ -187,6 +187,9 @@
     <Text Include="..\tests\testBlend.txt">
       <Filter>tests</Filter>
     </Text>
+    <Text Include="..\tests\testBasic.txt">
+      <Filter>tests</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />

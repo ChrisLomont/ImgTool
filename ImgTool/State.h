@@ -145,7 +145,7 @@ public:
 		}
 		else if (args == "halt")
 		{
-			exitCode = PopInt();
+			exitCode = Pos() > 0 ? PopInt() : 1; // default
 			programPosition = 1 << 30; // out of bounds - todo - make const?, flag?
 		}
 		else if (args == "sto")
@@ -212,12 +212,11 @@ public:
 		}
 		else if (args == "if")
 		{
-			auto isTrue = Pop<double>() != 0;
-
 			auto m = PopInt();
 			auto n = PopInt();
 			vector<Item> f = PopN(m);
 			vector<Item> t = PopN(n);
+			auto isTrue = Pop<double>() != 0;
 			if (isTrue)
 				PushN(t);
 			else

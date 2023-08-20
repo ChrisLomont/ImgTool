@@ -366,7 +366,7 @@ public:
 			cerr << fmt::format("Exception: should not reach this handler!");
 			return false;
 		}
-		cout << fmt::format("Stack depth on exit {}:", state.Pos());
+		cout << fmt::format("Stack depth on exit {}, exit code {}\n", state.Pos(),state.exitCode);
 		return true;
 	}
 
