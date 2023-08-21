@@ -8,6 +8,7 @@ double ToLinear(double v)
 	if (v <= 0.04045) return clamp(v / 12.92, 0.0, 1.0);
 	return clamp(pow((v + 0.055) / 1.055, 2.4), 0.0, 1.0);
 }
+
 double FromLinear(double v)
 {
 	if (v <= 0.0031308) return clamp(12.92 * v, 0.0, 1.0);

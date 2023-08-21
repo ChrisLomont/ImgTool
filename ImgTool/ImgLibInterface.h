@@ -222,7 +222,6 @@ void ImageOp(State& s, const string& args)
 		auto img = s.Pop<ImagePtr>();
 		cout << "Writing " << filename << endl;
 		img->Save(filename);
-		s.Push(img);
 	}
 	else if (args == "size")
 	{
@@ -315,9 +314,9 @@ void ImageOp(State& s, const string& args)
 
 		}
 
-		Blit(underImage, dx, dy, overImage, x1, y1, w, h, alphaBlend);
+		auto result = Blit(underImage, dx, dy, overImage, x1, y1, w, h, alphaBlend);
 
-		s.Push(underImage);
+		s.Push(result);
 	}
 	else if (args == "alpha*" || args == "alpha/")
 	{
@@ -448,9 +447,11 @@ void ImageOp(State& s, const string& args)
 		else
 			throw runtime_error(fmt::format("Unknown color operation {}", method));
 		s.Push(img2);
-
 	}
-
+	else if (args == "resize" || args == "resize%" || args == "resize*")
+	{
+		ResizeImage(s, args);
+	}
 	else throw runtime_error("Unknown image op");
 }
 
@@ -576,10 +577,6 @@ void DrawOp(State& s, const string& args)
 		s.Push(img);
 		s.Push(dx);
 		s.Push(dy);
-	}
-	else if (args == "resize" || args == "resize%" || args == "resize*")
-	{
-		ResizeImage(s, args);
 	}
 	else if (args == "gaussian")
 	{

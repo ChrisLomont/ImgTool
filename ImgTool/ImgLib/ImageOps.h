@@ -67,7 +67,7 @@ ImagePtr ApplyFilter(ImagePtr src, int w, int h)
 	const ImagePtr temp = Image::Make(w2, h1);
 	for (int j = 0; j < h1; ++j) // each original row
 	{
-		for (int channel = 0; channel < 3; ++channel) // rgb
+		for (int channel = 0; channel < 4; ++channel) // rgba
 		{
 			auto run1D = GetRun1D(src, 0, j, 1, 0, channel);
 			run1D = Filter1D<Kernel>(run1D, w2); // expand row
@@ -79,7 +79,7 @@ ImagePtr ApplyFilter(ImagePtr src, int w, int h)
 	ImagePtr dst = Image::Make(w2, h2);
 	for (int i = 0; i < w2; ++i) // each stretched column
 	{
-		for (int channel = 0; channel < 3; ++channel) // rgb
+		for (int channel = 0; channel < 4; ++channel) // rgba
 		{
 			auto run1D = GetRun1D(temp, i, 0, 0, 1, channel);
 			run1D = Filter1D<Kernel>(run1D, h2);
@@ -308,11 +308,12 @@ inline void AlphaCorrect(ImagePtr img, bool premultiplyAlpha)
 }
 
 
-inline void Blit(
+inline ImagePtr Blit(
 	const ImagePtr& underImage, int dx, int dy, ImagePtr overImage, 
 	const int x1, int y1, int w, int h, 
 	bool alphaBlend)
 {
+	auto result = Image::Make(underImage);
 	Color color;
 	for (int j = 0; j < h; ++j)
 		for (int i = 0; i < w; ++i)
@@ -327,8 +328,9 @@ inline void Blit(
 				auto underColor = underImage->Get(i + dx, j + dy);
 				color = Blend(underColor, overColor);
 			}
-			underImage->Set(i + dx, j + dy, color);
+			result->Set(i + dx, j + dy, color);
 		}
+	return result;
 }
 
 /* -------------------- Metrics ------------------------------*/

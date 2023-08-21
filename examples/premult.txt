@@ -5,6 +5,9 @@
 
 # todo - later check gamma correction items too
 
+
+# halt
+
 # background blue image
 256 256 0 0 1 1 image imgC sto 
 
@@ -23,9 +26,9 @@ endloop
 imgB sto
 
 # premultiply alphas
-imgA rcl alpha* imaA sto
-imgB rcl alpha* imaB sto
-imgC rcl alpha* imaC sto # does nothing here, but to keep it all parallel
+#imgA rcl alpha* imaA sto
+#imgB rcl alpha* imaB sto
+#imgC rcl alpha* imaC sto # does nothing here, but to keep it all parallel
 
 # compose 2 different orders
 imgA rcl imgB rcl 0 0 blitover 
@@ -36,17 +39,47 @@ imgA rcl imgB rcl imgC rcl 0 0 blitover 0 0 blitover aAfterBOverC sto
 # make straight alpha, convert to sRGB, save image
 saveOne subroutine
 	swap rcl # get image
-	alpha/ sRGB colorspace swap 
+	#alpha/ 
+	sRGB colorspace swap 
 	write
 	return
 endsub
 
 # check same
-aAfterBOverC rcl aOverBThenC rcl maxc ->str "img diff " swap + print
+aAfterBOverC rcl aOverBThenC rcl - 50 * abs 0 1 clamp diffAssoc.png write
+
+# test bilinear and blend commute
+"A" print
+imgA rcl 
+"A" print
+2 bilinear 
+"A" print
+resize*
+"A" print
+imgC rcl 2 bilinear resize*
+"A" print
+0 0 blitover
+"A" print
+sizeThenBlend sto
+"A" print
+
+imgA rcl 
+imgC rcl 
+0 0 blitover
+2 bilinear resize*
+blendThenSize sto
+
+# check same
+sizeThenBlend rcl  blendThenSize rcl - 50 * 0 1 clamp sizeAssoc.png write
 
 # save each image after making straight alpha and convert to sRGB for PNGs
-#imgA imgA.png saveOne gosub
-#imgB imgB.png saveOne gosub
-#imgC imgC.png saveOne gosub
+imgA imgA.png saveOne gosub
+imgB imgB.png saveOne gosub
+imgC imgC.png saveOne gosub
 aOverBThenC aOverBThenC.png saveOne gosub
 aAfterBOverC aAfterBOverC.png saveOne gosub
+sizeThenBlend sizeThenBlend.png saveOne gosub
+blendThenSize blendThenSize.png saveOne gosub
+
+
+
