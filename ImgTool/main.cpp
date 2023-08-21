@@ -29,7 +29,7 @@
 using namespace std;
 
 const int VERSION_MAJOR = 0;
-const int VERSION_MINOR = 3;
+const int VERSION_MINOR = 4;
 
 
 

@@ -31,7 +31,7 @@ Currently the PNG loader is [stb_image](https://github.com/nothings/stb/blob/mas
 Here's the current commands, obtained by running the tool without arguments.
 
 ```
-Chris Lomont's RPN image tool v0.3, https://github.com/ChrisLomont/ImgTool
+Chris Lomont's RPN image tool v0.4, https://github.com/ChrisLomont/ImgTool
 Usage: This is an RPN based image tool. Command args are RPN commands.
        Commands either on command line or run as -s filename
        --verbose to print more, 0=none, 1=info, 2=all
@@ -42,6 +42,8 @@ image       : w h r g b a -> image, makes image size w x h, color rgba in 0-1
 getpixel    : img i j -> img r g b a, reads pixel 0-1
 setpixel    : img i j r g b a -> img, writes pixel 0-1
 colorspace  : image space -> image', where space=[linear|sRGB|YCbCr|RGB], does conversion
+alpha*      : image -> image', applies alpha pre-multiplication
+alpha/      : image -> image', reverses alpha pre-multiplication (0 alpha -> 0,0,0,0 color)
 error       : im1 im2 errtype -> im1 im2 errval, prints error, errtype mse, psnr, ssim
 maxc        : img -> max, max value of all r,g,b values in image
 size        : img -> w h, where w,h is size in pixels
@@ -55,26 +57,19 @@ crop        : img x1 y1 x2 y2 -> img', crop image to rectangle (x1,y1)-(x2,y2) i
 pad         : img top bottom left right r g b a -> img2, pad image with given color, given pixel margins
 flipx       : img -> img2, flip image
 flipy       : img -> img2, flip image
-blit        : dst src -> dst', copy pixels from src to dst
-blitc       : dst dx dy src -> dst' copy src pixels to dst, placing dest corner at dx dy
-blitr       : dst dx dy src x1 y1 w h  -> dst', copy rect from src x1 y1 w h to dst at dx dy
+blit        : src dst -> dst', copy pixels from src to dst
+blitc       : src dst dx dy -> dst' copy src pixels to dst, placing dest corner at dx dy
+blitr       : src x1 y1 w h dst dx dy -> dst', copy rect from src x1 y1 w h to dst at dx dy
+blitover    : src dst -> dst dx dy', alpha blend src OVER dst, at dx dy
 boundary    : img [r g b a] mode -> img', set sample boundary mode to color (with rgba), clamp, reflect, reverse, tile
+f->i        : f1 f2 .. fn n -> i1 i2 .. in, converts n values in 0-1 to n values in 0-255, useful for colors
+i->f        : i1 i2 .. in n -> f1 f2 .. fn, converts n values in 0-255 to n values in 0-1, useful for colors
 line        : img x1 y1 x2 y2 r g b a -> img with line
 circle      : img x1 y1 radius r g b a -> img with circle
 circlef     : img x1 y1 radius r g b a -> img with filled circle
 rect        : img x1 y1 x2 y2 r g b a -> img with rectangle
 rectf       : img x1 y1 x2 y2 r g b a -> img with filled rectangle
 text        : img x1 y1 r g b a text 0 m -> img x2 y2, draws text in font (always 0), pixel size m, returns img and final position
-f->i        : f1 f2 .. fn n -> i1 i2 .. in, converts n values in 0-1 to n values in 0-255, useful for colors
-i->f        : i1 i2 .. in n -> f1 f2 .. fn, converts n values in 0-255 to n values in 0-1, useful for colors
-files       : path regex -> f1 f2 ... fn n, reads files matching regex, pushes on stack with count
-version     :  -> major minor, get version
-timeus      :  -> time_us, get elapsed time in us
-rand        : a b -> rand32(a,b), uniform random integer in [a,b)
-srand       : seed -> , set random seed to integer seed
-arg         :  n -> arg, get command line arg n, passed via -a item, n = 1,2,...
-argcount    :   -> argcount, count of command line args passed via via -a
-include     :  filename -> , include file as text, each file included at most once
 csvstart    :  csvname header1 header2 ... n -> , start a CSV file with given headers
 csvput      :  val header csvname -> , stores val under header name in named csv
 csvwrite    :  csvname filename -> ,
@@ -90,6 +85,7 @@ cos         : item -> cos(item), values in radians
 pi          :  -> pi
 e           :   -> e
 pow         : item1 item2 -> pow(item1,item2)
+sqrt        : item1 -> sqrt(item)
 exp         : item -> e^item
 log         : val base -> log_base(val)
 neg         : item -> -item
@@ -109,6 +105,14 @@ and         : a b -> (a and b), bitwise 'and' on integers
 or          : a b -> (a or b), bitwise 'or' on integers
 xor         : a b -> (a xor b), bitwise 'xor' on integers
 not         : a -> (not a), treating 0 as false, != 0 as true, boolean not
+files       : path regex -> f1 f2 ... fn n, reads files matching regex, pushes on stack with count
+version     :  -> major minor, get version
+timeus      :  -> time_us, get elapsed time in us
+rand        : a b -> rand32(a,b), uniform random integer in [a,b)
+srand       : seed -> , set random seed to integer seed
+arg         :  n -> arg, get command line arg n, passed via -a item, n = 1,2,...
+argcount    :   -> argcount, count of command line args passed via via -a
+include     :  filename -> , include file as text, each file included at most once
 dup         : a -> a a, duplicates top item
 dup2        : a b -> a b a b, duplicates top item
 dupn        : x1 x2 .. xn n -> x1 x2 .. xn x1 x2 .. xn, duplicate top n
@@ -149,4 +153,14 @@ subroutine  :  name -> , starts subroutine, ends with endsub
 endsub      :  name -> , ends subroutine
 gosub       :  name -> , jumps to subroutine
 return      :  -> , returns from subroutine
+->list      :  item1 item2 ... itemn n  -> list of items, convert n items into a list
+list->      :  list -> item1 item2 ... itemn n, list of n items out
+listlen     :  list -> list list_length, get length of list
+listget     :  list k -> list item_k, get kth item from list, 0 indexed
+listset     :  list item k -> list, set kth item from list, 0 indexed
+sublist     :  list a b -> sublist, get sublist of items a (inclusive) to b (exclusive) 0 indexed
+listins     :  list item k -> list, insert item at index k, 0 indexed
+listdel     :  list k -> list, delete the k item, 0 indexed
+listappend  :  list item -> append item to list
+listjoin    :  list1 list2 -> list, join lists 1 and 2
 ```
