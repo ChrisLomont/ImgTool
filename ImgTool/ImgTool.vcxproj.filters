@@ -142,7 +142,7 @@
     <Text Include="..\tests\testImages.txt">
       <Filter>tests</Filter>
     </Text>
-    <Text Include="..\tests\tests.txt">
+    <Text Include="..\tests\test2.txt">
       <Filter>tests</Filter>
     </Text>
     <Text Include="..\scripts\example.txt">
@@ -188,6 +188,12 @@
       <Filter>tests</Filter>
     </Text>
     <Text Include="..\tests\testBasic.txt">
+      <Filter>tests</Filter>
+    </Text>
+    <Text Include="..\tests\README.txt">
+      <Filter>tests</Filter>
+    </Text>
+    <Text Include="..\tests\tests.txt">
       <Filter>tests</Filter>
     </Text>
   </ItemGroup>

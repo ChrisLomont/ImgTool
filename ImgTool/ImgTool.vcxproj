@@ -177,6 +177,7 @@
     <Text Include="..\tests\include4.txt" />
     <Text Include="..\tests\include5.txt" />
     <Text Include="..\tests\include6.txt" />
+    <Text Include="..\tests\README.txt" />
     <Text Include="..\tests\testBase.txt" />
     <Text Include="..\tests\testBasic.txt" />
     <Text Include="..\tests\testBlend.txt" />
@@ -184,6 +185,7 @@
     <Text Include="..\tests\testcsv.txt" />
     <Text Include="..\tests\testImages.txt" />
     <Text Include="..\tests\testInclude.txt" />
+    <Text Include="..\tests\test2.txt" />
     <Text Include="..\tests\tests.txt" />
   </ItemGroup>
   <ItemGroup>

@@ -1,66 +1,5 @@
 # basic tests before more testing starts
 
-# routine:
-# check something, count successes and failures, on error print something
-
-# globals for testing
-0 errorCount sto
-0 successCount sto
-0 localErrorCount sto
-0 localSuccessCount sto
-unknown testMessage sto
-
-allTestsDone subroutine
-	"   total successes: " successCount rcl ->str + print
-	"   total failures : " errorCount   rcl ->str + print
-	return
-endsub
-
-# "test name" on stack
-startTestBlock subroutine
-	testMessage sto
-	0 localErrorCount sto
-	0 localSuccessCount sto
-	"Starting test block: " testMessage rcl + print
-	return
-endsub
-
-endTestBlock subroutine
-	"Test block ended: " testMessage rcl + print
-	"   block successes: " localSuccessCount rcl ->str + print
-	"   block failures : " localErrorCount   rcl ->str + print
-	allTestsDone gosub
-	return
-endsub
-
-# show stats
-showStats subroutine
-	"successes: " successCount rcl ->str + 
-	", errors: " + errorCount rcl ->str +
-	print
-	return
-endsub
-
-# log an error
-logError subroutine
-	errorCount rcl 1 + errorCount sto
-	localErrorCount rcl 1 + localErrorCount sto
-	"error " errorCount rcl ->str + ": " + testMessage rcl + print
-	return
-endsub
-
-# log a success
-logSuccess subroutine
-	successCount rcl 1 + successCount sto
-	localSuccessCount rcl 1 + localSuccessCount sto
-	return
-endsub
-
-# assert == is true
-assertEqual subroutine
-	== logSuccess logError 1 1 if gosub
-	return 
-endsub
 
 
 "basic tests 1" startTestBlock gosub
@@ -68,7 +7,7 @@ endsub
 	0 0 assertEqual gosub
 
 	logSuccess gosub
-	logError gosub
+	# logError gosub
 	logSuccess gosub
 
 endTestBlock gosub
@@ -76,7 +15,7 @@ endTestBlock gosub
 
 "basic tests 2" startTestBlock gosub
 
-	logError gosub
+	#logError gosub
 	logSuccess gosub
 	logSuccess gosub
 	showStats gosub
