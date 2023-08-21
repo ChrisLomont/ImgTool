@@ -210,9 +210,10 @@ vector<Command> imageCommands = {
 	{"flipx", "img -> img2, flip image", ImageOp},
 	{"flipy", "img -> img2, flip image", ImageOp},
 
-	{"blit", "dst src -> dst', copy pixels from src to dst, using Porter-Duff OVER operator", ImageOp},
-	{"blitc", "dst dx dy src -> dst' copy src pixels to dst, placing dest corner at dx dy", ImageOp },
-	{"blitr", "dst dx dy src x1 y1 w h  -> dst', copy rect from src x1 y1 w h to dst at dx dy", ImageOp },
+	{"blit", "src dst -> dst', copy pixels from src to dst", ImageOp},
+	{"blitc", "src dst dx dy -> dst' copy src pixels to dst, placing dest corner at dx dy", ImageOp },
+	{"blitr", "src x1 y1 w h dst dx dy -> dst', copy rect from src x1 y1 w h to dst at dx dy", ImageOp },
+	{"blitover", "src dst -> dst dx dy', alpha blend src OVER dst, at dx dy", ImageOp },
 
 	{"boundary", "img [r g b a] mode -> img', set sample boundary mode to color (with rgba), clamp, reflect, reverse, tile", ImageOp },
 

@@ -196,6 +196,9 @@
     <Text Include="..\tests\tests.txt">
       <Filter>tests</Filter>
     </Text>
+    <Text Include="..\examples\premult.txt">
+      <Filter>examples</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />

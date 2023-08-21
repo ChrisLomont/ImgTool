@@ -266,43 +266,56 @@ void ImageOp(State& s, const string& args)
 		for (int i = n - 1; i >= 0; --i)
 			s.Push((int)(Image::f64ToI(v[i])));
 	}
-	else if (args == "blit" || args == "blitc" || args == "blitr")
+	else if (args == "blit" || args == "blitc" || args == "blitr" || args == "blitover")
 	{
 		int dx = 0, dy = 0, x1 = 0, y1 = 0, w = 0, h = 0;
+		bool alphaBlend = false;
 		ImagePtr overImage{ nullptr }, underImage{ nullptr };
 		if (args == "blit")
 		{
-			//{"blit", "dst src -> dst', copy pixels from src to dst", ImageOp},
-			overImage = s.Pop<ImagePtr>();
+			//{"blit", "src dst -> dst', copy pixels from src to dst", ImageOp},
 			underImage = s.Pop<ImagePtr>();
+			overImage = s.Pop<ImagePtr>();
 			auto [w1, h1] = overImage->Size();
 			w = w1; h = h1;
 		}
 		else if (args == "blitc")
 		{
-			//{ "blitc", "dst dx dy src -> dst' copy src pixels to dst, placing dest corner at dx dy", ImageOp },
-			overImage = s.Pop<ImagePtr>();
+			//{ "blitc", "src dst dx dy -> dst' copy src pixels to dst, placing dest corner at dx dy", ImageOp },
 			dy = s.PopInt();
 			dx = s.PopInt();
 			underImage = s.Pop<ImagePtr>();
+			overImage = s.Pop<ImagePtr>();
 			auto [w1, h1] = overImage->Size();
 			w = w1; h = h1;
 		}
 		else if (args == "blitr")
 		{
-			//{ "blitr", "dst dx dy src x1 y1 w h  -> dst', copy rect from src x1 y1 w h to dst at dx dy", ImageOp },
+			//{ "blitr", "src x1 y1 w h dst dx dy -> dst', copy rect from src x1 y1 w h to dst at dx dy", ImageOp },
+			dy = s.PopInt();
+			dx = s.PopInt();
+			underImage = s.Pop<ImagePtr>();
+
 			h = s.PopInt();
 			w = s.PopInt();
 			y1 = s.PopInt();
 			x1 = s.PopInt();
-
 			overImage = s.Pop<ImagePtr>();
+		}
+		else if (args == "blitover")
+		{
+			//{ "blitover", "src dst -> dst dx dy', alpha blend src OVER dst, at dx dy", ImageOp },
 			dy = s.PopInt();
 			dx = s.PopInt();
 			underImage = s.Pop<ImagePtr>();
+			overImage = s.Pop<ImagePtr>();
+			auto [w1, h1] = overImage->Size();
+			w = w1; h = h1;
+			alphaBlend = true;
+
 		}
 
-		Blit(underImage, dx, dy, overImage, x1, y1, w, h);
+		Blit(underImage, dx, dy, overImage, x1, y1, w, h, alphaBlend);
 
 		s.Push(underImage);
 	}

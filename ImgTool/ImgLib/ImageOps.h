@@ -308,14 +308,25 @@ inline void AlphaCorrect(ImagePtr img, bool premultiplyAlpha)
 }
 
 
-inline void Blit(ImagePtr underImage, int dx, int dy, ImagePtr overImage, int x1, int y1, int w, int h)
+inline void Blit(
+	const ImagePtr& underImage, int dx, int dy, ImagePtr overImage, 
+	const int x1, int y1, int w, int h, 
+	bool alphaBlend)
 {
+	Color color;
 	for (int j = 0; j < h; ++j)
 		for (int i = 0; i < w; ++i)
 		{
 			auto overColor = overImage->Get(i + x1, j + y1);
-			auto underColor = underImage->Get(i + dx, j + dy);
-			auto color = Blend(underColor, overColor);
+			if (!alphaBlend)
+			{
+				color = overColor;
+			}
+			else 
+			{
+				auto underColor = underImage->Get(i + dx, j + dy);
+				color = Blend(underColor, overColor);
+			}
 			underImage->Set(i + dx, j + dy, color);
 		}
 }

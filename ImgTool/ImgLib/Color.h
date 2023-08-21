@@ -70,22 +70,23 @@ struct Color
 	}
 
 	// return a new color that is this one with premultiplied alpha
-	Color ToPremultipliedAlpha() const
+	[[nodiscard]] Color ToPremultipliedAlpha() const
 	{
-		if (std::abs(a) < 1e-20) return Color(0,0,0,0); // zero it all out
-		return Color(r * a, g * a, b * a, a);
+		if (std::abs(a) < 1e-20) return {0,0,0,0}; // zero it all out
+		return {r * a, g * a, b * a, a};
 	}
-	Color FromPremultipliedAlpha() const
+
+	[[nodiscard]] Color FromPremultipliedAlpha() const
 	{
-		if (std::abs(a) < 1e-20) return Color(0, 0, 0, 0); // zero it all out
-		return Color(r / a, g / a, b / a, a);
+		if (std::abs(a) < 1e-20) return {0, 0, 0, 0}; // zero it all out
+		return {r / a, g / a, b / a, a};
 	}
 
 };
 
 inline Color operator *(double w, const Color& c)
 {
-	return Color(w * c.r, w * c.g, w * c.b, w * c.a);
+	return {w * c.r, w * c.g, w * c.b, w * c.a};
 }
 
 inline Color operator *(const Color& c, double w)
@@ -95,5 +96,5 @@ inline Color operator *(const Color& c, double w)
 
 inline Color operator +(const Color& c1, const Color& c2)
 {
-	return Color(c1.r + c2.r, c1.g + c2.g, c1.b + c2.b, c1.a + c2.a);
+	return {c1.r + c2.r, c1.g + c2.g, c1.b + c2.b, c1.a + c2.a};
 }

@@ -373,7 +373,7 @@ public:
 	static Item ToItem(const string& text)
 	{
 		if (IsDouble(text))
-			return Item(ParseDouble(text));
+			return {ParseDouble(text)};
 		return Item(text);
 	}
 

@@ -167,14 +167,14 @@ public:
 	vslice<Color> Col(int col)
 	{
 		const auto colors = (Color*)data_.data();
-		return vslice<Color>(colors, col, w, h);
+		return {colors, col, w, h};
 	}
 	// get row, modifiable
 	// todo - make these understand boundary conditions also
 	vslice<Color> Row(int row)
 	{
 		const auto colors = (Color*)data_.data();
-		return vslice<Color>(colors, row * w, 1, w);
+		return {colors, row * w, 1, w};
 	}
 
 };
