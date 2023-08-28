@@ -187,7 +187,7 @@ double LanczosFunc(double v, int a)
 {
 	v = abs(v);
 	if (v >= a) return 0;
-	if (v == 0.0) return 1;
+	if (v < 1e-20) return 1; // todo - analyze cutoff
 	const double px = numbers::pi * v;
 	// todo - for near 0, use taylor series, compute a few and put here
 	return a * sin(px) * sin(px / a) / (px * px);
@@ -234,7 +234,7 @@ ImagePtr ResizeLanczosRadial(ImagePtr src, int w, int h, double a)
 
 
 
-ImagePtr ResizeLanczos(ImagePtr src, int w, int h, double a)
+ImagePtr ResizeLanczos(ImagePtr src, int w, int h, int a)
 {
 	// todo; - make using kernel?
 	const auto [w1, h1] = src->Size();
@@ -246,8 +246,8 @@ ImagePtr ResizeLanczos(ImagePtr src, int w, int h, double a)
 		{
 			// compute source index of pixel center:
 			const double px = (i + 0.5) * w1 / w2;
-			const int i0 = static_cast<int>(floor(px - a - 1));
-			const int i1 = i0 + 2 * a;
+			const int i0 = static_cast<int>(floor(px - a - 2));
+			const int i1 = i0 + 2 * a+1;
 			Color c(0, 0, 0, 0);
 			double total = 0.0;
 			for (int ii = i0; ii <= i1; ++ii)
@@ -257,8 +257,8 @@ ImagePtr ResizeLanczos(ImagePtr src, int w, int h, double a)
 				total += weight;
 				c += weight * src->Get(ii, j);
 			}
-			c = 1.0/total * c; // todo - div by 0 ?
-			c.a = 1; // todo - blend?
+			c /= total; // todo - div by 0 ?			
+			c.Clamp();
 			temp->Set(i, j, c);
 		}
 
@@ -270,8 +270,8 @@ ImagePtr ResizeLanczos(ImagePtr src, int w, int h, double a)
 		{
 			// compute source index of pixel center:
 			const double py = (j + 0.5) * h1 / h2;
-			const int j0 = static_cast<int>(floor(py - a - 1));
-			const int j1 = j0 + 2 * a;
+			const int j0 = static_cast<int>(floor(py - a - 2));
+			const int j1 = j0 + 2 * a+1;
 			Color c(0, 0, 0, 0);
 			double total = 0.0;
 			for (int jj = j0; jj <= j1; ++jj)
@@ -281,8 +281,8 @@ ImagePtr ResizeLanczos(ImagePtr src, int w, int h, double a)
 				total += weight;
 				c += weight * temp->Get(i, jj);
 			}
-			c = 1.0 / total * c; // todo - div by 0?
-			c.a = 1; // todo - blend?
+			c /= total; // todo - div by 0?			
+			c.Clamp();
 			dst->Set(i, j, c);
 		}
 	return dst;

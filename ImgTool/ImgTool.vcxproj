@@ -155,6 +155,7 @@
     <ClInclude Include="ImgLib\image_exception.h" />
     <ClInclude Include="ImgLib\ImgLib.h" />
     <ClInclude Include="ImgLib\rand.h" />
+    <ClInclude Include="ImgLib\Resampler2.h" />
     <ClInclude Include="ImgLib\Rotate.h" />
     <ClInclude Include="ImgLib\Translate.h" />
     <ClInclude Include="ImgLib\vslice.h" />
@@ -172,6 +173,7 @@
     <Text Include="..\scripts\example.txt" />
     <Text Include="..\scripts\gamma.txt" />
     <Text Include="..\scripts\playground.txt" />
+    <Text Include="..\tests\checkMathematica.txt" />
     <Text Include="..\tests\include1.txt" />
     <Text Include="..\tests\include2.txt" />
     <Text Include="..\tests\include3.txt" />

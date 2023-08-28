@@ -196,7 +196,7 @@ vector<Command> imageCommands = {
 	{"size","img -> w h, where w,h is size in pixels",ImageOp},
 
 	// image ops
-	{"resize","img w h style -> img', resize to w h by style nn,bilinear,bicubic,lanczos2,lanczos3,lanczos4,lanczos2r,lanczos3r,lanczos4r",ImageOp},
+	{"resize","img w h style -> img', resize to w h by style nn,bilinear[+],bicubic[+],lanczos2,lanczos3[+],lanczos4,lanczos2r,lanczos3r,lanczos4r",ImageOp},
 	{"resize%","img v style -> img', resize by v%, style as above",ImageOp},
 	{"resize*","img m style -> img', resize by multiplier m, style as above",ImageOp},
 

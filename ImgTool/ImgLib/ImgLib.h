@@ -10,3 +10,4 @@
 #include "ImageOps.h"
 #include "Draw.h"
 #include "rand.h"
+#include "Resampler2.h"

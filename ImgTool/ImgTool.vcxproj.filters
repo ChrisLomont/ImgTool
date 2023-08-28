@@ -134,6 +134,9 @@
     <ClInclude Include="ImgLib\ImageFormat.h">
       <Filter>Source Files\ImgLib</Filter>
     </ClInclude>
+    <ClInclude Include="ImgLib\Resampler2.h">
+      <Filter>Source Files\ImgLib</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\tests\testcsv.txt">
@@ -198,6 +201,9 @@
     </Text>
     <Text Include="..\examples\premult.txt">
       <Filter>examples</Filter>
+    </Text>
+    <Text Include="..\tests\checkMathematica.txt">
+      <Filter>tests</Filter>
     </Text>
   </ItemGroup>
   <ItemGroup>

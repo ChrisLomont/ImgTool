@@ -70,12 +70,16 @@ public:
 	//}
 	Image& operator=(const Image& img)
 	{
+		channels = img.channels;
+		imageFormat = img.imageFormat;
 		Resize(img.w, img.h);
 		data_ = img.data_; // does copy
 		return *this;
 	}
 	void Resize(int width, int height)
 	{
+		if (width <= 0 || height <= 0 || channels <= 1)
+			throw runtime_error("Invalid image size");
 		this->w = width;
 		this->h = height;
 		data_.resize(width * height * channels);

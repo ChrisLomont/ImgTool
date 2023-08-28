@@ -1,0 +1,50 @@
+# compare images to those from mathematica
+
+# save image filename
+# reverses alpha and colorspace
+writeOne subroutine
+	swap 
+	#alpha/
+	#linear colorspace
+	swap
+	write
+	return
+endsub
+
+# read filename
+# applies alpha and colorspace
+readOne subroutine
+	read
+	#sRGB colorspace
+	#alpha*
+	return
+endsub
+
+2 scalevalue sto
+
+# lenna img
+images\lenna.bmp readOne gosub
+
+# get 64x64 center
+size h sto w sto
+w rcl 2 / 32 -
+h rcl 2 / 32 -
+w rcl 2 / 31 +
+h rcl 2 / 31 +
+crop
+
+dup dup2 # makes 4 copies on stack
+
+scalevalue rcl nn resize* lenna_nn.png writeOne gosub
+
+scalevalue rcl bilinear resize* lenna_bilin.png writeOne gosub
+
+# todo - catmull rom: scalevalue rcl catmul resize* lenna_bilin.png writeOne gosub
+
+scalevalue rcl lanczos3 resize* lenna_lanc3.png writeOne gosub
+
+# show images on windows. Linux?
+#images\lenna.bmp system
+#lenna_nn.png system
+#lenna_bilin.png system
+#lenna_lanc3.png system

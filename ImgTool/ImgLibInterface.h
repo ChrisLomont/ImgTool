@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+
 #include "State.h"
 #include "ImgLib/ImgLib.h"
 #include "fmt/fmt/format.h"
@@ -56,18 +57,37 @@ void ResizeImage(State& s, const string& args)
 	if (method == "nn")
 		img = ResizeNN(img, w2, h2);
 	else if (method == "bilinear")
+	{
 		img = ResizeBilinear(img, w2, h2);
+	}
+	else if (method == "bilinear+")
+	{
+		Lomont::Resampler2::BilinearFilter filter;
+		img = Lomont::Resampler2::ResampleImage(img, w2, h2, filter, false, true);
+	}
 	else if (method == "bicubic")
+	{
 		img = ResizeBicubic(img, w2, h2);
+	}
+	else if (method == "bicubic+")
+	{
+		Lomont::Resampler2::BicubicFilter filter;
+		img = Lomont::Resampler2::ResampleImage(img, w2, h2, filter, false, true);
+	}
 	else if (method == "lanczos2")
 	{
-		img = ApplyFilter<Lanczos2>(img, w2, h2);
+		//img = ApplyFilter<Lanczos2>(img, w2, h2);
 		img = ResizeLanczos(img, w2, h2, 2);
 	}
 	else if (method == "lanczos3")
 	{
 		//img = ApplyFilter<Lanczos3>(img, w2, h2);
 		img = ResizeLanczos(img, w2, h2, 3);
+	}
+	else if (method == "lanczos3+")
+	{
+		Lomont::Resampler2::LanczosFilter filter(3);
+		img = Lomont::Resampler2::ResampleImage(img, w2, h2, filter, false, true);
 	}
 	else if (method == "lanczos4")
 	{
@@ -452,7 +472,11 @@ void ImageOp(State& s, const string& args)
 	{
 		ResizeImage(s, args);
 	}
-	else throw runtime_error("Unknown image op");
+	else if (args == "crop")
+	{
+		CropImage(s, args);
+	}
+	else throw runtime_error(fmt::format("Unknown image op {}",args));
 }
 
 

@@ -8,10 +8,10 @@ struct BoundaryMode {
 	enum class Mode
 	{
 		Color = 0,   // use color below
-		Clamped = 1,
+		Clamped = 1, // edge value repeats
 		Reflect = 2, // reflect edge, edge pixel only occurs once
 		Reverse = 3, // reflect edge, edge pixel occurs twice
-		Tile = 4     // 
+		Tile = 4     // tiled image
 	};
 	Mode mode{Mode::Reflect};
 	// color if mode is Color

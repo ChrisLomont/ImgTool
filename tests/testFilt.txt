@@ -1,0 +1,24 @@
+# test the filters
+
+images\lenna.bmp read 
+lenna sto # ok to be gamma
+
+
+lenna rcl 
+dup 
+0.5 bilinear resize* 2 bilinear resize*
+dup lenna_bilinear1.png write
+swap
+0.5 bilinear2 resize* 2 bilinear2 resize*
+dup lenna_bilinear2.png write
+
+- abs 50 * 0 1 clamp
+
+
+lennaFilterDiff.png write
+
+lennaFilterDiff.png system # show
+lenna_bilinear1.png system
+lenna_bilinear2.png system
+
+
