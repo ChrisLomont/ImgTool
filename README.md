@@ -31,7 +31,7 @@ Currently the PNG loader is [stb_image](https://github.com/nothings/stb/blob/mas
 Here's the current commands, obtained by running the tool without arguments.
 
 ```
-Chris Lomont's RPN image tool v0.4, https://github.com/ChrisLomont/ImgTool
+Chris Lomont's RPN image tool v0.5, https://github.com/ChrisLomont/ImgTool
 Usage: This is an RPN based image tool. Command args are RPN commands.
        Commands either on command line or run as -s filename
        --verbose to print more, 0=none, 1=info, 2=all
@@ -47,11 +47,11 @@ alpha/      : image -> image', reverses alpha pre-multiplication (0 alpha -> 0,0
 error       : im1 im2 errtype -> im1 im2 errval, prints error, errtype mse, psnr, ssim
 maxc        : img -> max, max value of all r,g,b values in image
 size        : img -> w h, where w,h is size in pixels
-resize      : img w h style -> img', resize to w h by style nn,bilinear,bicubic,lanczos2,lanczos3,lanczos4,lanczos2r,lanczos3r,lanczos4r
+resize      : img w h style -> img', resize to w h by style nn,bilinear[+],bicubic[+],lanczos2,lanczos3[+],lanczos4,lanczos2r,lanczos3r,lanczos4r
 resize%     : img v style -> img', resize by v%, style as above
 resize*     : img m style -> img', resize by multiplier m, style as above
 gaussian    : img radius -> img' , gaussian blur with given radius
-rotate      : img angle filter -> img', rotate image by angle degrees using filter nn,bilinear,bicubic
+rotate      : img angle filter -> img', rotate image by angle degrees using filter shear3, nn, bilinear, bicubic, dct
 shift       : img dx dy filter -> img', shift image by dx dy using filter (todo all nn for now)
 crop        : img x1 y1 x2 y2 -> img', crop image to rectangle (x1,y1)-(x2,y2) inclusive
 pad         : img top bottom left right r g b a -> img2, pad image with given color, given pixel margins

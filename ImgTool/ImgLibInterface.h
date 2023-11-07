@@ -212,16 +212,31 @@ void CropImage(State& s, const string& args)
 	auto x2 = s.PopInt();
 	auto y1 = s.PopInt();
 	auto x1 = s.PopInt();
-	if (x2 < x1) swap(x1, x2);
-	if (y2 < y1) swap(y1, y2);
 	const auto src = s.Pop<ImagePtr>();
-	auto [w, h] = src->Size();
-	int w2 = x2 - x1 + 1, h2 = y2 - y1 + 1;
-	const auto dst = Image::Make(w2, h2);
-	for (int j = 0; j < h2; ++j)
-		for (int i = 0; i < w2; ++i)
-			dst->Set(i, j, src->Get(i + x1, j + y1));
+	auto dst = CropImage(src, x1, y1, x2, y2);
 	s.Push(dst);
+}
+
+
+// crop to non-black pixel bounds
+ImagePtr CropToBounds(const ImagePtr& img, const Color& c = Color(0, 0, 0))
+{
+	auto [w, h] = img->Size();
+	int minx = w, maxx = 0, miny = h, maxy = 0;
+	for (int j = 0; j < h; ++j)
+		for (int i = 0; i < w; ++i)
+		{
+			auto color = img->Get(i, j);
+			if (color.r != c.r || color.g != c.g || color.b != c.b)
+			{
+				minx = std::min(minx, i);
+				maxx = std::max(maxx, i);
+				miny = std::min(miny, j);
+				maxy = std::max(maxy, j);
+			}
+		}
+	if (minx > maxx || miny > maxy) return Image::Make(img); // simply copy
+	return CropImage(img, minx, miny, maxx, maxy);
 }
 
 
@@ -500,6 +515,14 @@ void RotateImage(State& s, const string& args)
 	else if (filter == "bicubic")
 	{
 		img = RotateDest(img, radians, false, InterpBicubic);
+	}
+	else if (filter == "shear3")
+	{
+		img = Rotate3Shear(img, radians, false);
+	}
+	else if (filter == "dct")
+	{
+		img = RotateDest(img, radians, false, InterpDCT);
 	}
 	else
 		throw runtime_error("Unsupported rotate filter");

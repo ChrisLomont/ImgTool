@@ -29,7 +29,7 @@
 using namespace std;
 
 const int VERSION_MAJOR = 0;
-const int VERSION_MINOR = 4;
+const int VERSION_MINOR = 5;
 
 
 
@@ -202,7 +202,7 @@ vector<Command> imageCommands = {
 
 	{"gaussian","img radius -> img' , gaussian blur with given radius",ImageOp},
 
-	{"rotate","img angle filter -> img', rotate image by angle degrees using filter nn,bilinear,bicubic",ImageOp},
+	{"rotate","img angle filter -> img', rotate image by angle degrees using filter shear3, nn, bilinear, bicubic, dct",DrawOp},
 	{"shift","img dx dy filter -> img', shift image by dx dy using filter (todo all nn for now)",ImageOp},
 
 	{"crop","img x1 y1 x2 y2 -> img', crop image to rectangle (x1,y1)-(x2,y2) inclusive", ImageOp},
