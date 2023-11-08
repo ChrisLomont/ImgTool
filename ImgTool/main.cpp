@@ -182,7 +182,7 @@ x save/dump total psnr, results, etc....
 vector<Command> imageCommands = {
 	// image stuff
 	{"read","filename -> image, loads image",ImageOp},
-	{"write","image filename -> ,  outputs saved image",ImageOp},
+	{"write","image filename -> image,  outputs saved image",ImageOp},
 	{"image","w h r g b a -> image, makes image size w x h, color rgba in 0-1",ImageOp},
 	{"getpixel","img i j -> img r g b a, reads pixel 0-1",ImageOp},
 	{"setpixel","img i j r g b a -> img, writes pixel 0-1",ImageOp},
@@ -193,7 +193,7 @@ vector<Command> imageCommands = {
 
 	{"error","im1 im2 errtype -> im1 im2 errval, prints error, errtype mse, psnr, ssim",ImageOp},
 	{"maxc","img -> max, max value of all r,g,b values in image",ImageOp},
-	{"size","img -> w h, where w,h is size in pixels",ImageOp},
+	{"size","img -> img w h, where w,h is size in pixels",ImageOp},
 
 	// image ops
 	{"resize","img w h style -> img', resize to w h by style nn,bilinear[+],bicubic[+],lanczos2,lanczos3[+],lanczos4,lanczos2r,lanczos3r,lanczos4r",ImageOp},
@@ -206,7 +206,7 @@ vector<Command> imageCommands = {
 	{"shift","img dx dy filter -> img', shift image by dx dy using filter (todo all nn for now)",ImageOp},
 
 	{"crop","img x1 y1 x2 y2 -> img', crop image to rectangle (x1,y1)-(x2,y2) inclusive", ImageOp},
-	{"pad", "img top bottom left right r g b a -> img2, pad image with given color, given pixel margins", ImageOp},
+	{"pad", "img top bottom left right r g b a -> img2, pad image with given color, given pixel margins", DrawOp},
 	{"flipx", "img -> img2, flip image", ImageOp},
 	{"flipy", "img -> img2, flip image", ImageOp},
 

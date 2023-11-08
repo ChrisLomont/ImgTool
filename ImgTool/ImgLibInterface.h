@@ -255,6 +255,7 @@ void ImageOp(State& s, const string& args)
 		vector<uint8_t> data;
 		auto filename = s.Pop<string>();
 		auto img = s.Pop<ImagePtr>();
+		s.Push(img);
 		cout << "Writing " << filename << endl;
 		img->Save(filename);
 	}
@@ -644,6 +645,6 @@ void DrawOp(State& s, const string& args)
 	else if (args == "flipx" || args == "flipy") {
 		FlipImage(s, args);
 	}
-	else throw runtime_error("Unknown draw op");
+	else throw runtime_error("Unknown draw op: " + args);
 
 }
