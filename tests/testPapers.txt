@@ -1,0 +1,210 @@
+# test some paper results
+
+0 verbosity
+
+# Accurate image rotation using DCT transformation
+# Xing Fu, Yi Wan, 2015
+#
+# Table 1, rotate Lena, boat, crowd, peppers, 36 times by 2pi/36 each, psnr, ssim
+# Table 2, rotate Lena, boat, crowd, peppers, 12 times by 2pi/12 each, psnr, ssim
+# each using nearest, bilinear, bicubic (which?), hermite, DCT
+
+colorCorrect subroutine
+    linear colorspace
+    return
+endsub
+
+errorCorrect subroutine
+    YCbCr colorspace
+    return
+endsub
+
+# img, n, type does rotations
+rotateN subroutine    
+    timeus rot_start_time sto
+    1 rot_count rcl  rangeloop drop
+       360 rot_count rcl / rot_type rcl rotate
+    endloop
+    timeus rot_end_time sto
+    return
+endsub
+
+# filename, rot count, rot type
+runOne subroutine
+    rot_type sto
+    rot_count sto
+    dup rot_name sto
+    read 
+    
+    # color correct
+    colorCorrect gosub
+
+    reflect boundary
+
+    dup # 2 images on stack
+    
+    size h sto w sto
+
+    h rcl 2 / w rcl 2 / dup2 1 0 1 1 pad
+
+    # rotate 
+    rotateN gosub
+
+
+    # crop back to original size
+    w rcl 2 / h rcl 2 / w rcl 1.5 * 1 - h rcl 1.5 * 1 - crop
+
+    # to ssim space
+    errorCorrect gosub swap
+    errorCorrect gosub
+
+    "psnr" error "psnr" sto
+    "ssim" error "ssim" sto
+
+    # check error = 0 
+    # - 30 * 0 1 clamp
+
+    #"ans.bmp" write
+    #"ans.bmp" system
+    drop2
+
+    # output
+    rot_name rcl ", " +
+    rot_type rcl ", " + +
+    rot_count rcl ->str ", " + + 
+    psnr rcl ->str ", " + +
+    ssim rcl ->str ", " + +
+    swap ->str ", " + v1 sto # original
+    swap ->str ", " + v2 sto # original
+    v2 rcl +
+    v1 rcl +
+
+    rot_end_time rcl rot_start_time rcl - ->str ", " + +
+    
+    print
+    
+
+    return
+endsub
+
+runPaper1 subroutine
+
+# paper PSNR, SSIM, filename, steps, rotation type
+ #table 1, 36 steps
+24.20 0.8578 "images\lenna.bmp" 36 nn runOne gosub
+27.99 0.8965 "images\lenna.bmp" 36 bilinear runOne gosub
+32.43 0.9575 "images\lenna.bmp" 36 bicubic runOne gosub
+39.29 0.9780 "images\lenna.bmp" 36 dct runOne gosub
+
+23.63 0.8615 "images\boat.bmp" 36 nn runOne gosub
+27.25 0.8875 "images\boat.bmp" 36 bilinear runOne gosub
+32.00 0.9583 "images\boat.bmp" 36 bicubic runOne gosub
+39.53 0.9776 "images\boat.bmp" 36 dct runOne gosub
+
+18.71 0.8143 "images\crowd.bmp" 36 nn runOne gosub
+21.88 0.8282 "images\crowd.bmp" 36 bilinear runOne gosub
+26.42 0.9393 "images\crowd.bmp" 36 bicubic runOne gosub
+34.09 0.9805 "images\crowd.bmp" 36 dct runOne gosub
+
+24.03 0.8686 "images\peppers.bmp" 36 nn runOne gosub
+28.19 0.9186 "images\peppers.bmp" 36 bilinear runOne gosub
+34.34 0.978  "images\peppers.bmp" 36 bicubic runOne gosub
+42.22 0.9857 "images\peppers.bmp" 36 dct runOne gosub
+
+# table 2
+32.94 0.9729 "images\lenna.bmp" 12 nn runOne gosub
+30.53 0.9371 "images\lenna.bmp" 12 bilinear runOne gosub
+34.72 0.9747 "images\lenna.bmp" 12 bicubic runOne gosub
+42.87 0.9923 "images\lenna.bmp" 12 dct runOne gosub
+
+32.57 0.9753 "images\boat.bmp" 12 nn runOne gosub
+29.88 0.9337 "images\boat.bmp" 12 bilinear runOne gosub
+34.60 0.9783  "images\boat.bmp" 12 bicubic runOne gosub
+44.43 0.9940  "images\boat.bmp" 12 dct runOne gosub
+
+26.94 0.9632 "images\crowd.bmp" 12 nn runOne gosub
+24.37 0.8999 "images\crowd.bmp" 12 bilinear runOne gosub
+29.03 0.9682 "images\crowd.bmp" 12 bicubic runOne gosub
+37.48 0.9933 "images\crowd.bmp" 12 dct runOne gosub
+
+34.26 0.9823 "images\peppers.bmp" 12 nn runOne gosub
+31.54 0.9598 "images\peppers.bmp" 12 bilinear runOne gosub
+37.19 0.9890 "images\peppers.bmp" 12 bicubic runOne gosub
+46.99 0.9962 "images\peppers.bmp" 12 dct runOne gosub
+return
+endsub
+
+# runPaper1 gosub
+
+# FULLY REVERSIBLE IMAGE ROTATION BY 1-D FILTERING, Condat, De Ville, 2009
+# 9 steps of rotation, lena, barbara, baboon, lighthouse, goldhill, boat, 
+# PSNR, does interpolation and 3 shear versions, and times
+
+runPaper2 subroutine
+    9 rot_sides sto
+    31.57 0.0000 "images\lenna.bmp" rot_sides rcl bilinear runOne gosub
+    37.13 0.0000 "images\lenna.bmp" rot_sides rcl bicubic runOne gosub
+    # 40.26 0.0000 "images\lenna.bmp" rot_sides rcl sp3 runOne gosub
+
+    #24.67 0.0000 "images\barbara.bmp" rot_sides rcl bilinear runOne gosub
+    #27.55 0.0000 "images\barbara.bmp" rot_sides rcl bicubic runOne gosub
+    ## 31.29 0.0000 "images\barbara.bmp" rot_sides rcl sp3 runOne gosub
+
+    23.13 0.0000 "images\baboon.bmp" rot_sides rcl bilinear runOne gosub
+    26.46 0.0000 "images\baboon.bmp" rot_sides rcl bicubic runOne gosub
+    # 29.16 0.0000 "images\baboon.bmp" rot_sides rcl sp3 runOne gosub
+
+    24.49 0.0000 "images\lighthouse.bmp" rot_sides rcl bilinear runOne gosub
+    29.29 0.0000 "images\lighthouse.bmp" rot_sides rcl bicubic runOne gosub
+    # 33.20 0.0000 "images\lighthouse.bmp" rot_sides rcl sp3 runOne gosub
+
+    29.97 0.0000 "images\goldhill.bmp" rot_sides rcl bilinear runOne gosub
+    34.01 0.0000 "images\goldhill.bmp" rot_sides rcl bicubic runOne gosub
+    # 36.89 0.0000 "images\goldhill.bmp" rot_sides rcl sp3 runOne gosub
+
+    28.17 0.0000 "images\boat.bmp" rot_sides rcl bilinear runOne gosub
+    32.80 0.0000 "images\boat.bmp" rot_sides rcl bicubic runOne gosub
+    # 35.44 0.0000 "images\boat.bmp" rot_sides rcl sp3 runOne gosub
+
+return
+endsub
+
+runPaper2 gosub
+
+
+
+
+# to linear colorspace before rotate, to YCbCr on compare
+#images\lenna.bmp, nn, 36, 24.192824659734438, 0.8119438316591856, 24.2, 0.8578, 2474376,
+#images\lenna.bmp, bilinear, 36, 28.67010832756387, 0.8828904911256535, 27.99, 0.8965, 2328628,
+#images\lenna.bmp, bicubic, 36, 34.25061247285577, 0.9779488348928764, 32.43, 0.9575, 5179920,
+#images\lenna.bmp, dct, 36, 38.99473583417847, 0.9960331759013392, 39.29, 0.978, 659652641,
+#images\boat.bmp, nn, 36, 21.444790010092717, 0.7078475379074793, 23.63, 0.8615, 2416834,
+#images\boat.bmp, bilinear, 36, 24.789972106735746, 0.7786088894470142, 27.25, 0.8875, 2273902,
+#images\boat.bmp, bicubic, 36, 29.273074027348027, 0.9588496951682158, 32, 0.9583, 5168455,
+#images\boat.bmp, dct, 36, 33.62702449768201, 0.9927797802892651, 39.53, 0.9776, 666529439,
+#images\crowd.bmp, nn, 36, 20.921766978108174, 0.787410357019516, 18.71, 0.8143, 2940644,
+#images\crowd.bmp, bilinear, 36, 25.128870663315922, 0.8558635494913521, 21.88, 0.8282, 2445935,
+#images\crowd.bmp, bicubic, 36, 31.677995649395815, 0.9819569048111854, 26.42, 0.9393, 5667334,
+#images\crowd.bmp, dct, 36, 37.865074488015196, 0.997524979087046, 34.09, 0.9805, 726261984,
+#images\peppers.bmp, nn, 36, 24.007338144444187, 0.8288807296039622, 24.03, 0.8686, 2678206,
+#images\peppers.bmp, bilinear, 36, 28.177657569696734, 0.9108608588839145, 28.19, 0.9186, 2493001,
+#images\peppers.bmp, bicubic, 36, 32.64936412034336, 0.9841654437284004, 34.34, 0.978, 5560215,
+#images\peppers.bmp, dct, 36, 36.67225938922658, 0.9963120209201032, 42.22, 0.9857, 737459975,
+#images\lenna.bmp, nn, 12, 33.62490423184559, 0.9799250867237683, 32.94, 0.9729, 999857,
+#images\lenna.bmp, bilinear, 12, 31.78201732271196, 0.95075054391453, 30.53, 0.9371, 1049023,
+#images\lenna.bmp, bicubic, 12, 36.645956120374265, 0.9906402625715748, 34.72, 0.9747, 1953767,
+#images\lenna.bmp, dct, 12, 42.42797942292845, 0.9992171298463431, 42.87, 0.9923, 236630970,
+#images\boat.bmp, nn, 12, 29.644578930957014, 0.9628500322738563, 32.57, 0.9753, 815164,
+#images\boat.bmp, bilinear, 12, 27.27220119486104, 0.9041344790632109, 29.88, 0.9337, 818379,
+#images\boat.bmp, bicubic, 12, 31.488523841296843, 0.9836337391585728, 34.6, 0.9783, 1814410,
+#images\boat.bmp, dct, 12, 36.94246714193754, 0.9981981918633478, 44.43, 0.994, 234201726,
+#images\crowd.bmp, nn, 12, 30.8338807047217, 0.987030455197258, 26.94, 0.9632, 847002,
+#images\crowd.bmp, bilinear, 12, 28.556159312497602, 0.9472132779177493, 24.37, 0.8999, 839318,
+#images\crowd.bmp, bicubic, 12, 34.86085575623512, 0.99399204692333, 29.03, 0.9682, 1838364,
+#images\crowd.bmp, dct, 12, 43.20105532879629, 0.9997007118153117, 37.48, 0.9933, 236988302,
+#images\peppers.bmp, nn, 12, 32.18961424438403, 0.9764594719479665, 34.26, 0.9823, 866810,
+#images\peppers.bmp, bilinear, 12, 30.826914430238425, 0.9645627067697229, 31.54, 0.9598, 809964,
+#images\peppers.bmp, bicubic, 12, 34.513705136077405, 0.993028693354825, 37.19, 0.989, 1908368,
+#images\peppers.bmp, dct, 12, 38.7528284139042, 0.998709491264233, 46.99, 0.9962, 230427872,
+

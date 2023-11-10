@@ -205,6 +205,9 @@
     <Text Include="..\tests\checkMathematica.txt">
       <Filter>tests</Filter>
     </Text>
+    <Text Include="Text.txt">
+      <Filter>tests</Filter>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />

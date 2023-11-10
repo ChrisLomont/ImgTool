@@ -190,6 +190,7 @@
     <Text Include="..\tests\testInclude.txt" />
     <Text Include="..\tests\test2.txt" />
     <Text Include="..\tests\tests.txt" />
+    <Text Include="Text.txt" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\README.md" />
