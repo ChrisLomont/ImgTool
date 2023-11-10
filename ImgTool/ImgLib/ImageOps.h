@@ -10,6 +10,7 @@
 #include "filters.h"
 #include "ImageMetrics.h"
 #include "Image.h"
+#include "Utils.h"
 
 using namespace std; // todo - remove
 
@@ -396,7 +397,6 @@ ImagePtr RotateDest(const ImagePtr& src, double angleInRadians, bool expand, Int
 	double cdx, cdy;
 	if (expand)
 	{
-
 		// compute center of dest image
 		// want integer or half integer the same as src image to align pixels better
 		// embed in circle inside square image
@@ -428,7 +428,6 @@ ImagePtr RotateDest(const ImagePtr& src, double angleInRadians, bool expand, Int
 			//if (i2*i2 + j2*j2 >= r * r)
 			//	continue; // not in frame
 
-
 			// position in source image (rotate dx,dy)
 			const double sx = cc * dx - ss * dy + csx;
 			const double sy = ss * dx + cc * dy + csy;
@@ -438,7 +437,6 @@ ImagePtr RotateDest(const ImagePtr& src, double angleInRadians, bool expand, Int
 			c.Clamp();
 			dst->Set(i, j, c);
 		}
-
 	return dst;
 }
 Color Interp(const Color& c1, const Color& c2, double interp)
@@ -447,31 +445,45 @@ Color Interp(const Color& c1, const Color& c2, double interp)
 }
 
 // interpolate the pixel location
+// x,y is transformed pixel center
 Color InterpNN(const ImagePtr& src, double x, double y)
 {
+	x -= 0.5; // go from pixel centers to pixel indices
+	y -= 0.5; 
 	const int si = round(x);
 	const int sj = round(y);
 	return src->Get( si, sj);
 }
+
+// split a pixel real number, in 0.5 centered coords,
+// to an integer pixel index and offset, in 0,0 centered coords
+// use with auto[ix,fx] = SplitPixelFrac(x)
+std::pair<int32_t,double> SplitPixelFrac(double x)
+{
+	const double px = x - 0.5; // offset to pixel
+	
+	int32_t ix = (int32_t)floor(px);
+	double fx = px - ix;
+	return std::pair<int32_t, double>(ix, fx);
+}
+
 // interpolate the pixel location
+// x,y are at pixel centers
 Color InterpBilinear(const ImagePtr& src, double x, double y)
 {
-	// todo - this not quite bilin? check carefully
-	const int si = floor(x);
-	const int sj = floor(y);
-	const double fi = x - si;
-	const double fj = y - sj;
+	const auto [xi, xf] = SplitPixelFrac(x);
+	const auto [yi, yf] = SplitPixelFrac(y);
 
-	const auto c00 = src->Get(si, sj);
-	const auto c10 = src->Get( si + 1, sj);
+	const auto c00 = src->Get(xi, yi);
+	const auto c10 = src->Get(xi + 1, yi);
 
-	const auto c01 = src->Get(si, sj + 1);
-	const auto c11 = src->Get(si + 1, sj + 1);
+	const auto c01 = src->Get(xi, yi + 1);
+	const auto c11 = src->Get(xi + 1, yi + 1);
 
 	auto color = Interp(
-		Interp(c00, c10, fi),
-		Interp(c01, c11, fi),
-		fj);
+		Interp(c00, c10, xf),
+		Interp(c01, c11, xf),
+		yf);
 	color.a = 1;
 	return color;
 }
@@ -483,13 +495,8 @@ Color InterpBilinear(const ImagePtr& src, double x, double y)
 // uses Keys bicubic, a = -0.5, most common (?)
 Color InterpBicubic(const ImagePtr& src, double x, double y)
 {
-	// https://en.wikipedia.org/wiki/Bicubic_interpolation
-
-	// todo - this not quite bicub? check carefully
-	const int si = floor(x);
-	const int sj = floor(y);
-	const double tx = x - si; // in 0-1
-	const double ty = y - sj;
+	const auto [xi, xf] = SplitPixelFrac(x);
+	const auto [yi, yf] = SplitPixelFrac(y);
 
 	// interp
 	auto p = [](double t, Color c0, Color c1, Color c2, Color c3) {
@@ -519,15 +526,15 @@ Color InterpBicubic(const ImagePtr& src, double x, double y)
 	};
 	// sample
 	auto f = [&](int di, int dj) {
-		return src->Get( si + di, sj + dj);
+		return src->Get( xi + di, yi + dj);
 	};
 
 	// bn = b_{-1}
-	const auto bn = p(tx, f(-1, -1), f(+0, -1), f(+1, -1), f(2, -1));
-	const auto b0 = p(tx, f(-1, +0), f(+0, +0), f(+1, +0), f(2, +0));
-	const auto b1 = p(tx, f(-1, +1), f(+0, +1), f(+1, +1), f(2, +1));
-	const auto b2 = p(tx, f(-1, +2), f(+0, +2), f(+1, +2), f(2, +2));
-	return p(ty, bn, b0, b1, b2);
+	const auto bn = p(xf, f(-1, -1), f(+0, -1), f(+1, -1), f(2, -1));
+	const auto b0 = p(xf, f(-1, +0), f(+0, +0), f(+1, +0), f(2, +0));
+	const auto b1 = p(xf, f(-1, +1), f(+0, +1), f(+1, +1), f(2, +1));
+	const auto b2 = p(xf, f(-1, +2), f(+0, +2), f(+1, +2), f(2, +2));
+	return p(yf, bn, b0, b1, b2);
 }
 
 
@@ -663,12 +670,9 @@ Color EvalIDCT(const ImagePtr& src, float s, float t, int n)
 
 
 Color InterpDCT(const ImagePtr& src, double x, double y)
-{   
-	// todo - check carefully
-	int si = (int)floor(x);
-	int sj = (int)floor(y);
-	double tx = x - si; // in 0-1
-	double ty = y - sj;
+{
+	const auto [xi, xf] = SplitPixelFrac(x);
+	const auto [yi, yf] = SplitPixelFrac(y);
 
 	// 9x9 size
 	const int n = 9;
@@ -676,7 +680,7 @@ Color InterpDCT(const ImagePtr& src, double x, double y)
 	ImagePtr g = Image::Make(n, n);
 	for (int j = 0; j < n; ++j)
 		for (int i = 0; i < n; ++i)
-			f->Set(i, j, src->Get(si + i - n / 2, sj + j - n / 2));
+			f->Set(i, j, src->Get(xi + i - n / 2, yi + j - n / 2));
 	for (int row = 0; row < n; ++row)
 	{
 		auto gr = g->Row(row); // cannot ref temp var
@@ -689,7 +693,7 @@ Color InterpDCT(const ImagePtr& src, double x, double y)
 	}
 
 	// eval the inverse at tx,ty
-	return EvalIDCT(f, tx + n / 2, ty + n / 2, n);
+	return EvalIDCT(f, xf + n / 2, yf + n / 2, n);
 }
 
 

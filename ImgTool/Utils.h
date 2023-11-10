@@ -6,6 +6,14 @@
 
 using namespace std; // todo - remove
 
+// math utility:
+
+// sign of value -1,0,1
+template <typename T> int sgn(T val) {
+	return (T(0) < val) - (val < T(0));
+} // https://stackoverflow.com/questions/1903954/is-there-a-standard-sign-function-signum-sgn-in-c-c
+
+
 /*----------------- Utils -------------------------------*/
 //namespace {
 inline string ToUpper(const string& text)

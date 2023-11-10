@@ -2,6 +2,7 @@
 #include <string>
 #include "State.h"
 #include "fmt/fmt/format.h"
+#include "Utils.h"
 using namespace std; // todo remove
 /*------------------------ Eval and operations -------------------------*/
 template<typename R> using NonaryFunc = function<R()>;
@@ -166,9 +167,6 @@ dbl, img
 
 */
 
-template <typename T> int sgn(T val) {
-	return (T(0) < val) - (val < T(0));
-} // https://stackoverflow.com/questions/1903954/is-there-a-standard-sign-function-signum-sgn-in-c-c
 const vector<OpDef> opDefs = {
 	{"abs",{
 		[](double v) { return abs(v); },

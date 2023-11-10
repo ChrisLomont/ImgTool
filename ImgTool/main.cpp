@@ -296,61 +296,77 @@ void ShowUsage(const RPNLanguage & rpnProcessor)
 
 int main(int argc, char** argv)
 {
-	cout << fmt::format("Chris Lomont's RPN image tool v{}.{}, https://github.com/ChrisLomont/ImgTool\n", VERSION_MAJOR, VERSION_MINOR);
+	int retval = -1;
 
-	RPNLanguage rpnProcessor(VERSION_MAJOR, VERSION_MINOR);
+	try {
 
-	// prepare commands	
-	rpnProcessor.commandList.insert(rpnProcessor.commandList.end(), imageCommands.begin(), imageCommands.end());
-	rpnProcessor.commandList.insert(rpnProcessor.commandList.end(), drawCommands.begin(), drawCommands.end());
-	rpnProcessor.commandList.insert(rpnProcessor.commandList.end(), csvCommands.begin(), csvCommands.end());
-	rpnProcessor.commandList.insert(rpnProcessor.commandList.end(), mathCommands.begin(), mathCommands.end());
-	rpnProcessor.commandList.insert(rpnProcessor.commandList.end(), logicCommands.begin(), logicCommands.end());
-	rpnProcessor.BaseCommands(); // todo - make these cleaner, or by default...
-	rpnProcessor.CommandsDone();
+		cout << fmt::format("Chris Lomont's RPN image tool v{}.{}, https://github.com/ChrisLomont/ImgTool\n", VERSION_MAJOR, VERSION_MINOR);
 
-	
+		//cout << "Current path " << fs::current_path() << endl;
 
-	if (argc <= 1)
-	{
-		ShowUsage(rpnProcessor);
-		return -1;
-	}
-	bool verbose = false;
+		RPNLanguage rpnProcessor(VERSION_MAJOR, VERSION_MINOR);
 
-	State s;
+		// prepare commands	
+		rpnProcessor.commandList.insert(rpnProcessor.commandList.end(), imageCommands.begin(), imageCommands.end());
+		rpnProcessor.commandList.insert(rpnProcessor.commandList.end(), drawCommands.begin(), drawCommands.end());
+		rpnProcessor.commandList.insert(rpnProcessor.commandList.end(), csvCommands.begin(), csvCommands.end());
+		rpnProcessor.commandList.insert(rpnProcessor.commandList.end(), mathCommands.begin(), mathCommands.end());
+		rpnProcessor.commandList.insert(rpnProcessor.commandList.end(), logicCommands.begin(), logicCommands.end());
+		rpnProcessor.BaseCommands(); // todo - make these cleaner, or by default...
+		rpnProcessor.CommandsDone();
 
-	int argpos = 1; // skip initial exe
-	while (argpos < argc && argv[argpos][0] == '-')
-	{ // parse options
-		string opt(argv[argpos]);
-		argpos++;
-		if (opt == "-s")
+
+
+		if (argc <= 1)
 		{
-			cout << "Executing script " << argv[argpos] << endl;
-			rpnProcessor.GetScriptTokens(s.tokens, argv[argpos++]);
-		}
-		else if (opt == "--verbose")
-		{
-			cout << "Verbose = true\n";
-			verbose = true;
-		}
-		else if (opt == "-a")
-		{
-			string t(argv[argpos++]);
-			s.args.push_back(RPNLanguage::ToItem(t));
-		}
-		else {
-			cerr << fmt::format("Unknown option {}\n", opt);
+			ShowUsage(rpnProcessor);
 			return -1;
 		}
-	}
-	// tokenize any other command line options
-	for (int i = argpos; i < argc; ++i)
-		s.tokens.emplace_back(argv[i]);
+		bool verbose = false;
 
-	cout << "Current path is " << fs::current_path() << '\n';
-	const auto retval = rpnProcessor.Process(s, verbose) ? 1 : 0;
+		State s;
+
+		int argpos = 1; // skip initial exe
+		while (argpos < argc && argv[argpos][0] == '-')
+		{ // parse options
+			string opt(argv[argpos]);
+			argpos++;
+			if (opt == "-s")
+			{
+				cout << "Executing script " << argv[argpos] << endl;
+				rpnProcessor.GetScriptTokens(s.tokens, argv[argpos++]);
+			}
+			else if (opt == "--verbose")
+			{
+				cout << "Verbose = true\n";
+				verbose = true;
+			}
+			else if (opt == "-a")
+			{
+				string t(argv[argpos++]);
+				s.args.push_back(RPNLanguage::ToItem(t));
+			}
+			else {
+				cerr << fmt::format("Unknown option {}\n", opt);
+				return -1;
+			}
+		}
+		// tokenize any other command line options
+		for (int i = argpos; i < argc; ++i)
+			s.tokens.emplace_back(argv[i]);
+		cout << "Current path is " << fs::current_path() << '\n';
+		retval = rpnProcessor.Process(s, verbose) ? 1 : 0;
+	}
+	catch (runtime_error & e)
+	{
+		cerr << "Exception: ";
+		cerr << e.what();
+		cerr << "\n";		
+	}
+	catch (...)
+	{
+		cerr << "Exception: unknown exception \n";
+	}
 	cout << "Done\n";
 	return retval;
 }
