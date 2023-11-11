@@ -28,6 +28,12 @@
     <Filter Include="Source Files\ImgLib">
       <UniqueIdentifier>{4269c59a-376d-44f5-b277-842d2cc009c1}</UniqueIdentifier>
     </Filter>
+    <Filter Include="images">
+      <UniqueIdentifier>{a12ef7b0-5333-4e0b-9393-ae2d33f6b7a5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="images\Kodak">
+      <UniqueIdentifier>{034eec3e-bb48-47da-ba51-025c62341a51}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

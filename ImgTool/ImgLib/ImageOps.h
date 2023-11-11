@@ -488,6 +488,40 @@ Color InterpBilinear(const ImagePtr& src, double x, double y)
 	return color;
 }
 
+/* Many cubics:
+ * History:
+ * B-splines family, range from blurry to the blocky Hermite
+ * Cardinal family, compromises between blocking and ringing, Catmull-Rom evolved as a good one
+ * These two merged into Keys family (Catmull-Rom = Keys = alpha=0.5), B-Spline (alpha = 0,0)
+ *    preserves linear gradients well, ringing and possible blurring on strong edges
+ * Mitchell-Netravali, 2 parameters B for B-spline and C for Cardinal, includes above
+ *    B 
+ *    
+ *
+ *
+ * Mitchell–Netravali filters or BC-splines (many variants under here)
+ * (B,C):
+ *    0,any => Cardinal splines
+ *	  line from 1,0 to 0,0.5 are the Keys family
+ *	  0,0.5 => Catmull-Rom spline (one of the Cubic Hermite Splines?)
+ *	  0,0.75 => unnamed, bicubic in photoshop
+ *	  1/3,1/3 => Mitchell-Netravali, a Keys family filter, MN tested experts, found best
+ *	  1,0 => B-spline (is this any, 0, for all bspline flavors?)
+ * others: https://en.wikipedia.org/wiki/Bicubic_interpolation
+ * Keys (also called Catmull Rom?)
+ *
+ * Check these?!
+ * Add Robidoux, Roubidoux sharp
+ * Robidoux	0.3782	0.3109
+ * Robidoux Sharp	0.2620	0.3690
+ * Robidoux Soft	0.6796	0.1602
+ * hermite = 0,0?
+ *
+ * Hermite? B-spline?, Bezier? Natural? some in https://www.hao-li.com/cs420-fs2014/slides/Lecture04.2.pdf
+ *
+ * read See “General Filtered Image Rescaling” by Dale Schumacher from Graphics Gems III for a seminal description of the issue and elegant code
+ */
+
 
 // todo - allow other types, use mitchell B,C parameterization?
 // for t in 0-1

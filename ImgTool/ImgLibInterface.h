@@ -169,10 +169,6 @@ void PadImage(State& s, const string& args)
 	auto [w, h] = img->Size();
 	const auto dst = Image::Make(left + w + right, top + h + bottom);
 	dst->Apply([&](int i, int j) {
-		if (i < left || j < top)
-		{
-
-		}
 		return img->Get(i - left, j - top);
 		});
 	s.Push(dst);

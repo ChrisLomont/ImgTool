@@ -1,8 +1,9 @@
 # test some paper results
+# run from ImgTool dir with x64\Release\ImgTool.exe -s tests\testPapers.txt
 
 0 verbosity
 
-# Accurate image rotation using DCT transformation
+# PAPER 1: Accurate image rotation using DCT transformation
 # Xing Fu, Yi Wan, 2015
 #
 # Table 1, rotate Lena, boat, crowd, peppers, 36 times by 2pi/36 each, psnr, ssim
@@ -11,6 +12,7 @@
 
 colorCorrect subroutine
     linear colorspace
+    #YCbCr colorspace
     return
 endsub
 
@@ -34,25 +36,65 @@ runOne subroutine
     rot_type sto
     rot_count sto
     dup rot_name sto
-    read 
-    
+    read     
+
     # color correct
     colorCorrect gosub
+
+
 
     reflect boundary
 
     dup # 2 images on stack
+
+    # 0 0 getpixel "A" 5 printn
+
     
     size h sto w sto
 
-    h rcl 2 / w rcl 2 / dup2 1 0 1 1 pad
+    # compute radius for rotation
+    h rcl 2 / dup * w rcl 2 / dup * + sqrt
+    # double to diameter - this is image side length
+    2 * 
+    # round up, make space
+    2 + ceil
+
+    rot_sidelen sto
+
+    # padding top, bottom, left, right
+    rot_sidelen rcl h rcl - 2 / 1 + ceil dup rot_top_crop sto dup
+    rot_sidelen rcl w rcl - 2 / 1 + ceil dup rot_left_crop sto dup
+
+    # 0 0 0 0
+
+    # pad color, pad
+    0 0 0 1 pad
+
+    #0 0 getpixel "B" 5 printn
+    #swap 0 0 getpixel "C" 5 printn
+    #swap
+
+    # depth printn halt
+
+    #"dbg1.png" write
+    # swap "dbg1b.png" write swap
+    
+   # depth printn halt
 
     # rotate 
     rotateN gosub
 
+    dup rot_answer sto # save one
 
-    # crop back to original size
-    w rcl 2 / h rcl 2 / w rcl 1.5 * 1 - h rcl 1.5 * 1 - crop
+    # crop back to original size    
+    rot_left_crop rcl rot_top_crop rcl # x1,y1
+
+    rot_answer rcl size drop swap drop # width on stack
+    rot_left_crop rcl - 1 - # x2
+    rot_answer rcl size swap drop swap drop # height on stack
+    rot_top_crop rcl -  1 - # y2
+    
+    crop
 
     # to ssim space
     errorCorrect gosub swap
@@ -60,6 +102,7 @@ runOne subroutine
 
     "psnr" error "psnr" sto
     "ssim" error "ssim" sto
+
 
     # check error = 0 
     # - 30 * 0 1 clamp
@@ -90,7 +133,7 @@ endsub
 runPaper1 subroutine
 
 # paper PSNR, SSIM, filename, steps, rotation type
- #table 1, 36 steps
+#table 1, 36 steps
 24.20 0.8578 "images\lenna.bmp" 36 nn runOne gosub
 27.99 0.8965 "images\lenna.bmp" 36 bilinear runOne gosub
 32.43 0.9575 "images\lenna.bmp" 36 bicubic runOne gosub
@@ -136,44 +179,9 @@ endsub
 
 # runPaper1 gosub
 
-# FULLY REVERSIBLE IMAGE ROTATION BY 1-D FILTERING, Condat, De Ville, 2009
-# 9 steps of rotation, lena, barbara, baboon, lighthouse, goldhill, boat, 
-# PSNR, does interpolation and 3 shear versions, and times
-
-runPaper2 subroutine
-    9 rot_sides sto
-    31.57 0.0000 "images\lenna.bmp" rot_sides rcl bilinear runOne gosub
-    37.13 0.0000 "images\lenna.bmp" rot_sides rcl bicubic runOne gosub
-    # 40.26 0.0000 "images\lenna.bmp" rot_sides rcl sp3 runOne gosub
-
-    #24.67 0.0000 "images\barbara.bmp" rot_sides rcl bilinear runOne gosub
-    #27.55 0.0000 "images\barbara.bmp" rot_sides rcl bicubic runOne gosub
-    ## 31.29 0.0000 "images\barbara.bmp" rot_sides rcl sp3 runOne gosub
-
-    23.13 0.0000 "images\baboon.bmp" rot_sides rcl bilinear runOne gosub
-    26.46 0.0000 "images\baboon.bmp" rot_sides rcl bicubic runOne gosub
-    # 29.16 0.0000 "images\baboon.bmp" rot_sides rcl sp3 runOne gosub
-
-    24.49 0.0000 "images\lighthouse.bmp" rot_sides rcl bilinear runOne gosub
-    29.29 0.0000 "images\lighthouse.bmp" rot_sides rcl bicubic runOne gosub
-    # 33.20 0.0000 "images\lighthouse.bmp" rot_sides rcl sp3 runOne gosub
-
-    29.97 0.0000 "images\goldhill.bmp" rot_sides rcl bilinear runOne gosub
-    34.01 0.0000 "images\goldhill.bmp" rot_sides rcl bicubic runOne gosub
-    # 36.89 0.0000 "images\goldhill.bmp" rot_sides rcl sp3 runOne gosub
-
-    28.17 0.0000 "images\boat.bmp" rot_sides rcl bilinear runOne gosub
-    32.80 0.0000 "images\boat.bmp" rot_sides rcl bicubic runOne gosub
-    # 35.44 0.0000 "images\boat.bmp" rot_sides rcl sp3 runOne gosub
-
-return
-endsub
-
-runPaper2 gosub
 
 
-
-
+# paper 1 results
 # to linear colorspace before rotate, to YCbCr on compare
 #images\lenna.bmp, nn, 36, 24.192824659734438, 0.8119438316591856, 24.2, 0.8578, 2474376,
 #images\lenna.bmp, bilinear, 36, 28.67010832756387, 0.8828904911256535, 27.99, 0.8965, 2328628,
@@ -207,4 +215,113 @@ runPaper2 gosub
 #images\peppers.bmp, bilinear, 12, 30.826914430238425, 0.9645627067697229, 31.54, 0.9598, 809964,
 #images\peppers.bmp, bicubic, 12, 34.513705136077405, 0.993028693354825, 37.19, 0.989, 1908368,
 #images\peppers.bmp, dct, 12, 38.7528284139042, 0.998709491264233, 46.99, 0.9962, 230427872,
+
+
+# PAPER 2: FULLY REVERSIBLE IMAGE ROTATION BY 1-D FILTERING, Condat, De Ville, 2009
+# 9 steps of rotation, lena, barbara, baboon, lighthouse, goldhill, boat, 
+# PSNR, does interpolation and 3 shear versions, and times
+
+runPaper2 subroutine
+    9 rot_sides sto
+    31.57 0.0000 "images\lenna.bmp" rot_sides rcl bilinear runOne gosub
+    37.13 0.0000 "images\lenna.bmp" rot_sides rcl bicubic runOne gosub
+    # 40.26 0.0000 "images\lenna.bmp" rot_sides rcl sp3 runOne gosub
+
+    #24.67 0.0000 "images\barbara.bmp" rot_sides rcl bilinear runOne gosub
+    #27.55 0.0000 "images\barbara.bmp" rot_sides rcl bicubic runOne gosub
+    ## 31.29 0.0000 "images\barbara.bmp" rot_sides rcl sp3 runOne gosub
+
+    23.13 0.0000 "images\baboon.bmp" rot_sides rcl bilinear runOne gosub
+    26.46 0.0000 "images\baboon.bmp" rot_sides rcl bicubic runOne gosub
+    # 29.16 0.0000 "images\baboon.bmp" rot_sides rcl sp3 runOne gosub
+
+    24.49 0.0000 "images\lighthouse.bmp" rot_sides rcl bilinear runOne gosub
+    29.29 0.0000 "images\lighthouse.bmp" rot_sides rcl bicubic runOne gosub
+    # 33.20 0.0000 "images\lighthouse.bmp" rot_sides rcl sp3 runOne gosub
+
+    29.97 0.0000 "images\goldhill.bmp" rot_sides rcl bilinear runOne gosub
+    34.01 0.0000 "images\goldhill.bmp" rot_sides rcl bicubic runOne gosub
+    # 36.89 0.0000 "images\goldhill.bmp" rot_sides rcl sp3 runOne gosub
+
+    28.17 0.0000 "images\boat.bmp" rot_sides rcl bilinear runOne gosub
+    32.80 0.0000 "images\boat.bmp" rot_sides rcl bicubic runOne gosub
+    # 35.44 0.0000 "images\boat.bmp" rot_sides rcl sp3 runOne gosub
+
+    return
+endsub
+
+# runPaper2 gosub
+
+
+# paper 2
+#images\lenna.bmp, bilinear, 9, 32.75899440961937, 0.9632638833913875, 31.57, 0, 586331,
+#images\lenna.bmp, bicubic, 9, 37.50334955343377, 0.9933263359794343, 37.13, 0, 1450340,
+#images\baboon.bmp, bilinear, 9, 19.123978174233066, 0.24463983990202143, 23.13, 0, 577793,
+#images\baboon.bmp, bicubic, 9, 18.452484713077784, 0.2122973901915432, 26.46, 0, 1357400,
+#images\lighthouse.bmp, bilinear, 9, 23.232310631440612, 0.8886646231242382, 24.49, 0, 606841,
+#images\lighthouse.bmp, bicubic, 9, 27.991560338541, 0.9784475272767121, 29.29, 0, 1447591,
+#images\goldhill.bmp, bilinear, 9, 13.421902543266338, 0.3227452126390667, 29.97, 0, 1121977,
+#images\goldhill.bmp, bicubic, 9, 13.325746514499093, 0.3048277649178131, 34.01, 0, 2612104,
+#images\boat.bmp, bilinear, 9, 28.115324289735636, 0.9291554205491572, 28.17, 0, 607456,
+#images\boat.bmp, bicubic, 9, 32.281821249126345, 0.9884155152320978, 32.8, 0, 1448061,
+
+
+
+# PAPER 3: FULLY REVERSIBLE IMAGE ROTATION BY 1-D FILTERING, Condat, De Ville, 2009
+# 9 steps of rotation, lena, barbara, baboon, lighthouse, goldhill, boat, 
+# PSNR, does interpolation and 3 shear versions, and times
+# A Fresh Look at Generalized Sampling, Diego Nehab, Hugues Hoppe, 2014, https://hhoppe.com/filtering.pdf
+# Table 10.1, many kernels (TODO) avg over four Kodak and concentric circles as in fig 8.2
+#
+# more details in his earlier techincal report: https://hhoppe.com/filteringtr.pdf, which has the data we use
+# kodak images K05, K08, K19, K23, CIR (his own circle) image
+# 31 rotations 
+# and “CIR” is the radial function f = 1 + cos( (4πr/5) 4^(−r/n))
+# extended data in unabridged data https://hhoppe.com/filtering_supplemental.pdf
+# https://www.math.purdue.edu/~lucier/PHOTO_CD/
+#
+# NOTE: Hoppe writes "As figure 8.2 demonstrates, prefiltering is best done in luminance space and 
+# reconstruction is best done in lightness space." Is this theory or experiment?
+# Luminance is linear light, lightness is the human perception (gamma compressed space?)
+# see Blinn, James, NTSC: Nice Technology, Super Color, Dirty Pixels
+# relevant items 
+# Column1	Column2	Column3	Column4	Column5	Column6	Column7	Column8	Column9	Column10	Column11	Column12	Column13	Column14	Column15	Column16		Column1	Column2	Column3	Column4	Column5	Column6	Column7	Column8	Column9	Column10	Column11	Column12	Column13	Column14	Column15	Column16
+#		Properties			Repeated translations					Repeated rotations				Upscaling	Average				Properties			Repeated translations					Repeated rotations				Upscaling	Average
+# Kernel	N	W	L	CIR	K05	K08	K19	K23	CIR	K05	K08	K19	K23	CIR	AVG		Kernel	N	W	L	CIR	K05	K08	K19	K23	CIR	K05	K08	K19	K23	CIR	AVG
+# 
+# nearest	0	1	1	0.042	0.102	0.087	0.367	0.560	0.547	0.654	0.633	0.731	0.851	0.586	0.469		nearest	0	1	1	8.37	13.68	11.75	16.98	16.84	11.78	20.80	19.01	23.10	25.88	19.17	17.03
+# linear	1	2	2	0.391	0.480	0.449	0.623	0.847	0.540	0.721	0.698	0.787	0.908	0.864	0.664		linear	1	2	2	13.39	21.67	19.65	24.02	28.70	14.40	23.94	22.06	26.12	29.31	20.97	22.20
+# mitchell	3	4	2	0.581	0.599	0.554	0.685	0.881	0.625	0.761	0.733	0.810	0.921	0.881	0.730		mitchell	3	4	2	14.90	22.93	20.78	25.05	30.11	15.23	24.62	22.68	26.74	30.04	21.14	23.11
+# keys	3	4	3	0.822	0.782	0.710	0.792	0.930	0.894	0.900	0.869	0.905	0.963	0.882	0.859		keys	3	4	3	18.50	25.36	22.73	27.13	33.02	20.52	27.96	25.81	30.25	33.59	21.25	26.01
+#
+#
+
+runPaper3 subroutine
+    31 rot_sides sto
+    "images\" rot_path sto
+
+    20.80 0.654 rot_path rcl "Kodak_05.bmp" + rot_sides rcl nn runOne gosub
+    19.01 0.633 rot_path rcl "Kodak_08.bmp" + rot_sides rcl nn runOne gosub
+    23.10 0.731 rot_path rcl "Kodak_19.bmp" + rot_sides rcl nn runOne gosub
+    25.88 0.851 rot_path rcl "Kodak_23.bmp" + rot_sides rcl nn runOne gosub
+    23.94 0.721 rot_path rcl "Kodak_05.bmp" + rot_sides rcl bilinear runOne gosub
+    22.06 0.698 rot_path rcl "Kodak_08.bmp" + rot_sides rcl bilinear runOne gosub
+    26.12 0.787 rot_path rcl "Kodak_19.bmp" + rot_sides rcl bilinear runOne gosub
+    29.31 0.908 rot_path rcl "Kodak_23.bmp" + rot_sides rcl bilinear runOne gosub
+
+    return
+endsub
+
+runPaper3 gosub
+
+# paper 3 results
+#images\Kodak_05.bmp, nn, 31, 13.17442170184953, 0.1372811595034082, 20.8, 0.654, 81606189,
+#images\Kodak_08.bmp, nn, 31, 9.471819713503569, 0.07572706694305358, 19.01, 0.633, 85890028,
+#images\Kodak_19.bmp, nn, 31, 14.341302494916091, 0.3898459811478065, 23.1, 0.731, 87680419,
+#images\Kodak_23.bmp, nn, 31, 12.005193821555263, 0.3810220828903507, 25.88, 0.851, 83555729,
+#images\Kodak_05.bmp, bilinear, 31, 13.401252593313446, 0.14056231143149112, 23.94, 0.721, 98947423,
+#images\Kodak_08.bmp, bilinear, 31, 9.744381694157461, 0.07859515866893023, 22.06, 0.698, 93385257,
+#images\Kodak_19.bmp, bilinear, 31, 14.617584418647693, 0.3954748654064574, 26.12, 0.787, 85628391,
+#images\Kodak_23.bmp, bilinear, 31, 12.036312154603387, 0.3833577192171965, 29.31, 0.908, 87409234,
+
 
